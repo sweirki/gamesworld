@@ -1,7 +1,7 @@
 import React from "react";
 import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
-import { getColors } from "../theme/index";
 import { LinearGradient } from "expo-linear-gradient";
+import { sweirkiTheme } from "../theme/sweirkiTheme";
 
 interface Props {
   onNumberPress: (n: number) => void | Promise<void>;
@@ -12,30 +12,38 @@ interface Props {
   onTogglePencil?: () => void;
 }
 
+const { colors, fonts, radius } = sweirkiTheme;
 
 export default function NumberPad({ onNumberPress, disabledNumbers }: Props) {
-  const colors = getColors();
   const nums = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+  const isDisabled = (n: number) =>
+    disabledNumbers?.includes(n) || disabledNumbers?.includes(String(n));
 
   return (
     <View style={styles.wrapper}>
-      {nums.map((n) => (
-       <TouchableOpacity
-  key={n}
-  activeOpacity={0.75}
-  disabled={disabledNumbers?.includes(n) || disabledNumbers?.includes(String(n))}
-  style={[styles.touch, (disabledNumbers?.includes(n) || disabledNumbers?.includes(String(n))) && { opacity: 0.35 }]}
-  onPress={() => !disabledNumbers?.includes(n) && onNumberPress(n)}
->
+      {nums.map((n) => {
+        const disabled = isDisabled(n);
 
-          <LinearGradient
-            colors={[colors.card, colors.card]}
-            style={[styles.btn, { borderColor: colors.gold }]}
+        return (
+          <TouchableOpacity
+            key={n}
+            activeOpacity={0.78}
+            disabled={disabled}
+            style={[styles.touch, disabled && styles.disabledTouch]}
+            onPress={() => {
+              if (!disabled) onNumberPress(n);
+            }}
           >
-            <Text style={[styles.txt, { color: colors.textPrimary }]}>{n}</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      ))}
+            <LinearGradient
+              colors={colors.heroGradient}
+              style={[styles.button, disabled && styles.disabledButton]}
+            >
+              <Text style={[styles.number, disabled && styles.disabledNumber]}>{n}</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 }
@@ -46,33 +54,44 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
-    paddingHorizontal: 6,
+    paddingHorizontal: 12,
     marginTop: 4,
     paddingBottom: 14,
   },
-
   touch: {
-    width: "26%",          // slimmer buttons, more breathing room
-    marginVertical: 6,
+    width: "30.5%",
+    marginHorizontal: 4,
+    marginVertical: 5,
     alignItems: "center",
   },
-
-  btn: {
+  disabledTouch: {
+    opacity: 0.34,
+  },
+  button: {
     width: "100%",
-    height: 46,            // smaller than before (was 56)
-    borderRadius: 12,
-    borderWidth: 1.5,      // lighter gold outline
+    height: 46,
+    borderRadius: radius.soft,
+    borderWidth: 1.2,
+    borderColor: colors.borderCyanStrong,
     justifyContent: "center",
     alignItems: "center",
+    shadowColor: colors.shadowSoft,
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
     elevation: 2,
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    shadowOffset: { width: 0, height: 1 },
   },
-
-  txt: {
-    fontSize: 18,
-    fontWeight: "700",
+  disabledButton: {
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  number: {
+    fontFamily: fonts.bold,
+    fontSize: 22,
+    lineHeight: 28,
+    color: colors.inkDeep,
+  },
+  disabledNumber: {
+    color: colors.textMuted,
   },
 });
-

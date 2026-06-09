@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,9 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { collection, getDocs, limit, query } from "firebase/firestore";
 import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 import { auth, db } from "../firebase";
+import { sweirkiTheme } from "./theme/sweirkiTheme";
 
 /* ================= TYPES ================= */
 
@@ -22,6 +24,18 @@ type GameEntry = {
   errors: number;
   date: string;
 };
+
+/* ================= THEME ================= */
+
+const T = sweirkiTheme;
+const C = T.colors;
+const F = T.fonts;
+const R = T.radius;
+const S = T.spacing;
+
+/* ================= ASSETS ================= */
+
+const bgAsset = T.assets.homeBackground;
 
 /* ================= HELPERS ================= */
 
@@ -66,39 +80,90 @@ function normalizeLocalGame(item: any, index: number): GameEntry {
   };
 }
 
+function normalizeMode(mode: string) {
+  const clean = mode.toLowerCase().trim();
+  if (clean === "xsudoku" || clean === "x-sudoku") return "x";
+  if (clean === "daily challenge") return "daily";
+  return clean || "classic";
+}
+
+function modeTitle(mode: string) {
+  const clean = normalizeMode(mode);
+  switch (clean) {
+    case "classic":
+      return "Classic";
+    case "daily":
+      return "Daily";
+    case "hyper":
+      return "Hyper";
+    case "killer":
+      return "Killer";
+    case "x":
+      return "X Sudoku";
+    default:
+      return clean.charAt(0).toUpperCase() + clean.slice(1);
+  }
+}
+
+function modeSubtitle(mode: string) {
+  const clean = normalizeMode(mode);
+  switch (clean) {
+    case "classic":
+      return "Original Sudoku";
+    case "daily":
+      return "Daily challenge";
+    case "hyper":
+      return "Fast pressure";
+    case "killer":
+      return "Cage logic";
+    case "x":
+      return "Diagonal mastery";
+    default:
+      return "Sudoku session";
+  }
+}
+
+function modeVisual(mode: string): {
+  icon: keyof typeof Ionicons.glyphMap;
+  bg: string;
+  border: string;
+  color: string;
+} {
+  const clean = normalizeMode(mode);
+  switch (clean) {
+    case "daily":
+      return { icon: "calendar-clear-outline", bg: "#F2ECFF", border: "#D8C9FF", color: C.purple };
+    case "hyper":
+      return { icon: "flash-outline", bg: "#F0ECFF", border: "#D7CCFF", color: C.purple };
+    case "killer":
+      return { icon: "grid-outline", bg: "#FFF6E4", border: "#F8DCA5", color: C.gold };
+    case "x":
+      return { icon: "git-compare-outline", bg: "#EAFBF8", border: "#BDEEE5", color: "#38BFA7" };
+    default:
+      return { icon: "apps-outline", bg: "#EAF8FF", border: "#BDEBFF", color: C.cyanDeep };
+  }
+}
+
 function formatTime(sec: number) {
   const safe = Math.max(0, Math.floor(sec || 0));
-  const m = Math.floor(safe / 60);
+  const h = Math.floor(safe / 3600);
+  const m = Math.floor((safe % 3600) / 60);
   const s = safe % 60;
+
+  if (h > 0) return `${h}h ${m}m`;
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
 function formatDate(iso: string) {
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "Unknown date";
+  if (Number.isNaN(d.getTime())) return "Unknown";
 
   const diff = Math.floor((Date.now() - d.getTime()) / (1000 * 60 * 60 * 24));
   if (diff === 0) return "Today";
   if (diff === 1) return "Yesterday";
   if (diff < 0) return d.toLocaleDateString();
-  return `${diff}d ago`;
-}
-
-function modeIcon(mode: string) {
-  switch (mode) {
-    case "classic":
-      return "🧩";
-    case "daily":
-      return "📅";
-    case "hyper":
-      return "⚡";
-    case "killer":
-      return "☠️";
-    case "x":
-      return "❌";
-    default:
-      return "🎮";
-  }
+  if (diff < 7) return `${diff} days ago`;
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
 function fastestWin(history: GameEntry[]) {
@@ -109,6 +174,15 @@ function fastestWin(history: GameEntry[]) {
 function fewestErrors(history: GameEntry[]) {
   const wins = history.filter((game) => game.win).map((game) => game.errors);
   return wins.length ? Math.min(...wins) : "--";
+}
+
+function totalPlayTime(history: GameEntry[]) {
+  const total = history.reduce((sum, game) => sum + Math.max(0, game.time || 0), 0);
+  return total ? formatTime(total) : "--";
+}
+
+function winCount(history: GameEntry[]) {
+  return history.filter((game) => game.win).length;
 }
 
 /* ================= SCREEN ================= */
@@ -175,21 +249,24 @@ export default function HistoryScreen() {
     load();
   }, []);
 
+  const summaryLine = useMemo(() => {
+    if (!history.length) return "Your latest completed games will appear here.";
+    return `${history.length} games • ${winCount(history)} wins • Best ${fastestWin(history)}`;
+  }, [history]);
+
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#FBE7A1" />
-      </View>
+      <ImageBackground source={bgAsset} style={styles.bg} resizeMode="cover">
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={C.cyanStrong} />
+          <Text style={styles.loadingText}>Loading history...</Text>
+        </View>
+      </ImageBackground>
     );
   }
 
   return (
-    <ImageBackground source={require("../assets/bg.png")} style={styles.bg} blurRadius={3}>
-      <LinearGradient
-        colors={["rgba(0,0,40,0.75)", "transparent"]}
-        style={StyleSheet.absoluteFillObject}
-      />
-
+    <ImageBackground source={bgAsset} style={styles.bg} resizeMode="cover">
       <FlatList
         data={history}
         keyExtractor={(item) => item.id}
@@ -197,85 +274,118 @@ export default function HistoryScreen() {
         contentContainerStyle={styles.container}
         ListHeaderComponent={
           <>
-            <Text style={styles.title}>Game History</Text>
-            <Text style={styles.subtitle}>Your recent games and personal records</Text>
+            <LinearGradient colors={C.heroGradient as any} style={styles.heroCard}>
+              <View style={styles.heroCopy}>
+                <Text style={styles.kicker}>RECENT RUNS</Text>
+                <Text style={styles.title}>History</Text>
+                <Text style={styles.subtitle}>{summaryLine}</Text>
+              </View>
+
+              <View style={styles.heroBadge}>
+                <Ionicons name="time-outline" size={34} color={C.cyanDeep} />
+              </View>
+            </LinearGradient>
 
             {history.length === 0 ? (
-              <View style={styles.empty}>
-                <Text style={styles.emptyText}>No games played yet</Text>
+              <View style={styles.emptyCard}>
+                <View style={styles.emptyBadge}>
+                  <Ionicons name="sparkles-outline" size={32} color={C.cyanDeep} />
+                </View>
+                <Text style={styles.emptyTitle}>No games yet</Text>
+                <Text style={styles.emptyText}>Finish a Sudoku run and your recent results will appear here.</Text>
               </View>
             ) : (
               <>
-                <View style={styles.card}>
-                  <Text style={styles.cardTitle}>Personal Bests</Text>
-
-                  <StatRow label="Fastest Win" value={fastestWin(history)} />
-                  <StatRow label="Fewest Errors" value={fewestErrors(history)} />
+                <View style={styles.compactStatsCard}>
+                  <CompactStat icon="grid-outline" label="Games" value={history.length} />
+                  <CompactStat icon="trophy-outline" label="Wins" value={winCount(history)} />
+                  <CompactStat icon="flash-outline" label="Best" value={fastestWin(history)} />
+                  <CompactStat icon="stopwatch-outline" label="Time" value={totalPlayTime(history)} />
                 </View>
 
-                <Text style={styles.sectionTitle}>Recent Games</Text>
+                <View style={styles.bestStrip}>
+                  <View style={styles.bestItem}>
+                    <Text style={styles.bestLabel}>Fewest errors</Text>
+                    <Text style={styles.bestValue}>{fewestErrors(history)}</Text>
+                  </View>
+                  <View style={styles.bestDivider} />
+                  <View style={styles.bestItem}>
+                    <Text style={styles.bestLabel}>Showing</Text>
+                    <Text style={styles.bestValue}>Last 50</Text>
+                  </View>
+                </View>
+
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>Recent Games</Text>
+                  <Text style={styles.sectionMeta}>{history.length} runs</Text>
+                </View>
               </>
             )}
           </>
         }
-        renderItem={({ item }) => (
-          <View style={styles.row}>
-            <View>
-              <Text style={styles.mode}>
-                {modeIcon(item.mode)} {item.mode.toUpperCase()}
-              </Text>
-              <Text
-                style={[
-                  styles.date,
-                  formatDate(item.date) === "Today" && {
-                    color: "#FBE7A1",
-                  },
-                ]}
-              >
-                {formatDate(item.date)}
-              </Text>
-            </View>
-
-            <View style={styles.result}>
-              <Text
-                style={[
-                  styles.time,
-                  { color: item.win ? "#2ECC71" : "#E74C3C" },
-                ]}
-              >
-                {formatTime(item.time)}
-              </Text>
-
-              <Text
-                style={[
-                  styles.errors,
-                  {
-                    color:
-                      item.errors === 0
-                        ? "#2ECC71"
-                        : item.errors <= 2
-                        ? "#F1C40F"
-                        : "#E67E22",
-                  },
-                ]}
-              >
-                {item.errors} errors
-              </Text>
-            </View>
-          </View>
-        )}
+        renderItem={({ item }) => <HistoryRow item={item} />}
       />
     </ImageBackground>
   );
 }
 
-/* ================= SMALL COMPONENT ================= */
+/* ================= SMALL COMPONENTS ================= */
 
-function StatRow({ label, value }: { label: string; value: string | number }) {
+function CompactStat({
+  icon,
+  label,
+  value,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  value: string | number;
+}) {
   return (
-    <View style={styles.statRow}>
-      <Text style={styles.statLabel}>{label}</Text>
-      <Text style={styles.statValue}>{value}</Text>
+    <View style={styles.compactStat}>
+      <View style={styles.compactIcon}>
+        <Ionicons name={icon} size={17} color={C.cyanDeep} />
+      </View>
+      <View>
+        <Text style={styles.compactValue}>{value}</Text>
+        <Text style={styles.compactLabel}>{label}</Text>
+      </View>
+    </View>
+  );
+}
+
+function HistoryRow({ item }: { item: GameEntry }) {
+  const cleanMode = normalizeMode(item.mode);
+  const cleanWin = item.win;
+  const cleanErrors = Math.max(0, item.errors || 0);
+  const visual = modeVisual(cleanMode);
+
+  return (
+    <View style={styles.row}>
+      <View style={[styles.modeIconBox, { backgroundColor: visual.bg, borderColor: visual.border }]}>
+        <Ionicons name={visual.icon} size={24} color={visual.color} />
+      </View>
+
+      <View style={styles.rowMiddle}>
+        <View style={styles.rowTitleLine}>
+          <Text style={styles.mode}>{modeTitle(cleanMode)}</Text>
+          <View style={[styles.resultBadge, cleanWin ? styles.winBadge : styles.lossBadge]}>
+            <Text style={[styles.resultBadgeText, cleanWin ? styles.winText : styles.lossText]}>
+              {cleanWin ? "Win" : "Loss"}
+            </Text>
+          </View>
+        </View>
+        <Text style={styles.modeSub} numberOfLines={1}>{modeSubtitle(cleanMode)}</Text>
+        <Text style={[styles.date, formatDate(item.date) === "Today" && styles.todayText]}>
+          {formatDate(item.date)}
+        </Text>
+      </View>
+
+      <View style={styles.result}>
+        <Text style={styles.time}>{formatTime(item.time)}</Text>
+        <Text style={[styles.errors, cleanErrors === 0 && styles.cleanErrors]}>
+          {cleanErrors === 0 ? "Clean" : `${cleanErrors} ${cleanErrors === 1 ? "error" : "errors"}`}
+        </Text>
+      </View>
     </View>
   );
 }
@@ -286,115 +396,323 @@ const styles = StyleSheet.create({
   bg: { flex: 1 },
 
   container: {
-    padding: 20,
-    paddingTop: 40,
+    paddingHorizontal: T.layout.screenPaddingX,
+    paddingTop: 70,
+    paddingBottom: T.layout.screenPaddingBottom,
   },
 
   center: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#061B3A",
   },
 
-  title: {
-    fontFamily: "BalooBold",
-    fontSize: 24,
-    color: "#FBE7A1",
-    textAlign: "center",
+  loadingText: {
+    marginTop: S.md,
+    fontFamily: F.regular,
+    color: C.textSoft,
+    fontSize: 15,
+  },
+
+  heroCard: {
+    minHeight: 140,
+    borderRadius: R.hero,
+    borderWidth: 1.2,
+    borderColor: C.borderCyanStrong,
+    paddingVertical: 20,
+    paddingHorizontal: 22,
+    marginBottom: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    overflow: "hidden",
+    ...T.shadows.glassCard,
+  },
+
+  heroCopy: {
+    flex: 1,
+    paddingRight: 12,
+  },
+
+  kicker: {
+    fontFamily: F.bold,
+    fontSize: 11,
+    letterSpacing: 3,
+    color: C.cyanDeep,
     marginBottom: 6,
   },
 
-  subtitle: {
-    fontFamily: "BalooRegular",
-    fontSize: 11,
-    color: "rgba(255,255,255,0.7)",
-    textAlign: "center",
-    marginBottom: 24,
+  title: {
+    fontFamily: F.bold,
+    fontSize: 34,
+    lineHeight: 38,
+    color: C.inkDeep,
+    marginBottom: 5,
   },
 
-  sectionTitle: {
+  subtitle: {
+    fontFamily: F.regular,
     fontSize: 14,
-    fontWeight: "800",
-    color: "#FBE7A1",
+    lineHeight: 20,
+    color: C.text,
+  },
+
+  heroBadge: {
+    width: 70,
+    height: 70,
+    borderRadius: 24,
+    backgroundColor: "rgba(234,248,255,0.92)",
+    borderWidth: 1,
+    borderColor: C.borderCyanStrong,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  compactStatsCard: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    backgroundColor: C.glassStrong,
+    borderRadius: R.card,
+    borderWidth: 1,
+    borderColor: C.borderCyan,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     marginBottom: 10,
   },
 
-  empty: {
-    marginTop: 60,
+  compactStat: {
+    width: "50%",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+  },
+
+  compactIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 14,
+    backgroundColor: "rgba(221,247,255,0.82)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 9,
+  },
+
+  compactValue: {
+    fontFamily: F.bold,
+    fontSize: 20,
+    lineHeight: 22,
+    color: C.inkDeep,
+  },
+
+  compactLabel: {
+    fontFamily: F.regular,
+    fontSize: 12,
+    color: C.textSoft,
+    marginTop: -1,
+  },
+
+  bestStrip: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.88)",
+    borderRadius: R.soft,
+    borderWidth: 1,
+    borderColor: "rgba(91,202,245,0.20)",
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginBottom: 18,
+  },
+
+  bestItem: {
+    flex: 1,
+  },
+
+  bestLabel: {
+    fontFamily: F.regular,
+    fontSize: 12,
+    color: C.textSoft,
+  },
+
+  bestValue: {
+    fontFamily: F.bold,
+    fontSize: 16,
+    color: C.inkDeep,
+    marginTop: -1,
+  },
+
+  bestDivider: {
+    width: 1,
+    alignSelf: "stretch",
+    backgroundColor: "rgba(91,202,245,0.22)",
+    marginHorizontal: 12,
+  },
+
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    marginBottom: 10,
+    paddingHorizontal: 4,
+  },
+
+  sectionTitle: {
+    fontFamily: F.bold,
+    fontSize: 23,
+    lineHeight: 26,
+    color: C.inkDeep,
+  },
+
+  sectionMeta: {
+    fontFamily: F.bold,
+    fontSize: 12,
+    color: C.cyanDeep,
+  },
+
+  emptyCard: {
+    backgroundColor: C.glassStrong,
+    borderRadius: R.card,
+    borderWidth: 1.2,
+    borderColor: C.borderCyanStrong,
+    padding: 24,
     alignItems: "center",
   },
 
-  emptyText: {
-    color: "rgba(255,255,255,0.7)",
-    fontSize: 14,
-  },
-
-  card: {
-    width: "100%",
-    backgroundColor: "rgba(0,0,40,0.6)",
-    borderRadius: 18,
-    padding: 20,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.25)",
-  },
-
-  cardTitle: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: "#FBE7A1",
+  emptyBadge: {
+    width: 58,
+    height: 58,
+    borderRadius: 22,
+    backgroundColor: "rgba(221,247,255,0.86)",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 12,
   },
 
-  statRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 8,
+  emptyTitle: {
+    fontFamily: F.bold,
+    fontSize: 23,
+    color: C.inkDeep,
+    marginBottom: 5,
   },
 
-  statLabel: {
-    color: "rgba(255,255,255,0.75)",
-    fontSize: 13,
-  },
-
-  statValue: {
-    color: "#FFFFFF",
-    fontSize: 13,
-    fontWeight: "800",
+  emptyText: {
+    fontFamily: F.regular,
+    color: C.text,
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: "center",
   },
 
   row: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.08)",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.94)",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(91,202,245,0.22)",
+    paddingVertical: 11,
+    paddingHorizontal: 12,
+    marginBottom: 9,
+  },
+
+  modeIconBox: {
+    width: 46,
+    height: 46,
+    borderRadius: 17,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 11,
+  },
+
+  rowMiddle: {
+    flex: 1,
+    minWidth: 0,
+  },
+
+  rowTitleLine: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 0,
   },
 
   mode: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: "#FFFFFF",
-    marginBottom: 4,
+    fontFamily: F.bold,
+    fontSize: 18,
+    lineHeight: 21,
+    color: C.inkDeep,
+    marginRight: 7,
+  },
+
+  modeSub: {
+    fontFamily: F.regular,
+    fontSize: 13,
+    lineHeight: 16,
+    color: C.text,
+    marginBottom: 0,
   },
 
   date: {
-    fontSize: 11,
-    color: "rgba(255,255,255,0.6)",
+    fontFamily: F.regular,
+    fontSize: 12,
+    lineHeight: 15,
+    color: C.textMuted,
+  },
+
+  todayText: {
+    color: C.cyanDeep,
+    fontFamily: F.bold,
+  },
+
+  resultBadge: {
+    borderRadius: R.pill,
+    paddingHorizontal: 7,
+    paddingVertical: 1,
+  },
+
+  winBadge: {
+    backgroundColor: "#DFF8EF",
+  },
+
+  lossBadge: {
+    backgroundColor: "#FFECEC",
+  },
+
+  resultBadgeText: {
+    fontFamily: F.bold,
+    fontSize: 10,
+    lineHeight: 14,
+  },
+
+  winText: {
+    color: "#1E9F68",
+  },
+
+  lossText: {
+    color: "#D85C5C",
   },
 
   result: {
     alignItems: "flex-end",
+    minWidth: 62,
+    marginLeft: 8,
   },
 
   time: {
-    fontSize: 15,
-    fontWeight: "800",
+    fontFamily: F.bold,
+    fontSize: 18,
+    lineHeight: 21,
+    color: C.inkDeep,
   },
 
   errors: {
+    fontFamily: F.bold,
     fontSize: 12,
-    marginTop: 2,
+    lineHeight: 16,
+    color: "#D98916",
+    marginTop: 1,
+  },
+
+  cleanErrors: {
+    color: "#1E9F68",
   },
 });

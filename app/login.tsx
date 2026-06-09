@@ -8,7 +8,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Image,
   ImageBackground,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -102,17 +101,9 @@ export default function Login() {
           style={styles.keyboardView}
         >
           <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-            <View style={styles.logoWrap}>
-              <Image
-                source={require("../assets/branding/logo-symbol.png")}
-                style={styles.symbol}
-                resizeMode="contain"
-              />
-              <Image
-                source={require("../assets/branding/sweirki-home-logo.png")}
-                style={styles.logo}
-                resizeMode="contain"
-              />
+            <View style={styles.brandWrap}>
+              <Text style={styles.brandTitle}>SWEIRKI</Text>
+              <Text style={styles.brandSubtitle}>SUDOKU</Text>
             </View>
 
             <View style={styles.card}>
@@ -196,25 +187,33 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
     paddingVertical: 44,
   },
-  logoWrap: {
+  brandWrap: {
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 24,
   },
-  symbol: {
-    width: 72,
-    height: 72,
-    marginBottom: -10,
+  brandTitle: {
+    fontFamily: "BalooBold",
+    color: "#2F73DF",
+    fontSize: 48,
+    letterSpacing: 2.5,
+    lineHeight: 54,
+    textShadowColor: "rgba(255,255,255,0.95)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
   },
-  logo: {
-    width: 295,
-    height: 110,
+  brandSubtitle: {
+    color: "#2F73DF",
+    fontSize: 18,
+    fontWeight: "900",
+    letterSpacing: 9,
+    marginLeft: 9,
   },
   card: {
     width: "100%",
     maxWidth: 430,
     borderRadius: 30,
     padding: 22,
-    backgroundColor: "rgba(255,255,255,0.82)",
+    backgroundColor: "rgba(255,255,255,0.84)",
     borderWidth: 1,
     borderColor: "rgba(142, 216, 255, 0.46)",
     shadowColor: "#51C8FF",

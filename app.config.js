@@ -17,8 +17,10 @@ export default ({ config }) => ({
   scheme: "sweirki",
   icon: "./assets/branding/app-icon.png",
 
+  // Native launch splash shown before the React splash.tsx screen.
+  // Large source icon is used as the default splash asset.
   splash: {
-    image: "./assets/transparent-splash.png",
+    image: "./assets/startup-icon.png",
     resizeMode: "contain",
     backgroundColor: "#EEF4FA",
   },
@@ -36,6 +38,14 @@ export default ({ config }) => ({
     package: "com.gamesworld.samsudoko",
     versionCode: 26,
     backgroundColor: "#EEF4FA",
+
+    // Android native pre-splash uses the smaller centered version
+    // so it does not appear cropped before React loads.
+    splash: {
+      image: "./assets/startup-icon-fixed.png",
+      resizeMode: "contain",
+      backgroundColor: "#EEF4FA",
+    },
 
     permissions: [
       "com.android.vending.BILLING",

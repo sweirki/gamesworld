@@ -1,14 +1,23 @@
-import { ImageBackground, View, StyleSheet } from "react-native";
+import type { ReactNode } from "react";
+import { ImageBackground, ScrollView, StyleSheet, View } from "react-native";
+import { sweirkiTheme } from "../theme/sweirkiTheme";
 
-export default function ArenaLayout({ children }: { children: React.ReactNode }) {
+export default function ArenaLayout({ children }: { children: ReactNode }) {
   return (
     <ImageBackground
-      source={require("../../assets/bg.png")}
+      source={sweirkiTheme.assets.homeBackground}
       style={styles.bg}
       resizeMode="cover"
-      blurRadius={4}
     >
-      <View style={styles.overlay}>{children}</View>
+      <View style={styles.wash}>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
+          {children}
+        </ScrollView>
+      </View>
     </ImageBackground>
   );
 }
@@ -16,12 +25,18 @@ export default function ArenaLayout({ children }: { children: React.ReactNode })
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
+    backgroundColor: sweirkiTheme.colors.screen,
   },
-  overlay: {
-  flex: 1,
-  backgroundColor: "rgba(0,0,0,0.45)",
-  paddingHorizontal: 20,
-  paddingTop: 66,   // ⬅ pushes content DOWN (matches intro feel)
-},
-
+  wash: {
+    flex: 1,
+    backgroundColor: "rgba(246,251,255,0.62)",
+  },
+  scroll: {
+    flex: 1,
+  },
+  content: {
+    paddingHorizontal: sweirkiTheme.layout.screenPaddingX,
+    paddingTop: 64,
+    paddingBottom: 34,
+  },
 });

@@ -1,66 +1,184 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import ArenaLayout from "./ArenaLayout";
+import { sweirkiTheme } from "../theme/sweirkiTheme";
+
+const ARENA_ITEMS = [
+  {
+    title: "Ranked Arena",
+    eyebrow: "Coming soon",
+    desc: "Competitive Sudoku seasons, skill ratings, and verified ranked runs.",
+    path: "/arena/ranked",
+  },
+  {
+    title: "Rules & Fairness",
+    eyebrow: "Arena code",
+    desc: "Learn how fair play, no-retry runs, and competitive results will work.",
+    path: "/arena/rules",
+  },
+  {
+    title: "Arena History",
+    eyebrow: "Future record",
+    desc: "Your ranked results, season records, and performance archive will live here.",
+    path: "/arena/history",
+  },
+];
 
 export default function ArenaHub() {
   return (
     <ArenaLayout>
-      <Text style={styles.title}>Arena</Text>
-      <Text style={styles.subtitle}>Competitive Sudoku</Text>
+      <View style={styles.heroCard}>
+        <View style={styles.heroText}>
+          <Text style={styles.eyebrow}>COMPETITIVE HUB</Text>
+          <Text style={styles.title}>Arena</Text>
+          <Text style={styles.subtitle}>
+            Ranked Sudoku competition is being prepared for a future upgrade.
+          </Text>
+        </View>
+        <Image source={sweirkiTheme.assets.iconArena} style={styles.heroIcon} resizeMode="contain" />
+      </View>
 
-      {[
-        { title: "Ranked", desc: "View your competitive rank", path: "/arena/ranked" },
-        { title: "Rules & Fairness", desc: "How competition works", path: "/arena/rules" },
-        { title: "History", desc: "Your Arena results", path: "/arena/history" },
-      ].map((item) => (
-        <TouchableOpacity
-          key={item.title}
-          style={styles.card}
-          onPress={() => router.push(item.path)}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.cardTitle}>{item.title}</Text>
-          <Text style={styles.cardDesc}>{item.desc}</Text>
-        </TouchableOpacity>
-      ))}
+      <View style={styles.statusCard}>
+        <Text style={styles.statusLabel}>Arena status</Text>
+        <Text style={styles.statusTitle}>Pre-season setup</Text>
+        <Text style={styles.statusText}>
+          The arena is a themed placeholder for now. Matchmaking, seasons, and rankings will arrive later.
+        </Text>
+      </View>
+
+      <View style={styles.list}>
+        {ARENA_ITEMS.map((item) => (
+          <Pressable
+            key={item.title}
+            style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+            onPress={() => router.push(item.path as any)}
+          >
+            <View style={styles.cardTopRow}>
+              <Text style={styles.cardEyebrow}>{item.eyebrow}</Text>
+              <Text style={styles.chevron}>›</Text>
+            </View>
+            <Text style={styles.cardTitle}>{item.title}</Text>
+            <Text style={styles.cardDesc}>{item.desc}</Text>
+          </Pressable>
+        ))}
+      </View>
     </ArenaLayout>
   );
 }
 
 const styles = StyleSheet.create({
-title: {
-  fontSize: 30,
-  fontWeight: "800",
-  color: "#FBE7A1",
-  marginBottom: 4,
-  textShadowColor: "rgba(216,178,74,0.6)",
-  textShadowOffset: { width: 0, height: 0 },
-  textShadowRadius: 8,
-},
-subtitle: {
-  fontSize: 15,
-  fontWeight: "500",
-  color: "rgba(255,249,232,0.9)",
-  marginBottom: 28,
-},
-
- card: {
-  backgroundColor: "rgba(0,0,0,0.32)",
-  borderRadius: 22,
-  padding: 20,
-  marginBottom: 16,
-  borderWidth: 1,
-  borderColor: "rgba(255,255,255,0.18)",
-},
-
+  heroCard: {
+    minHeight: 186,
+    borderRadius: sweirkiTheme.radius.hero,
+    padding: 24,
+    marginBottom: 18,
+    backgroundColor: sweirkiTheme.colors.glassStrong,
+    borderWidth: 1,
+    borderColor: sweirkiTheme.colors.borderCyanStrong,
+    flexDirection: "row",
+    alignItems: "center",
+    ...sweirkiTheme.shadows.hero,
+  },
+  heroText: {
+    flex: 1,
+    paddingRight: 10,
+  },
+  eyebrow: {
+    fontFamily: sweirkiTheme.fonts.bold,
+    fontSize: 13,
+    letterSpacing: 5,
+    color: sweirkiTheme.colors.cyanDeep,
+    marginBottom: 8,
+  },
+  title: {
+    fontFamily: sweirkiTheme.fonts.bold,
+    fontSize: 42,
+    color: sweirkiTheme.colors.ink,
+    lineHeight: 46,
+  },
+  subtitle: {
+    fontFamily: sweirkiTheme.fonts.regular,
+    fontSize: 17,
+    lineHeight: 24,
+    color: sweirkiTheme.colors.textSoft,
+    marginTop: 8,
+  },
+  heroIcon: {
+    width: 100,
+    height: 100,
+  },
+  statusCard: {
+    borderRadius: sweirkiTheme.radius.card,
+    padding: 18,
+    marginBottom: 16,
+    backgroundColor: "rgba(255,255,255,0.9)",
+    borderWidth: 1,
+    borderColor: sweirkiTheme.colors.borderCyan,
+  },
+  statusLabel: {
+    fontFamily: sweirkiTheme.fonts.bold,
+    fontSize: 12,
+    letterSpacing: 2.5,
+    color: sweirkiTheme.colors.cyanDeep,
+    textTransform: "uppercase",
+  },
+  statusTitle: {
+    fontFamily: sweirkiTheme.fonts.bold,
+    fontSize: 22,
+    color: sweirkiTheme.colors.ink,
+    marginTop: 4,
+  },
+  statusText: {
+    fontFamily: sweirkiTheme.fonts.regular,
+    fontSize: 15,
+    lineHeight: 21,
+    color: sweirkiTheme.colors.textSoft,
+    marginTop: 4,
+  },
+  list: {
+    gap: 12,
+  },
+  card: {
+    borderRadius: sweirkiTheme.radius.card,
+    padding: 18,
+    backgroundColor: sweirkiTheme.colors.glassStrong,
+    borderWidth: 1,
+    borderColor: sweirkiTheme.colors.borderCyan,
+    ...sweirkiTheme.shadows.glassCard,
+  },
+  cardPressed: {
+    transform: [{ scale: 0.985 }],
+    opacity: 0.86,
+  },
+  cardTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
+  cardEyebrow: {
+    fontFamily: sweirkiTheme.fonts.bold,
+    fontSize: 12,
+    color: sweirkiTheme.colors.cyanDeep,
+    letterSpacing: 1.4,
+    textTransform: "uppercase",
+  },
+  chevron: {
+    fontFamily: sweirkiTheme.fonts.bold,
+    fontSize: 28,
+    color: sweirkiTheme.colors.cyanDeep,
+    lineHeight: 28,
+  },
   cardTitle: {
-    color: "#FFF9E8",
-    fontSize: 18,
-    fontWeight: "700",
+    fontFamily: sweirkiTheme.fonts.bold,
+    color: sweirkiTheme.colors.ink,
+    fontSize: 22,
   },
   cardDesc: {
-    color: "rgba(255,255,255,0.75)",
-    fontSize: 13,
-    marginTop: 6,
+    fontFamily: sweirkiTheme.fonts.regular,
+    color: sweirkiTheme.colors.textSoft,
+    fontSize: 15,
+    lineHeight: 21,
+    marginTop: 4,
   },
 });
