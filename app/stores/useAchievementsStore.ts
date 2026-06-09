@@ -2,6 +2,20 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { create } from "zustand";
 
+export type AchievementLevel = "Bronze" | "Silver" | "Gold" | "Platinum" | "Diamond" | "Master" | "Grandmaster";
+
+export type AchievementsState = {
+  unlocked: string[];
+  level: number;
+  xp: number;
+  nextLevelXp: number;
+  loadUnlocked: () => Promise<void>;
+  unlock: (id: string) => Promise<void>;
+  getTotalPoints: () => number;
+  getLevel: () => AchievementLevel;
+  getProgressPercent: () => number;
+};
+
 // STATIC ACHIEVEMENT LIST (same as AchievementsHub)
 export const ACHIEVEMENTS = [
   {
@@ -86,8 +100,11 @@ export const ACHIEVEMENTS = [
   },
 ];
 
-export const useAchievementsStore = create((set, get) => ({
-  unlocked: [],
+export const useAchievementsStore = create<AchievementsState>((set, get) => ({
+  level: 1,
+  xp: 0,
+  nextLevelXp: 150,
+  unlocked: [] as string[],
 
   // Load from storage
   loadUnlocked: async () => {

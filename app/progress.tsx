@@ -58,7 +58,7 @@ export default function ProgressScreen() {
           return;
         }
 
-        const analytics = await getAnalytics(uid);
+        const analytics = await getAnalytics();
 
         if (!mounted) return;
 
@@ -138,7 +138,7 @@ export default function ProgressScreen() {
           <Row label="Avg Session Time" value={summary.avgSessionTime} />
         </Card>
 
-        {Object.entries(modes).map(([mode, data]) => (
+        {Object.entries(modes as any).map(([mode, data]: any) => (
           <Card key={mode} title={mode.toUpperCase()}>
             <Row label="Games Played" value={data.gamesPlayed} />
             <Row label="Win Rate" value={`${data.winRate}%`} />
@@ -161,7 +161,7 @@ export default function ProgressScreen() {
   );
 }
 
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
+function Card({ title, children }: { title: string; children: any; key?: string }) {
   return (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>{title}</Text>

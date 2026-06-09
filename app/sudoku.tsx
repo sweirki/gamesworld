@@ -41,7 +41,7 @@ import { getColors } from "./theme/index";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback } from "react";
 import { calculateXpForLadder } from "../utils/ladder/scoreEngine";
-import { awardLadderXP, refreshLadderData } from "./lib/ladderBridge";
+import { refreshLadderData } from "./lib/ladderBridge";
 
 
 
@@ -93,10 +93,13 @@ const colors = getColors();
    const [showOnboarding, setShowOnboarding] = useState(false);
  // ---------- State ----------
 const [puzzle, setPuzzle] = useState<any | null>(initialPuzzle ?? null);
+
 useEffect(() => {
-  if (isDaily && initialPuzzle && !puzzle) {
-    setPuzzle(initialPuzzle);
-  }
+  if (!isDaily) return;
+  if (!initialPuzzle) return;
+
+  setPuzzle((prev: any) => prev ?? initialPuzzle);
+  setIsHydrating(false);
 }, [isDaily, initialPuzzle]);
 
   const [score, setScore] = useState<number | null>(null);
@@ -108,9 +111,11 @@ useEffect(() => {
  const [resumeVisible, setResumeVisible] = useState(false);
 const [resumeData, setResumeData] = useState<any | null>(null);
 const [invalidGridVisible, setInvalidGridVisible] = useState(false);
+const [isHydrating, setIsHydrating] = useState(true);
   const { level } = useLocalSearchParams<{ level?: string }>();
   // Initialize puzzle AFTER level is known
-useEffect(() => {
+
+  useEffect(() => {
   if (!puzzle && !isDaily) {
     const diff =
       level === "easy" || level === "medium" || level === "hard"
@@ -118,9 +123,9 @@ useEffect(() => {
         : "easy";
 
     setPuzzle(generateSudoku(diff));
+    setIsHydrating(false);
   }
-}, [level, isDaily]);
-
+}, [level, isDaily, puzzle]);
 
   const [history, setHistory] = useState<any[]>([]);
   const [redoStack, setRedoStack] = useState<any[]>([]);
@@ -156,7 +161,6 @@ useEffect(() => {
     alive = false;
   };
 }, []);
-
   const [gameWon, setGameWon] = useState(false);
   const [hintsLeft, setHintsLeft] = useState(3);
   const [errorCount, setErrorCount] = useState(0);
@@ -237,19 +241,22 @@ useFocusEffect(
 
         const saved = await loadGame("classic");
 
-        if (
-          alive &&
-          saved &&
-          Array.isArray(saved.puzzle) &&
-          saved.puzzle.length === 9 &&
-          isBoardTouched(saved.puzzle)
-        ) {
-          setResumeData(saved);
-          setResumeVisible(true);
-        }
+      if (
+  alive &&
+  saved &&
+  Array.isArray(saved.puzzle) &&
+  saved.puzzle.length === 9 &&
+  isBoardTouched(saved.puzzle)
+) {
+  setResumeData(saved);
+  setResumeVisible(true);
+  setIsHydrating(false);   // ⭐ ADD THIS
+}
 
 
-      } catch {}
+         } catch {
+        setIsHydrating(false);
+      }
     })();
 
     return () => {
@@ -383,7 +390,7 @@ if (isPencilMode) {
 setHistory([...history, JSON.parse(JSON.stringify(puzzle))]);
 
 const newPuzzle = puzzle.map((row, ri) =>
-  row.map((cell, ci) =>
+  row.map((cell: any, ci: number) =>
     ri === r && ci === c ? { ...cell, value: num } : cell
   )
 );
@@ -397,7 +404,7 @@ updateDigitCounts(newPuzzle);
 if (!isDaily) {
   saveGame("classic", {
   puzzle: newPuzzle,
-  solution: newPuzzle.map(r => r.map(c => c.solution)),
+  solution: newPuzzle.map((r: any[]) => r.map((c: any) => c.solution)),
   timer: time,
   hintsLeft: hintsLeft,
   difficulty: difficulty,
@@ -461,7 +468,9 @@ if (num !== puzzle[r][c].solution) {
     }
 
   // Win check
-const won = newPuzzle.every((row) => row.every((cell) => cell.value === cell.solution));
+const won = newPuzzle.every((row: any[]) =>
+  row.every((cell: any) => cell.value === cell.solution)
+);
 if (won && !gameWon && !winHandledRef.current) {
   setGameWon(true);
   setErrorCount(0);
@@ -476,8 +485,8 @@ if (won && !gameWon && !winHandledRef.current) {
 
     // ---------- Context highlight ----------
     let context: [number, number][] = [];
-    context = context.concat(puzzle[row].map((_, ci) => [row, ci]));
-    context = context.concat(puzzle.map((_, ri) => [ri, col]));
+   context = context.concat(puzzle[row].map((_: any, ci: number) => [row, ci]));
+context = context.concat(puzzle.map((_: any, ri: number) => [ri, col]));
 
     const boxRow = Math.floor(row / 3);
     const boxCol = Math.floor(col / 3);
@@ -544,7 +553,7 @@ const toggleCandidate = (r: number, c: number, num: number) => {
 
 
     const newPuzzle = puzzle.map((row, ri) =>
-      row.map((cell, ci) => (ri === r && ci === c ? { ...cell, value: null } : cell))
+      row.map((cell: any, ci: number) => (ri === r && ci === c ? { ...cell, value: null } : cell))
     );
 
     setHistory([...history, JSON.parse(JSON.stringify(puzzle))]);
@@ -567,9 +576,11 @@ const toggleCandidate = (r: number, c: number, num: number) => {
     if (puzzle[r][c].prefilled) return;
 
     const solution = puzzle[r][c].solution;
-    const newPuzzle = puzzle.map((row, ri) =>
-      row.map((cell, ci) => (ri === r && ci === c ? { ...cell, value: solution } : cell))
-    );
+   const newPuzzle = puzzle.map((row: any[], ri: number) =>
+  row.map((cell: any, ci: number) =>
+    ri === r && ci === c ? { ...cell, value: solution } : cell
+  )
+);
 
      setHistory([...history, JSON.parse(JSON.stringify(puzzle))]);
   setRedoStack([]);
@@ -604,9 +615,9 @@ if (won && !gameWon && !winHandledRef.current) {
  const handleAutoSolve = () => {
   if (gameWon || winVisible || winHandledRef.current) return;
 
-  const solved = puzzle.map((row) =>
-    row.map((cell) => ({ ...cell, value: cell.solution }))
-  );
+const solved = puzzle.map((row: any[]) =>
+  row.map((cell: any) => ({ ...cell, value: cell.solution }))
+);
 
   setPuzzle(JSON.parse(JSON.stringify(solved)));
   updateDigitCounts(solved);
@@ -728,8 +739,6 @@ if (isDaily) {
       time,
       errors: errorCount,
     });
-
-    await awardLadderXP(xp);
     await refreshLadderData(username);
 
     const newScore = calculateScore({
@@ -863,8 +872,9 @@ const drawerBtnText = {
 
 // ---------- Render ----------
 const controlsLocked = gameWon || gameOverVisible;
+
 // Prevent rendering until puzzle is initialized
-if (!puzzle) {
+if (isHydrating || !puzzle) {
   return (
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
       <Text style={{ color: colors.buttonPrimaryBg, fontWeight: "700" }}>
@@ -1093,9 +1103,9 @@ blurRadius={Platform.OS === "android" ? 0 : (winVisible ? 0 : 5)}
       updateDigitCounts(rebuilt);
     }
 
-    setResumeVisible(false);
-    startTimer();
-
+  setResumeVisible(false);
+setIsHydrating(false);   // ⭐ ADD THIS
+startTimer();
   },
 },
 
@@ -1103,10 +1113,11 @@ blurRadius={Platform.OS === "android" ? 0 : (winVisible ? 0 : 5)}
 
   {
   label: "NO",
-  onPress: async () => {
-    await clearGame("classic");
-    setResumeVisible(false);
-  },
+ onPress: async () => {
+  await clearGame("classic");
+  setResumeVisible(false);
+  setIsHydrating(false);   // ⭐ ADD THIS
+},
 },
 
   ]}
@@ -1431,7 +1442,7 @@ menuButtonText: {
   fontWeight: "700",
   color: colors.gold,
 },
-drawerBtn: {
+drawerBtnAlt: {
   paddingVertical: 12,
   paddingHorizontal: 16,
 },
@@ -1444,4 +1455,5 @@ drawerBtnText: {
 
 
   })
+
 

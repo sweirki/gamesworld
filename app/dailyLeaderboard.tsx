@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ export default function DailyLeaderboard() {
   const [scores, setScores] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const colors = getColors();
+  const themedStyles = styles(colors);
 
   useEffect(() => {
     const fetchScores = async () => {
@@ -42,7 +43,7 @@ export default function DailyLeaderboard() {
 
   if (loading) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.background }]}>
+      <View style={[themedStyles.center, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.buttonPrimaryBg} />
       </View>
     );
@@ -50,24 +51,24 @@ export default function DailyLeaderboard() {
 
   if (scores.length === 0) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.background }]}>
-        <Text style={{ color: colors.text }}>No scores yet today.</Text>
+      <View style={[themedStyles.center, { backgroundColor: colors.background }]}>
+        <Text style={{ color: colors.textPrimary }}>No scores yet today.</Text>
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={styles(colors).title}>ðŸ“… Daily Leaderboard</Text>
+    <View style={[themedStyles.container, { backgroundColor: colors.background }]}>
+      <Text style={themedStyles.title}>ðŸ“… Daily Leaderboard</Text>
       <FlatList
         data={scores.sort((a, b) => a.time - b.time)} // âœ… sort by fastest time
         keyExtractor={(_, i) => i.toString()}
         renderItem={({ item, index }) => (
-          <View style={styles(colors).row}>
-            <Text style={styles(colors).rank}>{index + 1}</Text>
-            <Text style={styles(colors).user}>{item.user}</Text>
-            <Text style={styles(colors).score}>{item.score}</Text>
-            <Text style={styles(colors).time}>{item.time}s</Text>
+          <View style={themedStyles.row}>
+            <Text style={themedStyles.rank}>{index + 1}</Text>
+            <Text style={themedStyles.user}>{item.user}</Text>
+            <Text style={themedStyles.score}>{item.score}</Text>
+            <Text style={themedStyles.time}>{item.time}s</Text>
           </View>
         )}
       />
@@ -107,17 +108,17 @@ const styles = (colors: ReturnType<typeof getColors>) =>
     },
     user: {
       flex: 1,
-      color: colors.text,
+      color: colors.textPrimary,
     },
     score: {
       width: 60,
       textAlign: "right",
-      color: colors.text,
+      color: colors.textPrimary,
     },
     time: {
       width: 60,
       textAlign: "right",
-      color: colors.text,
+      color: colors.textPrimary,
     },
   });
 

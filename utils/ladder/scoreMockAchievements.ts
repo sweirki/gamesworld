@@ -1,4 +1,4 @@
-﻿interface PlayerStats {
+interface PlayerStats {
   username: string;
   wins: number;
   fastestTimes: { easy?: number; medium?: number; hard?: number };
@@ -27,3 +27,5 @@ console.log(` ACHIEVEMENTS for ${sample.username}`);
 console.log("");
 getAchievements(sample).forEach((a) => console.log("- " + a));
 
+
+export {};

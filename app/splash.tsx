@@ -1,114 +1,138 @@
 // app/splash.tsx
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Image, ImageBackground } from "react-native";
 import { useRouter } from "expo-router";
 import * as Progress from "react-native-progress";
 
-const NEXT_ROUTE = "/sudokuIntro"; // keep this simple for now
+const NEXT_ROUTE = "/sudokuIntro";
 
 export default function Splash() {
   const router = useRouter();
   const [progress, setProgress] = useState(0);
 
- useEffect(() => {
-  let mounted = true;
-  const totalMs = 2200;
-  const start = Date.now();
+  useEffect(() => {
+    let mounted = true;
+    const totalMs = 2200;
+    const start = Date.now();
 
-  const tick = () => {
-    if (!mounted) return;
+    const tick = () => {
+      if (!mounted) return;
 
-    const elapsed = Date.now() - start;
-    const t = Math.min(1, elapsed / totalMs);
-    setProgress(Math.pow(t, 0.85));
+      const elapsed = Date.now() - start;
+      const t = Math.min(1, elapsed / totalMs);
+      setProgress(Math.pow(t, 0.85));
 
-    if (t < 1) {
-      requestAnimationFrame(tick);
-    } else {
-      router.replace(NEXT_ROUTE);
-    }
-  };
+      if (t < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        router.replace(NEXT_ROUTE);
+      }
+    };
 
-  requestAnimationFrame(tick);
+    requestAnimationFrame(tick);
 
-  return () => {
-    mounted = false;
-  };
-}, [router]);
-
+    return () => {
+      mounted = false;
+    };
+  }, [router]);
 
   return (
-  <View style={{ flex: 1, backgroundColor: "#000" }}>
-    <ImageBackground source={require("../assets/bg.png")} style={styles.bg}>
-      <View style={styles.container}>
+    <View style={styles.root}>
+      <ImageBackground
+        source={require("../assets/branding/splash-artwork.png")}
+        style={styles.background}
+        resizeMode="cover"
+      >
+        <View style={styles.lightWash} />
 
-        <Image
-          source={require("../assets/logo.png")}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <Text style={styles.title}>Welcome to</Text>
-        <Text style={styles.titleBig}>Sweirki Sudoku</Text>
+        <View style={styles.content}>
+          <Image
+            source={require("../assets/branding/logo-symbol.png")}
+            style={styles.symbol}
+            resizeMode="contain"
+          />
 
-        <Progress.Bar
-          progress={progress}
-          width={250}
-         color="#D8B24A"
-          unfilledColor="rgba(255,255,255,0.25)"
-          borderWidth={0}
-          borderRadius={10}
-          style={styles.progress}
-        />
+          <Image
+            source={require("../assets/branding/sweirki-home-logo.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
 
-        <Text style={styles.disclaimer}>
-          Characters and events in this game are fictitious.
-        </Text>
-            </View>
-    </ImageBackground>
-  </View>
-);
+          <Text style={styles.tagline}>A brighter way to play Sudoku</Text>
 
+          <View style={styles.progressShell}>
+            <Progress.Bar
+              progress={progress}
+              width={230}
+              height={7}
+              color="#35BDF4"
+              unfilledColor="rgba(163, 218, 255, 0.28)"
+              borderWidth={0}
+              borderRadius={20}
+            />
+          </View>
+
+          <Text style={styles.disclaimer}>Characters and events in this game are fictitious.</Text>
+        </View>
+      </ImageBackground>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
- bg: {
-  flex: 1,
-  justifyContent: "center",
-  alignItems: "center",
-  backgroundColor: "transparent",
-},
-
-  container: {
+  root: {
+    flex: 1,
+    backgroundColor: "#F7FCFF",
+  },
+  background: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 20,
+  },
+  lightWash: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(255,255,255,0.14)",
+  },
+  content: {
+    width: "100%",
+    alignItems: "center",
+    paddingHorizontal: 28,
+    paddingTop: 40,
+  },
+  symbol: {
+    width: 118,
+    height: 118,
+    marginBottom: 6,
   },
   logo: {
-    width: 120,
-    height: 120,
-    marginBottom: 20,
-    marginTop: 20,
+    width: 310,
+    height: 118,
+    marginBottom: 2,
   },
-  title: {
-    fontSize: 22,
+  tagline: {
     fontFamily: "BalooRegular",
-    color: "#FFF",
-    marginBottom: 4,
+    fontSize: 15,
+    color: "#4F6F8F",
+    textAlign: "center",
+    letterSpacing: 0.2,
+    marginBottom: 26,
   },
-  titleBig: {
-    fontSize: 38,
-    fontFamily: "BalooBold",
-    color: "#FFD700",
-    marginBottom: 28,
-  },
-  progress: {
-    marginTop: 20,
-    marginBottom: 30,
+  progressShell: {
+    padding: 4,
+    borderRadius: 24,
+    backgroundColor: "rgba(255,255,255,0.72)",
+    shadowColor: "#50C8FF",
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
   },
   disclaimer: {
+    marginTop: 22,
+    width: "82%",
     fontSize: 11,
-    color: "rgba(255,255,255,0.7)",
+    color: "rgba(55, 85, 115, 0.62)",
     textAlign: "center",
-    marginTop: 20,
-    width: "80%",
+    lineHeight: 15,
   },
 });

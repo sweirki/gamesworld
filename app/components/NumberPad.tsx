@@ -1,11 +1,15 @@
-﻿import React from "react";
+import React from "react";
 import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { getColors } from "../theme/index";
 import { LinearGradient } from "expo-linear-gradient";
 
 interface Props {
-  onNumberPress: (n: number) => void;
+  onNumberPress: (n: number) => void | Promise<void>;
   disabledNumbers?: (number | string)[];
+  onErase?: () => void;
+  onHint?: () => void | Promise<void>;
+  isPencilMode?: boolean;
+  onTogglePencil?: () => void;
 }
 
 

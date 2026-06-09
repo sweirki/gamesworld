@@ -15,7 +15,7 @@ import { getColors } from "./theme/index";
 import { writeSeasonalScore } from "../utils/ladder/scoreEngine";
 import { getCurrentStreak } from "../utils/ladder/scoreEngine";
 import { calculateXpForLadder, getLadderRank } from "../utils/ladder/scoreEngine";
-import { awardLadderXP, refreshLadderData } from "./lib/ladderBridge";
+import { refreshLadderData } from "./lib/ladderBridge";
 import { recordGameStart, updateStatsOnWin } from "../lib/statsManager";
 import { auth } from "../firebase";
 import { makePuzzle } from "../utils/puzzleFactory";
@@ -30,6 +30,7 @@ import * as Haptics from "expo-haptics";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback } from "react";
 import { useRouter } from "expo-router";
+import { useRevenueCat } from "../src/hooks/useRevenueCat";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { strokeBase } from "./theme/boardTheme";
@@ -67,6 +68,13 @@ const colors = getColors();
 
 
   const router = useRouter();
+  const { isPremium, loading } = useRevenueCat();
+
+  useEffect(() => {
+    if (!loading && !isPremium) {
+      router.replace("/upgrade");
+    }
+  }, [isPremium, loading, router]);
   const s = styles(colors);
   const [puzzle, setPuzzle] = useState<any[][]>([]);
  const emptyGrid = Array.from({ length: 9 }, () => []);
@@ -98,7 +106,7 @@ const [username, setUsername] = useState("Guest");
 const [isPencilMode, setIsPencilMode] = useState(false);
   const [resumeVisible, setResumeVisible] = useState(false);
   const [resumeData, setResumeData] = useState<any | null>(null);
-
+const [isHydrating, setIsHydrating] = useState(true);
   const [gameOverVisible, setGameOverVisible] = useState(false);
 const [hintPopup, setHintPopup] = useState(false);
 
@@ -198,112 +206,133 @@ const isBoardTouched = (board: any[][] | null) => {
   return false;
 };
 
- useEffect(() => {
-  const init = async () => {
-    try {
-      const saved = await loadGame("hyper");
-
-      // SAFETY CHECK: make sure saved puzzle is a real 9×9 grid of valid cells
-    const savedTimer = (saved as { timer?: unknown }).timer;
-
-     const isValidSaved =
-  saved &&
-  Array.isArray(saved.puzzle) &&
-  saved.puzzle.length === 9 &&
-  saved.puzzle.every(
-    (row: any) =>
-      Array.isArray(row) &&
-      row.length === 9 &&
-      row.every(
-        (cell: any) =>
-          cell &&
-          typeof cell === "object" &&
-          "value" in cell &&
-          "prefilled" in cell &&
-          "solution" in cell &&
-          Array.isArray(cell.notes)
-      )
-  ) &&
-  (savedTimer === undefined || typeof savedTimer === "number");
-
-if (isValidSaved && isBoardTouched(saved.puzzle)) {
-  initializingRef.current = false;
-  setResumeData(saved);
-  setResumeVisible(true);
-} else {
-  initializingRef.current = false;
-  await clearGame("hyper");
-  startNewBoard();
-}
-    } catch (err) {
-      console.warn("Init load failed:", err);
-      initializingRef.current = false;
-      startNewBoard();
+useFocusEffect(
+  useCallback(() => {
+    if (skipNextResumeRef.current) {
+      skipNextResumeRef.current = false;
+      return;
     }
-  };
 
-  init();
+    let alive = true;
+    setIsHydrating(true);
 
- return () => {
-  if (TimerRef.current) {
-    clearInterval(TimerRef.current);
-    TimerRef.current = null;
-  }
+    (async () => {
+      try {
+        const saved = await loadGame("hyper");
+        const savedTimer = (saved as { timer?: unknown })?.timer;
 
-  if (gameOverTimeoutRef.current) {
-    clearTimeout(gameOverTimeoutRef.current);
-    gameOverTimeoutRef.current = null;
-  }
-};
+        const validPuzzle =
+          saved &&
+          Array.isArray(saved.puzzle) &&
+          saved.puzzle.length === 9 &&
+          saved.puzzle.every(
+            (row: any) =>
+              Array.isArray(row) &&
+              row.length === 9 &&
+              row.every(
+                (cell: any) =>
+                  cell &&
+                  typeof cell === "object" &&
+                  "value" in cell &&
+                  "prefilled" in cell &&
+                  "solution" in cell &&
+                  Array.isArray(cell.notes ?? [])
+              )
+          );
 
-}, []);
+        const validSolution =
+          saved &&
+          Array.isArray(saved.solution) &&
+          saved.solution.length === 9 &&
+          saved.solution.every(
+            (row: any) => Array.isArray(row) && row.length === 9
+          );
 
+        const validTimer =
+          saved && (savedTimer === undefined || typeof savedTimer === "number");
 
+        const validErrorCount =
+          saved &&
+          (saved.errorCount === undefined ||
+            typeof saved.errorCount === "number");
 
- const startNewBoard = () => {
-  console.log("ðŸ§© [Hyper] startNewBoard() called â€“ difficulty:", difficulty);
+        if (
+          alive &&
+          validPuzzle &&
+          validSolution &&
+          validTimer &&
+          validErrorCount &&
+          isBoardTouched(saved.puzzle)
+        ) {
+          setResumeData(saved);
+          setResumeVisible(true);
+          setIsHydrating(false);
+          return;
+        }
 
-  // Record start only once
+        await clearGame("hyper");
+        if (!alive) return;
+        startNewBoard();
+      } catch (err) {
+        console.warn("Init load failed:", err);
+        if (!alive) return;
+        startNewBoard();
+      }
+    })();
+
+    return () => {
+      alive = false;
+
+      if (TimerRef.current) {
+        clearInterval(TimerRef.current);
+        TimerRef.current = null;
+      }
+
+      if (gameOverTimeoutRef.current) {
+        clearTimeout(gameOverTimeoutRef.current);
+        gameOverTimeoutRef.current = null;
+      }
+    };
+  }, [])
+);
+
+const startNewBoard = (forcedDifficulty?: "easy" | "medium" | "hard") => {
+  const nextDifficulty = forcedDifficulty ?? difficulty;
+  setIsHydrating(true);
+
   if (!hasStartedRef.current) {
     hasStartedRef.current = true;
     const uid = auth?.currentUser?.email ?? "Guest";
     recordGameStart(uid).catch(() => {});
   }
 
-  // Generate puzzle using your puzzleFactory
-  const { puzzle, solution } = makePuzzle("hyper", difficulty);
+  const { puzzle: rawPuzzle, solution: newSolution } = makePuzzle("hyper", nextDifficulty);
 
-  // Always ensure clean 9Ã—9 matrix
-const fixedPuzzle = Array.from({ length: 9 }, (_, r) =>
-  Array.from({ length: 9 }, (_, c) => {
-    const cell = puzzle && puzzle[r] && puzzle[r][c];
-    if (cell) {
+  const fixedPuzzle = Array.from({ length: 9 }, (_, r) =>
+    Array.from({ length: 9 }, (_, c) => {
+      const cell = rawPuzzle?.[r]?.[c];
+      if (cell) {
+        return {
+          value: cell.value ?? null,
+          prefilled: cell.prefilled ?? false,
+          solution: cell.solution ?? null,
+          notes: Array.isArray(cell.notes) ? cell.notes : [],
+        };
+      }
       return {
-        value: cell.value ?? null,
-        prefilled: cell.prefilled ?? false,
-        solution: cell.solution ?? null,
-        notes: Array.isArray(cell.notes) ? cell.notes : [],
+        value: null,
+        prefilled: false,
+        solution: null,
+        notes: [],
       };
-    }
-    return {
-      value: null,
-      prefilled: false,
-      solution: null,
-      notes: [],
-    };
-  })
-);
+    })
+  );
 
-
-  // Load puzzle+solution
   setPuzzle(fixedPuzzle);
-  setSolution(solution);
-  setHighlightDigit(null);
-
-setContextCells([]);
-
-  // Reset states EXACTLY like Killer/Classic
+  setSolution(newSolution);
   setSelected(null);
+  setHighlightDigit(null);
+  setContextCells([]);
   setHistory([]);
   setRedoStack([]);
   setHintsLeft(3);
@@ -313,40 +342,36 @@ setContextCells([]);
   setErrorCount(0);
   setGameOverVisible(false);
   gameOverShown.current = false;
+  setResumeVisible(false);
+  setResumeData(null);
 
-  // Restart timer
   setTimer(0);
-  if (TimerRef.current) clearInterval(TimerRef.current);
-  TimerRef.current = setInterval(() => setTimer((t) => t + 1), 1000);
+  if (TimerRef.current) {
+    clearInterval(TimerRef.current);
+    TimerRef.current = null;
+  }
 
   initializingRef.current = false;
+  setIsHydrating(false);
+  resumeTimer();
 };
-
-
-useEffect(() => {
-  if (!initializingRef.current) {
-   setHighlightDigit(null);
-    setContextCells([]);
-    startNewBoard();
-  }
-}, [difficulty]);
-
 
   const pushHistory = () => {
     setHistory((h) => [...h, clone(puzzle)]);
     setRedoStack([]);
   };
 
- const handleCellPress = (r: number, c: number) => {
+const handleCellPress = (r: number, c: number) => {
   if (gameWon) return;
   const cell = puzzle?.[r]?.[c];
   setSelected([r, c]);
 
-  // highlight same numbers
-  if (cell?.value) setHighlightDigit(cell.value);
-  else setHighlightDigit(null);
+  if (cell?.value != null) {
+    setHighlightDigit(cell.value);
+  }
 
   // context: same row, column, box
+
   let ctx: [number, number][] = [];
 
   for (let i = 0; i < 9; i++) ctx.push([r, i]); // row
@@ -384,20 +409,31 @@ if (isPencilMode) {
   return; // do NOT place a big number
 }
 
-
 pushHistory();
 const next = clone(puzzle);
 
     next[r][c].value = num;
+    setHighlightDigit(num);
 
     // erase small pencil notes when you write a real number
-    if (Array.isArray(next[r][c].notes)) next[r][c].notes = [];
-    setPuzzle(next);
-    saveGame("hyper", { puzzle: next, solution, timer: Timer, errorCount });
 
-    // correct/wrong check
+    if (Array.isArray(next[r][c].notes)) next[r][c].notes = [];
+
+    const nextErrors =
+  num !== next[r][c].solution
+    ? Math.min(errorCount + 1, MAX_STRIKES)
+    : errorCount;
+
+setPuzzle(next);
+saveGame("hyper", {
+  puzzle: next,
+  solution,
+  timer: Timer,
+  errorCount: nextErrors,
+});
+
 if (num !== next[r][c].solution) {
-  setErrorCount((prev) => prev + 1);
+  setErrorCount(nextErrors);
   Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
 } else {
   Haptics.selectionAsync();
@@ -430,6 +466,7 @@ checkCompletion(next);
     pushHistory();
     const next = clone(puzzle);
     next[r][c].value = null;
+    setHighlightDigit(null);
     setPuzzle(next);
   };
 
@@ -559,7 +596,7 @@ const handleGameOverClose = async () => {
     setHasWon(true);
     clearGame("hyper");
     setGameWon(true);
-     const ladderUser = username || auth?.currentUser?.email || "Guest";
+     const ladderUser = auth.currentUser?.uid || "Guest";
 
    await updateStatsOnWin("hyper", Timer, errorCount, 3 - hintsLeft, ladderUser);
    await refreshLadderData(ladderUser);
@@ -580,8 +617,6 @@ try {
     time: Timer,
     errors: errorCount,
   });
-
-   await awardLadderXP(xp);
 
 
   console.log("🔥 Ladder XP awarded (Hyper):", xp);
@@ -650,6 +685,29 @@ useEffect(() => {
 
 }, [puzzle, solution, Timer, hasWon]);
 
+
+if (isHydrating) {
+  return (
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#081028",
+      }}
+    >
+      <Text
+        style={{
+          color: colors.buttonSecondaryBg,
+          fontWeight: "700",
+          fontSize: 16,
+        }}
+      >
+        Loading...
+      </Text>
+    </View>
+  );
+}
 
   // THEME: wrapped root in ImageBackground
 return (
@@ -754,14 +812,20 @@ return (
   visible={confirmVisible}
   title={`Start a new ${pendingDifficulty?.toUpperCase()} game?`}
   actions={[
-    {
+
+
+  {
       label: "Yes, Start",
       onPress: () => {
-        setDifficulty(pendingDifficulty as any);
+        if (pendingDifficulty) {
+          setDifficulty(pendingDifficulty);
+          startNewBoard(pendingDifficulty);
+        }
         setConfirmVisible(false);
         setPendingDifficulty(null);
       },
     },
+
     { label: "Cancel", onPress: () => {
       setConfirmVisible(false);
       setPendingDifficulty(null);
@@ -802,13 +866,15 @@ return (
           <View style={styles(colors).board}>
      {/* --- A+++++ CELLS (match Killer usage) --- */}
 <View
+  pointerEvents="box-none"
   style={{
     width: GRID_SIZE,
     height: GRID_SIZE,
     position: "absolute",
     top: 0,
     left: 0,
-    flexDirection: "column",   // â­ REQUIRED or RN treats children as text â†’ crash
+    zIndex: 20,
+    flexDirection: "column",
   }}
 >
 
@@ -873,7 +939,7 @@ return (
 <Svg
   height={GRID_SIZE}
   width={GRID_SIZE}
-  style={{ position: "absolute", top: 0, left: 0 }}
+  style={{ position: "absolute", top: 0, left: 0, zIndex: 1 }}
   pointerEvents="none"
 >
   {/* Vertical lines */}
@@ -905,10 +971,11 @@ strokeWidth={i % 3 === 0 ? strokeWidthBold : strokeWidthThin}
 
 
 {/* --- A+++++ PREMIUM HYPER REGIONS (SOFT GOLD DOTS) --- */}
+
 <Svg
   height={GRID_SIZE}
   width={GRID_SIZE}
-  style={{ position: "absolute", top: 0, left: 0 }}
+  style={{ position: "absolute", top: 0, left: 0, zIndex: 2 }}
   pointerEvents="none"
 >
   {[
@@ -917,6 +984,7 @@ strokeWidth={i % 3 === 0 ? strokeWidthBold : strokeWidthThin}
     [5, 1],
     [5, 5],
   ].map(([sr, sc], i) => (
+
  <Rect
   key={i}
   x={sc * CELL_SIZE}
@@ -924,10 +992,8 @@ strokeWidth={i % 3 === 0 ? strokeWidthBold : strokeWidthThin}
   width={CELL_SIZE * 3}
   height={CELL_SIZE * 3}
   fill={colors.hyperZoneFill}
-stroke={colors.hyperZoneBorder}
-  strokeWidth={1}
-  strokeDasharray="1,2"                 // â­ Tighter, premium dash
-  opacity={.35}
+  stroke={colors.hyperZoneBorder}
+
 />
 
 
@@ -942,7 +1008,7 @@ stroke={colors.hyperZoneBorder}
   onRedo={redo}
   onHint={handleHint}
   onDelete={handleDelete}
-  onRestart={startNewBoard}
+  onRestart={() => startNewBoard()}
   onSolve={handleWin}
   disableUndo={history.length === 0}
   disableRedo={redoStack.length === 0}
@@ -966,24 +1032,24 @@ stroke={colors.hyperZoneBorder}
 
 
 
-
         <WinModal
   visible={winVisible}
-  Time={Timer}
-  onPlayAgain={startNewBoard}
-  onRestart={startNewBoard}
+  onRestart={(level) => {
+  const nextDifficulty =
+    level === "easy" || level === "medium" || level === "hard"
+      ? level
+      : difficulty;
+
+  setDifficulty(nextDifficulty);
+  startNewBoard(nextDifficulty);
+}}
   onClose={() => {
-    // 🔒 block resume & autosave after win
     skipNextResumeRef.current = true;
     skipNextSaveRef.current = true;
 
-    // clear saved game (fire-and-forget)
     clearGame("hyper");
-
-    // close modal first
     setWinVisible(false);
 
-    // 🚀 navigate after modal unmount (prevents crash)
     requestAnimationFrame(() => {
       router.replace("/variantHub");
     });
@@ -998,41 +1064,71 @@ stroke={colors.hyperZoneBorder}
           title="Resume Game?"
           message="Would you like to continue your previous Hyper puzzle?"
           actions={[
-            {
+                      {
               label: "YES",
-             onPress: () => {
-  if (resumeData) {
-    setPuzzle(resumeData.puzzle);
-    if (resumeData.solution) {
-      setSolution(resumeData.solution);
-    }
+              onPress: () => {
+                if (resumeData) {
+                  setIsHydrating(true);
 
-    // restore timer
-   setTimer(
-  typeof resumeData.timer === "number"
-    ? resumeData.timer
-    : 0
-);
+                  setPuzzle(resumeData.puzzle);
+                  if (resumeData.solution) {
+                    setSolution(resumeData.solution);
+                  }
 
+                  setTimer(
+                    typeof resumeData.timer === "number"
+                      ? resumeData.timer
+                      : 0
+                  );
 
-    // ✅ RESTORE STRIKES (THIS WAS MISSING)
-    setErrorCount(
-      typeof resumeData.errorCount === "number"
-        ? resumeData.errorCount
-        : 0
-    );
+                  setErrorCount(
+                    typeof resumeData.errorCount === "number"
+                      ? resumeData.errorCount
+                      : 0
+                  );
 
-    resumeTimer();
-  }
-  setResumeVisible(false);
-},
+                  setHintsLeft(
+                    typeof resumeData.hintsLeft === "number"
+                      ? resumeData.hintsLeft
+                      : 3
+                  );
 
+                  const restoredDifficulty =
+                    resumeData.difficulty === "easy" ||
+                    resumeData.difficulty === "medium" ||
+                    resumeData.difficulty === "hard"
+                      ? resumeData.difficulty
+                      : "easy";
+
+                  setDifficulty(restoredDifficulty);
+                  setSelected(null);
+                  setHighlightDigit(null);
+                  setContextCells([]);
+                  setHistory([]);
+                  setRedoStack([]);
+                  setGameWon(false);
+                  setHasWon(false);
+                  setWinVisible(false);
+
+                  setResumeVisible(false);
+                  setResumeData(null);
+                  setIsHydrating(false);
+
+                  resumeTimer();
+                } else {
+                  setResumeVisible(false);
+                  setIsHydrating(false);
+                }
+              },
             },
-            {
+
+                       {
               label: "NO",
               onPress: async () => {
+                setIsHydrating(true);
                 await clearGame("hyper");
                 setResumeVisible(false);
+                setResumeData(null);
                 startNewBoard();
               },
             },
@@ -1052,7 +1148,7 @@ stroke={colors.hyperZoneBorder}
         setErrorCount(0);
         gameOverShown.current = false;
         setGameOverVisible(false);
-        startNewBoard();
+        startNewBoard(difficulty);
       },
     },
   {
@@ -1330,3 +1426,5 @@ marginBottom: 6,
 },
 
   });
+
+

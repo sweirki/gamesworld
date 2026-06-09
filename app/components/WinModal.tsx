@@ -299,7 +299,7 @@ useEffect(() => {
               key={i}
             style={{
   position: "absolute",
-  left: p.left,
+  left: p.left as `${number}%`,
   width: p.size,
   height: p.size,
   borderRadius: p.size / 2,

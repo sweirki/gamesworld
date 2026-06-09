@@ -1,4 +1,4 @@
-﻿import { auth, db } from "../firebase";
+import { auth, db } from "../firebase";
 import { doc, setDoc } from "firebase/firestore";
 import * as Linking from "expo-linking";
 import * as Sharing from "expo-sharing";
@@ -20,12 +20,12 @@ export const shareInvite = async () => {
   if (!auth.currentUser) return;
   const uid = auth.currentUser.uid;
   const link = await createInviteLink(uid);
-  await Sharing.shareAsync(undefined, {
-    dialogTitle: "Invite a Friend to Sudoku",
-    mimeType: "text/plain",
-    UTI: "public.plain-text",
-    message: `Play Sudoku with me! ðŸŽ‰ Click here: ${link}`,
-  });
+  const canShare = await Sharing.isAvailableAsync();
+  if (canShare) {
+    await Linking.openURL(`mailto:?subject=Invite%20to%20Sudoku&body=${encodeURIComponent(`Play Sudoku with me! 🎉 Click here: ${link}`)}`);
+  } else {
+    await Linking.openURL(link);
+  }
 };
 
 /**

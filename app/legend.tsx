@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { theme, getColors } from "../theme";
-import { getCachedLadderData } from "../lib/ladderBridge";
+import { getCachedLadderData } from "./lib/ladderBridge";
 
 export default function LegendScreen() {
   const colors = getColors();
@@ -44,25 +44,25 @@ export default function LegendScreen() {
           {/* Stats overview */}
           <View style={styles.statsBlock}>
             <Text style={styles.statLine}>
-              🧩 Total Wins: {stats?.totalWins ?? 0}
+              ?? Total Wins: {stats?.totalWins ?? 0}
             </Text>
             <Text style={styles.statLine}>
-              ⚡ Best Streak: {stats?.bestStreak ?? 0}
+              ? Best Streak: {stats?.bestStreak ?? 0}
             </Text>
             <Text style={styles.statLine}>
-              ⏱ Fastest Time: {stats?.fastestTime ?? "-"} s
+              ? Fastest Time: {stats?.fastestTime ?? "-"} s
             </Text>
           </View>
 
           {/* Achievements */}
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>🏅 Achievement Badges</Text>
+            <Text style={styles.cardTitle}>?? Achievement Badges</Text>
 
             {[
               {
                 label: "Streak Master",
                 color: "#ff9b42",
-                desc: "Daily streak milestones 🔥",
+                desc: "Daily streak milestones ??",
               },
               {
                 label: "Speed Demon",
@@ -80,7 +80,7 @@ export default function LegendScreen() {
                 desc: "Special achievements",
               },
               {
-                label: "✨ Flawless",
+                label: "? Flawless",
                 color: "#d66bff",
                 desc: "5+ games with avg errors < 1",
               },
@@ -96,19 +96,19 @@ export default function LegendScreen() {
 
           {/* Ranks */}
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>🏆 Ranks</Text>
-            <Text style={styles.cardLine}>🥉 Bronze — 0+</Text>
-            <Text style={styles.cardLine}>🥈 Silver — 1,000+</Text>
-            <Text style={styles.cardLine}>🥇 Gold — 2,500+</Text>
-            <Text style={styles.cardLine}>💎 Platinum — 5,000+</Text>
-            <Text style={styles.cardLine}>🔷 Diamond — 10,000+</Text>
-            <Text style={styles.cardLine}>👑 Master — 20,000+</Text>
-            <Text style={styles.cardLine}>🌟 Grandmaster — 35,000+</Text>
+            <Text style={styles.cardTitle}>?? Ranks</Text>
+            <Text style={styles.cardLine}>?? Bronze � 0+</Text>
+            <Text style={styles.cardLine}>?? Silver � 1,000+</Text>
+            <Text style={styles.cardLine}>?? Gold � 2,500+</Text>
+            <Text style={styles.cardLine}>?? Platinum � 5,000+</Text>
+            <Text style={styles.cardLine}>?? Diamond � 10,000+</Text>
+            <Text style={styles.cardLine}>?? Master � 20,000+</Text>
+            <Text style={styles.cardLine}>?? Grandmaster � 35,000+</Text>
           </View>
 
           {/* Errors */}
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>⚠️ Errors</Text>
+            <Text style={styles.cardTitle}>?? Errors</Text>
             <Text style={styles.cardLine}>
               Each wrong placement = +1 error
             </Text>
@@ -120,7 +120,7 @@ export default function LegendScreen() {
 
           {/* Scoring */}
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>📊 Scoring Breakdown</Text>
+            <Text style={styles.cardTitle}>?? Scoring Breakdown</Text>
             <Text style={styles.cardLine}>
               + Base Points: Easy 500, Medium 1000, Hard 1500
             </Text>
@@ -134,17 +134,17 @@ export default function LegendScreen() {
               + Fast Solve Bonus
             </Text>
             <Text style={styles.cardLine}>
-              − Hint Penalty: −50 per hint
+              - Hint Penalty: -50 per hint
             </Text>
             <Text style={styles.cardLine}>
-              − Undo Penalty: −20 per undo
+              - Undo Penalty: -20 per undo
             </Text>
             <Text style={styles.cardLine}>
-              − Error Penalty: −30 per error
+              - Error Penalty: -30 per error
             </Text>
           </View>
 <View style={styles.card}>
-  <Text style={styles.cardTitle}>⚖️ Competitive Integrity</Text>
+  <Text style={styles.cardTitle}>?? Competitive Integrity</Text>
 
   <Text style={styles.cardLine}>
     All competitive results are calculated from gameplay input only.
@@ -167,7 +167,7 @@ export default function LegendScreen() {
   </Text>
 </View>
 <View style={styles.card}>
-  <Text style={styles.cardTitle}>🏟 Arena (Preview)</Text>
+  <Text style={styles.cardTitle}>?? Arena (Preview)</Text>
 
   <Text style={styles.cardLine}>
     Arena is a competitive environment built on the same rules as standard play.
@@ -195,7 +195,7 @@ export default function LegendScreen() {
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <Text style={styles.backText}>← Back</Text>
+            <Text style={styles.backText}>? Back</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

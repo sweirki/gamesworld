@@ -1,0 +1,20 @@
+GamesWorld repair pass - 2026-06-07
+
+Focus:
+- Restored npm typecheck and validate-configs flow.
+- Replaced legacy ESLint config with ESLint 9 flat Expo config.
+- Fixed core TypeScript blockers from the reported 157-error run.
+- Added theme compatibility aliases used by older screens.
+- Restored missing ladder exports and compatibility helpers.
+- Typed the achievements Zustand store.
+- Fixed WinModal Animated percent-left typing.
+- Fixed daily leaderboard generated styles usage.
+- Added safe script validator for poststart.
+
+Important:
+- I could not run npm install in this sandbox because dependency installation failed in the environment, so local tsc here reports missing package modules. After npm install on your Windows machine, run:
+  npm run typecheck
+  npm run lint
+
+Store visibility:
+- App Store / Google Play search visibility is mostly metadata/ASO, not app code. You should update title, subtitle/short description, keywords, long description, screenshots, category, and localization in App Store Connect and Google Play Console.

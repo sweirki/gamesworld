@@ -68,13 +68,26 @@ const [popup, setPopup] = useState<{
       );
 
       router.replace("/splash");
-    } catch (err: any) {
-    setPopup({
-  title: "Signup failed",
-  message: "Unable to create account. Please try again.",
-});
+  } catch (err: any) {
+  console.log("SIGNUP ERROR:", err?.code, err?.message);
 
-    }
+  let message = "Unable to create account. Please try again.";
+
+  if (err?.code === "auth/email-already-in-use") {
+    message = "This email is already registered. Please log in instead.";
+  } else if (err?.code === "auth/invalid-email") {
+    message = "Please enter a valid email address.";
+  } else if (err?.code === "auth/weak-password") {
+    message = "Password must be at least 6 characters.";
+  } else if (err?.code === "auth/network-request-failed") {
+    message = "Network error. Please check your connection.";
+  }
+
+  setPopup({
+    title: "Signup failed",
+    message,
+  });
+}
   };
 
   const pickAvatar = async () => {

@@ -20,7 +20,6 @@ export async function onGameFinished(result: GameResult) {
 
   // 2️⃣ Record analytics + stats (authoritative)
   await recordGameResult({
-    username: uid,
     mode: result.mode,
     win: result.win,
     timeSec: result.time,

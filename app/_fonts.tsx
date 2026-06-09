@@ -1,7 +1,8 @@
-﻿import { useFonts } from "expo-font";
+import { useFonts } from "expo-font";
+import React from "react";
 import { ActivityIndicator, View } from "react-native";
 
-export default function FontProvider({ children }) {
+export default function FontProvider({ children }: { children: React.ReactNode }) {
   const [loaded] = useFonts({
     Nunito: require("../assets/fonts/Nunito.ttf"),
   });

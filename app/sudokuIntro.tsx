@@ -1,703 +1,665 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Animated,
   ImageBackground,
   Image,
   Dimensions,
   Modal,
 } from "react-native";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { Easing } from "react-native";
-import { getXpMultiplier } from "../src/analytics/playerAnalytics";
 import { LinearGradient } from "expo-linear-gradient";
-import { getColors } from "../theme";
-import { useRouter } from "expo-router";
-import { useRevenueCat } from "../src/hooks/useRevenueCat";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebase";
+import { getXpMultiplier } from "../src/analytics/playerAnalytics";
+import { useRevenueCat } from "../src/hooks/useRevenueCat";
 import { useProgression } from "../hooks/useProgression";
-const ICONS: Record<string, any> = {
-  setting: require("../assets/setting.png"),
-  profile: require("../assets/profile.png"),
-  stat: require("../assets/stat.png"),
-};
+
+const { width } = Dimensions.get("window");
+const CONTENT_WIDTH = Math.min(400, width * 0.92);
+const CTA_WIDTH = Math.min(330, width * 0.84);
+
+const HOME_BG = require("../assets/branding/home-background.png");
+const ICON_MODES = require("../assets/branding/icon-modes.png");
+const ICON_ARENA = require("../assets/branding/icon-arena.png");
+const ICON_ACHIEVEMENTS = require("../assets/branding/icon-achievements.png");
+const TIER_STANDARD = require("../assets/branding/tier-standard-light-transparent.png");
+const TIER_PREMIUM = require("../assets/branding/tier-premium-light.png");
+
 function dailyKey(key: string) {
   const uid = auth.currentUser?.uid || "guest";
   return `${key}:${uid}`;
 }
 
+type DepthItem = {
+  label: string;
+  path: string;
+  image: number;
+  accent: string;
+};
 
-
-
-const { width } = Dimensions.get("window");
-const BTN_WIDTH = Math.min(280, width * 0.82);
+const DEPTH_ITEMS: DepthItem[] = [
+  {
+    label: "Multiple Modes",
+    path: "/variantHub",
+    image: ICON_MODES,
+    accent: "#28C7F3",
+  },
+  {
+    label: "Arena",
+    path: "/arena",
+    image: ICON_ARENA,
+    accent: "#8F79FF",
+  },
+  {
+    label: "Achievements",
+    path: "/achievements",
+    image: ICON_ACHIEVEMENTS,
+    accent: "#F5B943",
+  },
+];
 
 
 export default function SudokuIntro() {
-/* useEffect(() => {
-  (async () => {
-    await AsyncStorage.removeItem("dailyPlayed");
-    console.log("🔓 Daily unlocked (global)");
-  })();
-}, []); */
-  const [nextDailyCountdown, setNextDailyCountdown] = useState<string | null>(null);
-  const colors = getColors();
   const router = useRouter();
   const { isPremium } = useRevenueCat();
-const go = (path: string) => router.push(path as any);
-  const scaleAnim = useRef(new Animated.Value(0.9)).current;
-  const [dailyLockedVisible, setDailyLockedVisible] = useState(false);
-  const [userName, setUserName] = useState<string | null>(null);
-  const [isGuest, setIsGuest] = useState(true);
-  const glowAnim = useRef(new Animated.Value(0)).current;
   const progression = useProgression();
+
+  const [nextDailyCountdown, setNextDailyCountdown] = useState<string | null>(null);
+  const [dailyLockedVisible, setDailyLockedVisible] = useState(false);
+  const [isGuest, setIsGuest] = useState(true);
   const [dailyStatus, setDailyStatus] = useState<string | null>(null);
-  const [weeklyStatus, setWeeklyStatus] = useState<string | null>(null); // <— ADD HERE
+  const [weeklyStatus, setWeeklyStatus] = useState<string | null>(null);
   const [progressHint, setProgressHint] = useState<string | null>(null);
-const [activityStreakLine, setActivityStreakLine] = useState<string | null>(null);
-const handleContinue = async () => {
-  const today = new Date().toISOString().split("T")[0];
- const played = await AsyncStorage.getItem(dailyKey("dailyPlayed"));
+  const [activityStreakLine, setActivityStreakLine] = useState<string | null>(null);
 
+  const go = (path: string) => router.push(path as any);
 
-  if (played !== today) {
-    go("/daily");
-  } else {
-    go("/variantHub");
-  }
-};
-
-useEffect(() => {
-  if (dailyLockedVisible) {
-    scaleAnim.setValue(0.9);
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      friction: 6,
-      useNativeDriver: true,
-    }).start();
-  }
-}, [dailyLockedVisible]);
-
-useEffect(() => {
-  const update = () => {
-    const now = new Date();
-    const tomorrow = new Date();
-    tomorrow.setHours(24, 0, 0, 0);
-
-    const diff = tomorrow.getTime() - now.getTime();
-    if (diff <= 0) return;
-
-    const h = Math.floor(diff / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-    const s = Math.floor((diff % 60000) / 1000);
-
-    setNextDailyCountdown(
-      `⏰ Next Daily in ${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
-    );
-  };
-
-  update();
-  const id = setInterval(update, 1000);
-  return () => clearInterval(id);
-}, []);
-
-
- useEffect(() => {
-  (async () => {
-    const name = (await AsyncStorage.getItem("username")) || null;
-    setUserName(name);
-
-    const current = auth?.currentUser;
-    setIsGuest(!(current?.email || name));
-  })();
-}, []);
-
-useFocusEffect(
-  React.useCallback(() => {
-    let active = true;
-
-    requestAnimationFrame(() => {
-      if (!active) return;
-
-      // Light haptic AFTER first paint
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-
-      (async () => {
-        try {
-          const today = new Date().toISOString().split("T")[0];
-          const played = await AsyncStorage.getItem(dailyKey("dailyPlayed"));
-          const streak = await AsyncStorage.getItem(dailyKey("dailyStreak"));
-
-          if (!active) return;
-
-          if (played === today) {
-            setDailyStatus("✅ Daily completed — streak continues");
-          } else if (streak && parseInt(streak, 10) > 0) {
-            setDailyStatus(`🔥 ${streak}-day Daily streak`);
-          } else {
-            setDailyStatus("⏳ Today’s Daily Challenge is ready");
-          }
-        } catch {
-          if (active) setDailyStatus(null);
-        }
-// ACTIVITY STREAK + MULTIPLIER
-try {
-  const { mult, streak } = await getXpMultiplier();
-
-  if (!active) return;
-
-  if (streak > 0) {
-    activityStreakLine = `🔥 ${streak}-day Activity Streak · x${mult.toFixed(2)} XP`;
-    setActivityStreakLine(activityStreakLine);
-  } else {
-    setActivityStreakLine("Start a streak to earn XP boosts");
-  }
-} catch {
-  if (active) setActivityStreakLine(null);
-}
-
-
-
-        // WEEKLY STATUS
-        try {
-          const weeklyGames = await AsyncStorage.getItem(
-            dailyKey("weeklyGames")
-          );
-
-          if (!active) return;
-
-          if (weeklyGames && parseInt(weeklyGames, 10) > 0) {
-            setWeeklyStatus(
-              `📊 Weekly standing updated · ${weeklyGames} games`
-            );
-          } else {
-            setWeeklyStatus("🗓 New week — climb the ladder");
-          }
-        } catch {
-          if (active) setWeeklyStatus(null);
-        }
-
-        // PROGRESS PROXIMITY (Phase 6C — soft hint only)
-        try {
-          const p = progression;
-
-          if (!active) return;
-
-          if (p && p.nextTier != null && p.tier != null) {
-            setProgressHint(`Next rank: ${p.nextTier as string}`);
-          } else {
-            setProgressHint(null);
-          }
-        } catch {
-          if (active) setProgressHint(null);
-        }
-      })();
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (!firebaseUser) {
+        router.replace("/login");
+        return;
+      }
+      setIsGuest(false);
     });
 
-    return () => {
-      active = false;
+    return unsubscribe;
+  }, [router]);
+
+  useEffect(() => {
+    (async () => {
+      const name = (await AsyncStorage.getItem("username")) || null;
+      const current = auth.currentUser;
+      setIsGuest(!(current?.email || name));
+    })();
+  }, []);
+
+  useEffect(() => {
+    const update = () => {
+      const now = new Date();
+      const tomorrow = new Date();
+      tomorrow.setHours(24, 0, 0, 0);
+
+      const diff = tomorrow.getTime() - now.getTime();
+      if (diff <= 0) return;
+
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+
+      setNextDailyCountdown(
+        `Next Daily in ${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
+      );
     };
-  }, [progression])
-);
 
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, []);
 
-useEffect(() => {
-  let animation: Animated.CompositeAnimation | null = null;
+  useFocusEffect(
+    React.useCallback(() => {
+      let active = true;
 
-  const startDelay = setTimeout(() => {
-    animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(glowAnim, {
-          toValue: 1,
-          duration: 1800,
-          useNativeDriver: false,
-        }),
-        Animated.timing(glowAnim, {
-          toValue: 0,
-          duration: 1800,
-          useNativeDriver: false,
-        }),
-      ])
-    );
+      requestAnimationFrame(() => {
+        if (!active) return;
 
-    animation.start();
-  }, 120); // ⏱️ allow first paint to stabilize
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
 
-  return () => {
-    clearTimeout(startDelay);
-    animation?.stop();
-    glowAnim.stopAnimation();
-  };
-}, []);
+        (async () => {
+          try {
+            const today = new Date().toISOString().split("T")[0];
+            const played = await AsyncStorage.getItem(dailyKey("dailyPlayed"));
+            const streak = await AsyncStorage.getItem(dailyKey("dailyStreak"));
 
+            if (!active) return;
 
+            if (played === today) {
+              setDailyStatus("Daily completed — streak continues");
+            } else if (streak && parseInt(streak, 10) > 0) {
+              setDailyStatus(`${streak}-day Daily streak`);
+            } else {
+              setDailyStatus("Today's Daily Challenge is ready");
+            }
+          } catch {
+            if (active) setDailyStatus(null);
+          }
 
+          try {
+            const { mult, streak } = await getXpMultiplier();
 
-    return (
-  
-  <View style={{ flex: 1, backgroundColor: "#000" }}>
-    <ImageBackground
-      source={require("../assets/bg.png")}
-      style={styles.bg}
-      blurRadius={4}
-      resizeMode="cover"
-    >
+            if (!active) return;
 
-  
-      <ScrollView contentContainerStyle={styles.scroll}>
-  
+            if (streak > 0) {
+              setActivityStreakLine(`${streak}-day Activity Streak · x${mult.toFixed(2)} XP`);
+            } else {
+              setActivityStreakLine("Start a streak to earn XP boosts");
+            }
+          } catch {
+            if (active) setActivityStreakLine(null);
+          }
 
-        <Animated.Text
-          style={[
-            styles.title,
-            {
-              textShadowRadius: glowAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [8, 18],
-              }) as unknown as number,
-            },
-          ]}
-        >
-          Sweirki Sudoku 🧩
-        </Animated.Text>
-      
+          try {
+            const weeklyGames = await AsyncStorage.getItem(dailyKey("weeklyGames"));
 
- <View style={{ alignItems: "center", marginBottom: 14 }}>
-  <Text
-    style={[
-      styles.subtitle,
-      {
-        fontSize: dailyStatus?.includes("completed") ? 16 : 15,
-        opacity: dailyStatus?.includes("completed") ? 1 : 0.9,
-        marginBottom: weeklyStatus ? 2 : 0,
-        lineHeight: 18,
-      },
-    ]}
-  >
-    {dailyStatus ?? "Today counts toward your league journey"}
-  </Text>
+            if (!active) return;
 
- {!dailyStatus?.includes("completed") &&
-  !dailyStatus?.includes("streak") &&
-  weeklyStatus && (
-    <Text
-      style={[
-        styles.subtitle,
-        {
-          fontSize: 12,
-          opacity: 0.65,
-          marginBottom: 0,
-          lineHeight: 14,
-        },
-      ]}
-    >
-      {weeklyStatus.replace("🗓 ", "").replace("📊 ", "")}
-    </Text>
-)}
-{!dailyStatus?.includes("completed") &&
-  !dailyStatus?.includes("streak") &&
-  progressHint && (
-    <Text
-      style={[
-        styles.subtitle,
-        {
-          fontSize: 12,
-          opacity: 0.6,
-          marginTop: 6,
-          lineHeight: 14,
-        },
-      ]}
-    >
-      {progressHint}
-    </Text>
-)}
-{activityStreakLine ? (
-  <Text style={[styles.subtitle, { marginTop: 4, opacity: 0.95 }]}>
-    {activityStreakLine}
-  </Text>
-) : null}
-</View>
+            if (weeklyGames && parseInt(weeklyGames, 10) > 0) {
+              setWeeklyStatus(`Weekly standing updated · ${weeklyGames} games`);
+            } else {
+              setWeeklyStatus("New week — climb the ladder");
+            }
+          } catch {
+            if (active) setWeeklyStatus(null);
+          }
 
+          try {
+            const p = progression as any;
 
+            if (!active) return;
 
-{dailyStatus?.includes("completed") && nextDailyCountdown && (
-  <Text
-    style={[
-      styles.subtitle,
-      { marginTop: 6, fontSize: 12, opacity: 0.65 },
-    ]}
-  >
-    {nextDailyCountdown}
-  </Text>
-)}
+            if (p?.nextTier != null && p?.tier != null) {
+              setProgressHint(`Next rank: ${p.nextTier as string}`);
+            } else {
+              setProgressHint(null);
+            }
+          } catch {
+            if (active) setProgressHint(null);
+          }
+        })();
+      });
 
+      return () => {
+        active = false;
+      };
+    }, [progression])
+  );
 
-      {/* ================= PHASE 5A — PRIMARY CTA ================= */}
-<View style={styles.primaryCtaWrap}>
-  <LinearGradient
-    colors={["#FFE9A8", "#D8B24A"]}
-    start={{ x: 0, y: 0 }}
-    end={{ x: 1, y: 1 }}
-    style={styles.primaryButton}
-  >
-    <TouchableOpacity
-      activeOpacity={0.9}
-    onPress={async () => {
-  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-  isGuest ? go("/login") : handleContinue();
-}}
-
-
-      style={styles.innerButton}
-    >
-    <Text style={styles.primaryButtonText}>
-  {isGuest
-    ? "Login / Sign Up to Begin"
-    : dailyStatus?.includes("completed")
-    ? "Climb the Ladder"
-    : "Play Today’s Challenge"}
-</Text>
-
-    </TouchableOpacity>
-  </LinearGradient>
-</View>
-{/* ================= PHASE 5A — SECONDARY ACTIONS ================= */}
-<View style={styles.secondaryButtons}>
-  {[
-    { label: "Start a New Game", action: "/variantHub" },
-  ...(dailyStatus?.includes("completed")
-  ? []
-  : [{ label: "Daily Challenge", action: "/daily" }]),
-
-  ].map((btn) => (
-    <TouchableOpacity
-      key={btn.label}
-   onPress={async () => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  if (isGuest) {
-    go("/login");
-    return;
-  }
-
-  // Only lock the Daily button; Start New Game should always work.
-  if (btn.action === "/daily") {
+  const handleContinue = async () => {
     const today = new Date().toISOString().split("T")[0];
-  const played = await AsyncStorage.getItem(dailyKey("dailyPlayed"));
+    const played = await AsyncStorage.getItem(dailyKey("dailyPlayed"));
 
+    if (played !== today) {
+      go("/daily");
+    } else {
+      go("/variantHub");
+    }
+  };
 
-   if (played === today) {
-  setDailyLockedVisible(true);
-  return;
-}
+  const handleDailyButton = async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
 
-  }
+    if (isGuest) {
+      go("/login");
+      return;
+    }
 
-  go(btn.action);
-}}
+    const today = new Date().toISOString().split("T")[0];
+    const played = await AsyncStorage.getItem(dailyKey("dailyPlayed"));
 
+    if (played === today) {
+      setDailyLockedVisible(true);
+      return;
+    }
 
-      disabled={isGuest}
-      activeOpacity={0.8}
-      style={[
-        styles.secondaryButton,
-        { opacity: isGuest ? 0.5 : 1 },
-      ]}
-    >
-      <Text style={styles.secondaryButtonText}>{btn.label}</Text>
-    </TouchableOpacity>
-  ))}
-</View>
-{/* ================= PHASE 5A — DEPTH TEASER ================= */}
-<View style={styles.depthStrip}>
- {
-[
-  { icon: "🧩", label: "Multiple Modes", path: "/variantHub" },
-  { icon: "⚔️", label: "Arena", path: "/arena" },
-  { icon: "⭐", label: "Achievements", path: "/achievements" },
-]
+    go("/daily");
+  };
 
-.map((item) => (
-  <TouchableOpacity
-  key={item.label}
-  style={[
-    styles.depthItem,
-    { opacity: isGuest ? 0.4 : 1 },
-  ]}
-  activeOpacity={isGuest ? 1 : 0.7}
-  disabled={isGuest}
-  onPress={async () => {
-  if (isGuest || !item.path) return;
-  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  go(item.path);
-}}
+  return (
+    <View style={styles.root}>
+      <ImageBackground source={HOME_BG} style={styles.bg} resizeMode="cover">
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scroll}
+        >
+          <View style={styles.brandBlock}>
+            <Text style={styles.brandTitle}>Sweirki Sudoku</Text>
+            <Text style={styles.brandSubline}>A brighter way to play every day</Text>
+          </View>
 
->
-  <Text style={styles.depthIcon}>{item.icon}</Text>
-  <Text style={styles.depthLabel}>{item.label}</Text>
-</TouchableOpacity>
-
-))}
-
-</View>
-{/* ================= END PHASE 5A ================= */}
-{!isGuest && (
-  <View style={styles.statusContainer}>
-    <Image
-      source={
-        isPremium
-          ? require("./assets/tier_premium.png")
-          : require("./assets/tier_standard.png")
-      }
-      style={styles.tierBadgeSingle}
-    />
-  </View>
-)}
-
-
-
-     
-      </ScrollView>
-
-       </ImageBackground>
-
-<Modal
-      transparent
-      visible={dailyLockedVisible}
-      animationType="fade"
-      onRequestClose={() => setDailyLockedVisible(false)}
-    >
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: "rgba(0,0,0,0.6)",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-       <Animated.View
-  style={{
-    width: "80%",
-    backgroundColor: "#10182C",
-    borderRadius: 16,
-    padding: 20,
-    alignItems: "center",
-    transform: [{ scale: scaleAnim }],
-  }}
->
-
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: "800",
-              color: "#FFD76F",
-              marginBottom: 10,
-              textAlign: "center",
-            }}
-          >
-            Daily Challenge
-          </Text>
-
-          <Text
-            style={{
-              fontSize: 14,
-              color: "#E6E6E6",
-              textAlign: "center",
-              marginBottom: 20,
-            }}
-          >
-            ✅ You already completed today’s Daily Challenge.
-            {"\n"}Come back tomorrow for a new one!
-          </Text>
+          <View style={styles.statusCard}>
+            <Text style={styles.statusTitle}>
+              {dailyStatus ?? "Today counts toward your league journey"}
+            </Text>
+            {weeklyStatus && !dailyStatus?.includes("completed") && !dailyStatus?.includes("streak") ? (
+              <Text style={styles.statusSub}>{weeklyStatus}</Text>
+            ) : null}
+            {progressHint && !dailyStatus?.includes("completed") && !dailyStatus?.includes("streak") ? (
+              <Text style={styles.statusSub}>{progressHint}</Text>
+            ) : null}
+            {activityStreakLine ? (
+              <Text style={styles.streakText}>{activityStreakLine}</Text>
+            ) : null}
+            {dailyStatus?.includes("completed") && nextDailyCountdown ? (
+              <Text style={styles.statusSub}>{nextDailyCountdown}</Text>
+            ) : null}
+          </View>
 
           <TouchableOpacity
-            onPress={() => setDailyLockedVisible(false)}
-            style={{
-              backgroundColor: "#FFD76F",
-              paddingVertical: 10,
-              paddingHorizontal: 30,
-              borderRadius: 12,
-            }}
+            activeOpacity={0.88}
+            onPress={handleDailyButton}
+            style={styles.dailyFeatureTouchable}
           >
-            <Text
-              style={{
-                color: "#10182C",
-                fontWeight: "800",
-                fontSize: 16,
-              }}
+            <LinearGradient
+              colors={["rgba(255,255,255,0.96)", "rgba(231,250,255,0.94)", "rgba(243,239,255,0.92)"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.dailyFeatureCard}
             >
-              OK
-            </Text>
-          </TouchableOpacity>
-        </Animated.View>
+              <View style={styles.dailyCopy}>
+                <Text style={styles.kicker}>FEATURED TODAY</Text>
+                <Text style={styles.dailyTitle}>Daily Challenge</Text>
+                <Text style={styles.dailyDescription}>
+                  Tap to solve today's board, protect your streak, and keep climbing.
+                </Text>
+              </View>
 
-      </View>
-    </Modal>
-  </View>
-);
+              <View style={styles.dailyMarkWrap}>
+                <View style={styles.dailyRing}>
+                  <Text style={styles.dailyCrystal}>◆</Text>
+                </View>
+                <Text style={styles.dailyArrow}>›</Text>
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <View style={styles.secondaryButtons}>
+            <TouchableOpacity
+              onPress={async () => {
+                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
+                isGuest ? go("/login") : go("/variantHub");
+              }}
+              activeOpacity={0.82}
+              style={styles.secondaryButton}
+            >
+              <Text style={styles.secondaryButtonText}>Start a New Game</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.depthStrip}>
+            {DEPTH_ITEMS.map((item) => (
+              <TouchableOpacity
+                key={item.label}
+                style={[styles.depthItem, isGuest && styles.disabledItem]}
+                activeOpacity={isGuest ? 1 : 0.78}
+                disabled={isGuest}
+                onPress={async () => {
+                  if (isGuest) return;
+                  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
+                  go(item.path);
+                }}
+              >
+                <View style={[styles.depthImageShell, { shadowColor: item.accent }]}>
+                  <Image source={item.image} style={styles.depthImage} />
+                </View>
+                <Text style={styles.depthLabel}>{item.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {!isGuest ? (
+            <View style={styles.tierSection}>
+              <View style={styles.tierBadgeGlow}>
+                <Image
+                  source={isPremium ? TIER_PREMIUM : TIER_STANDARD}
+                  style={isPremium ? styles.tierBadgePremium : styles.tierBadgeStandard}
+                />
+              </View>
+              <Text style={styles.tierLabel}>{isPremium ? "PREMIUM" : "STANDARD"}</Text>
+            </View>
+          ) : null}
+        </ScrollView>
+      </ImageBackground>
+
+      <Modal
+        transparent
+        visible={dailyLockedVisible}
+        animationType="fade"
+        onRequestClose={() => setDailyLockedVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Daily Complete</Text>
+            <Text style={styles.modalBody}>
+              You already completed today's Daily Challenge.{"\n"}Come back tomorrow for a new board.
+            </Text>
+            <TouchableOpacity
+              onPress={() => setDailyLockedVisible(false)}
+              activeOpacity={0.85}
+            >
+              <LinearGradient
+                colors={["#35C8F4", "#6BE5C9"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.modalButton}
+              >
+                <Text style={styles.modalButtonText}>OK</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-  /* ================= CORE ================= */
+  root: {
+    flex: 1,
+    backgroundColor: "#F6FBFF",
+  },
   bg: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "transparent",
   },
-
   scroll: {
     alignItems: "center",
-    paddingTop: 120,   // ↓ title goes up, more breathing room
-    paddingBottom: 200,
+    paddingTop: 92,
+    paddingBottom: 56,
   },
-
-  /* ================= TITLE ================= */
-  title: {
-  fontFamily: "BalooBold",
-  fontSize: 36,
-  color: "#FBE7A1",
-  textAlign: "center",
-  marginBottom: 22,
-  marginTop: -20,
-  textShadowColor: "rgba(216,178,74,0.55)",
-  textShadowOffset: { width: 0, height: 2 },
-  textShadowRadius: 10,
-  letterSpacing: 0.4,
-},
-
-
-  /* ================= STATUS TEXT ================= */
-  subtitle: {
-  fontFamily: "BalooRegular",
-  fontSize: 15,
-  color: "rgba(255,249,232,0.88)",
-  marginBottom: 0,
-  textAlign: "center",
-},
-
-
-
-  /* ================= PRIMARY CTA ================= */
-  primaryCtaWrap: {
-    marginTop: 24,
-    marginBottom: 42, // strong separation from secondaries
+  brandBlock: {
+    width: CONTENT_WIDTH,
+    alignItems: "center",
+    marginBottom: 18,
   },
-
-  primaryButton: {
-    width: BTN_WIDTH,
-    height: 64,
-    borderRadius: 28,
-    justifyContent: "center",
-    shadowOpacity: 0.75,
-    shadowRadius: 12,
-    elevation: 10,
+  brandTitle: {
+    fontFamily: "BalooBold",
+    fontSize: 36,
+    color: "#14385F",
+    textAlign: "center",
+    letterSpacing: 0.2,
+    textShadowColor: "rgba(255,255,255,0.9)",
+    textShadowRadius: 10,
+    textShadowOffset: { width: 0, height: 2 },
   },
-
-  primaryButtonText: {
-    color: "#1d479bff",
-    fontWeight: "900",
-    fontSize: 15,
+  brandSubline: {
+    marginTop: -2,
+    fontFamily: "BalooRegular",
+    fontSize: 13,
+    color: "#6C8AA6",
     textAlign: "center",
   },
-statusContainer: {
-  marginTop: 0,
-  alignItems: "center",
-  marginBottom: 40,
-
-  
-},
-
-tierBadgeSingle: {
-  width: 96,
-  height: 96,
-  resizeMode: "contain",
-  opacity: 0.95,
-},
-
-tierBadge: {
-  width: 150,
-  height: 150,
-  resizeMode: "contain",
-  marginHorizontal: 10,
-},
-
-tierActive: {
-  opacity: 1,
-},
-
-tierInactive: {
-  opacity: 0.35,
-},
-
-statusRow: {
-  flexDirection: "row",
-  alignItems: "center",
-  paddingHorizontal: 0,
-  paddingVertical: 0,
-  backgroundColor: "transparent", // ⬅️ important
-},
-
-  /* ================= SECONDARY ACTIONS ================= */
-  secondaryButtons: {
-    width: BTN_WIDTH,
-    gap: 22,           // more vertical space between buttons
-    marginBottom: 60,  // clearer break before depth strip
-  },
-
-  secondaryButton: {
-    height: 42,
-    borderRadius: 16,
+  statusCard: {
+    width: CONTENT_WIDTH,
+    borderRadius: 24,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.82)",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.28)",
-    alignItems: "center",
-    justifyContent: "center",
+    borderColor: "rgba(91,202,245,0.28)",
+    shadowColor: "#61D0F7",
+    shadowOpacity: 0.13,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 3,
   },
-  
-secondaryButtonText: {
-  color: "rgba(255,255,255,0.7)",
-  fontSize: 13,
-  fontWeight: "600",
-},
-
-  /* ================= DEPTH STRIP ================= */
- depthStrip: {
-  width: "92%",
-  flexDirection: "row",
-  justifyContent: "space-between",
-  paddingTop: 26,
-  paddingBottom: 12,
-  borderTopWidth: 1,
-  borderTopColor: "rgba(255,255,255,0.22)",
-  marginBottom: 10,
-},
-
-  depthItem: {
-    alignItems: "center",
-    flex: 1,
+  statusTitle: {
+    fontFamily: "BalooBold",
+    fontSize: 16,
+    color: "#163A5F",
+    textAlign: "center",
+    lineHeight: 20,
   },
-
-  depthIcon: {
-    fontSize: 20,
-    marginBottom: 6,
-  },
-
-  depthLabel: {
-    color: "rgba(255,255,255,0.85)",
+  statusSub: {
+    marginTop: 4,
+    fontFamily: "BalooRegular",
     fontSize: 12,
-    fontWeight: "600",
+    color: "#7D93A8",
     textAlign: "center",
   },
-
-  /* ================= SHARED ================= */
-  innerButton: {
+  streakText: {
+    marginTop: 7,
+    fontFamily: "BalooBold",
+    fontSize: 13,
+    color: "#248DCE",
+    textAlign: "center",
+  },
+  dailyFeatureTouchable: {
+    width: CONTENT_WIDTH,
+    marginTop: 14,
+    borderRadius: 25,
+    shadowColor: "#39BFEF",
+    shadowOpacity: 0.16,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 4,
+  },
+  dailyFeatureCard: {
+    width: "100%",
+    minHeight: 142,
+    borderRadius: 25,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "rgba(91,202,245,0.28)",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 18,
+    paddingVertical: 18,
+  },
+  dailyCopy: {
+    flex: 1,
+    paddingRight: 12,
+    zIndex: 2,
+  },
+  kicker: {
+    fontSize: 11,
+    fontWeight: "900",
+    color: "#2EB9E9",
+    letterSpacing: 1.7,
+    marginBottom: 4,
+  },
+  dailyTitle: {
+    fontFamily: "BalooBold",
+    fontSize: 29,
+    lineHeight: 32,
+    color: "#14385F",
+  },
+  dailyDescription: {
+    marginTop: 5,
+    fontFamily: "BalooRegular",
+    fontSize: 13,
+    lineHeight: 18,
+    color: "#7891A8",
+  },
+  dailyMarkWrap: {
+    width: 104,
+    alignItems: "flex-start",
+    justifyContent: "center",
+    paddingLeft: 4,
+    paddingRight: 22,
+  },
+  dailyRing: {
+    width: 66,
+    height: 66,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
-    height: "100%",
+    backgroundColor: "rgba(255,255,255,0.78)",
+    borderWidth: 1,
+    borderColor: "rgba(53,200,244,0.32)",
+    shadowColor: "#35C8F4",
+    shadowOpacity: 0.16,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 5 },
+  },
+  dailyCrystal: {
+    fontSize: 34,
+    color: "#35C8F4",
+    textShadowColor: "rgba(245,185,67,0.55)",
+    textShadowRadius: 8,
+  },
+  dailyArrow: {
+    position: "absolute",
+    right: -8,
+    fontSize: 34,
+    color: "#53A8D6",
+    fontWeight: "800",
+  },
+  secondaryButtons: {
+    width: CTA_WIDTH,
+    gap: 12,
+    marginTop: 16,
+    marginBottom: 18,
+  },
+  secondaryButton: {
+    height: 48,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "rgba(90,196,235,0.36)",
+    backgroundColor: "rgba(255,255,255,0.78)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  secondaryButtonText: {
+    color: "#2C587D",
+    fontSize: 13,
+    fontWeight: "800",
+  },
+  depthStrip: {
+    width: CONTENT_WIDTH,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 10,
+    paddingVertical: 14,
+    borderRadius: 26,
+    backgroundColor: "rgba(255,255,255,0.84)",
+    borderWidth: 1,
+    borderColor: "rgba(91,202,245,0.28)",
+    shadowColor: "#5CCDF3",
+    shadowOpacity: 0.12,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 3,
+  },
+  depthItem: {
+    flex: 1,
+    alignItems: "center",
+  },
+  disabledItem: {
+    opacity: 0.45,
+  },
+  depthImageShell: {
+    width: 110,
+    height: 82,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 0,
+    shadowOpacity: 0.22,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 6 },
+  },
+  depthImage: {
+    width: 104,
+    height: 82,
+    resizeMode: "contain",
+  },
+  depthLabel: {
+    color: "#245073",
+    fontSize: 11,
+    fontWeight: "900",
+    textAlign: "center",
+  },
+  tierSection: {
+    alignItems: "center",
+    marginTop: 16,
+  },
+  tierBadgeGlow: {
+    width: 184,
+    height: 126,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#35C8F4",
+    shadowOpacity: 0.22,
+    shadowRadius: 22,
+    shadowOffset: { width: 0, height: 12 },
+  },
+  tierBadgeStandard: {
+    width: 182,
+    height: 122,
+    resizeMode: "contain",
+  },
+  tierBadgePremium: {
+    width: 118,
+    height: 104,
+    resizeMode: "contain",
+  },
+  tierLabel: {
+    marginTop: -4,
+    fontSize: 13,
+    fontWeight: "900",
+    letterSpacing: 2.2,
+    color: "#41627E",
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(15,45,75,0.36)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
+  modalCard: {
+    width: "100%",
+    maxWidth: 330,
+    backgroundColor: "rgba(255,255,255,0.96)",
+    borderRadius: 26,
+    padding: 22,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(91,202,245,0.32)",
+  },
+  modalTitle: {
+    fontFamily: "BalooBold",
+    fontSize: 22,
+    color: "#14385F",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  modalBody: {
+    fontFamily: "BalooRegular",
+    fontSize: 14,
+    lineHeight: 20,
+    color: "#6F879B",
+    textAlign: "center",
+    marginBottom: 18,
+  },
+  modalButton: {
+    minWidth: 126,
+    height: 44,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 24,
+  },
+  modalButtonText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "900",
   },
 });

@@ -78,7 +78,7 @@ export function useRevenueCat() {
 
     init();
 
-    const listener = Purchases.addCustomerInfoUpdateListener((info) => {
+    Purchases.addCustomerInfoUpdateListener((info) => {
       if (!alive) return;
       setCustomerInfo(info);
       setIsPremium(computeIsPremium(info));
@@ -87,7 +87,6 @@ export function useRevenueCat() {
 
     return () => {
       alive = false;
-      listener?.remove?.();
     };
   }, []);
 

@@ -1,0 +1,125 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function isLegacyEmailOwner(uid) {
+      return signedIn()
+        && request.auth.token.email is string
+        && request.auth.token.email == uid;
+    }
+
+    function hasUid() {
+      return signedIn()
+        && request.resource.data.uid is string
+        && request.resource.data.uid == request.auth.uid;
+    }
+
+    function seasonDocOwner(docId) {
+      return signedIn()
+        && request.resource.data.uid is string
+        && request.resource.data.uid == request.auth.uid
+        && docId.matches('^[0-9]+_' + request.auth.uid + '$');
+    }
+
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow create, update: if isOwner(uid);
+      allow delete: if false;
+
+      match /{sub=**} {
+        allow read: if isOwner(uid) || isLegacyEmailOwner(uid);
+        allow write: if isOwner(uid);
+      }
+    }
+
+    match /ladderUsers/{uid} {
+      allow read: if signedIn();
+      allow create, update: if isOwner(uid);
+      allow delete: if false;
+    }
+
+    match /seasonUsers/{docId} {
+      allow read: if signedIn();
+      allow create, update: if seasonDocOwner(docId);
+      allow delete: if false;
+    }
+
+    match /leaderboard/{entryId} {
+      allow read: if signedIn();
+      allow create, update: if hasUid();
+      allow delete: if false;
+    }
+
+    match /dailyLeaderboard/{docId} {
+      allow read: if signedIn();
+      allow create, update: if signedIn();
+      allow delete: if false;
+    }
+
+    match /weeklyLeaderboard/{entryId} {
+      allow read: if signedIn();
+      allow create, update: if hasUid();
+      allow delete: if false;
+    }
+
+    match /globalLeaderboard/{entryId} {
+      allow read: if signedIn();
+      allow create, update: if hasUid();
+      allow delete: if false;
+    }
+
+    match /seasonLeaderboard/{entryId} {
+      allow read: if signedIn();
+      allow create, update: if hasUid();
+      allow delete: if false;
+    }
+
+    match /dailyPuzzles/{dayId} {
+      allow read: if true;
+      allow create, update: if signedIn();
+      allow delete: if false;
+    }
+
+    match /seasonArchives/{docId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /seasonArchive/{docId} {
+      allow read: if signedIn();
+      allow write: if false;
+
+      match /{sub=**} {
+        allow read: if signedIn();
+        allow write: if false;
+      }
+    }
+
+    match /seasonMeta/{docId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /friends/{uid}/list/{friendUid} {
+      allow read, write: if isOwner(uid);
+    }
+
+    match /referrals/{uid}/list/{refUid} {
+      allow read: if isOwner(uid);
+      allow create: if signedIn() && request.auth.uid == refUid;
+      allow update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -7,7 +7,6 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
 import { bumpActivityOnSessionStart, } from "../src/analytics/playerAnalytics";
 import * as Font from "expo-font";
-import * as SplashScreen from "expo-splash-screen";
 
 import * as Linking from "expo-linking";
 import { onAuthStateChanged } from "firebase/auth";
@@ -23,7 +22,6 @@ import { safeFirestoreCall } from "../src/utils/firestoreSafe";
 import { resetSeasonXPIfNeeded } from "./lib/ladderBridge";
 
 import RankUpPopup from "./components/RankUpPopup";
-SplashScreen.preventAutoHideAsync();
 
 export default function Layout() {
   const [loading, setLoading] = useState(true);
@@ -51,7 +49,6 @@ useEffect(() => {
       console.warn("Font load failed", e);
     } finally {
       setFontsReady(true);
-      await SplashScreen.hideAsync();
     }
   })();
 }, []);
@@ -265,3 +262,5 @@ if (loading || !fontsReady) {
     </View>
   );
 }
+
+

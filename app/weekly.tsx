@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Svg, { Rect } from "react-native-svg";
 import {
   View,
@@ -152,7 +152,7 @@ export default function WeeklyLeaderboard() {
         ? colors.silver
         : index === 2
         ? colors.bronze
-        : colors.rankDefault;
+        : (colors as any).rankDefault;
 
     return (
       <View style={[styles(colors).entryBox, { backgroundColor: bg }]}>

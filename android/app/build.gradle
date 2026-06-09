@@ -92,8 +92,8 @@ android {
         applicationId 'com.gamesworld.samsudoko'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 24
-        versionName "4.2.1"
+        versionCode 26
+        versionName "4.2.6"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }

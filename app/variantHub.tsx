@@ -11,11 +11,13 @@ import {
 
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { auth } from "../firebase";
+import { onAuthStateChanged } from "firebase/auth";
 import * as Haptics from "expo-haptics";
 import { useRevenueCat } from "../src/hooks/useRevenueCat";
 
 const BUTTON_BASE = require("../assets/buttons/variants/btn_base_gold.png");
-const MODE_BUTTONS = {
+const MODE_BUTTONS: Record<string, any> = {
   classic: require("../assets/buttons/variants/icon_classic.png"),
   killer: require("../assets/buttons/variants/icon_killer.png"),
   hyper: require("../assets/buttons/variants/icon_hyper.png"),
@@ -38,8 +40,9 @@ const MODES = [
 
 type Mode = {
   key: string;
+  label: string;
   route: string;
-  icon: any;
+  icon?: any;
   premium: boolean;
 };
 
@@ -47,6 +50,17 @@ export default function VariantHub() {
  
 const { isPremium } = useRevenueCat();
   const router = useRouter();
+
+  // AUTH GUARD: do not allow cached AsyncStorage profile to bypass Firebase login
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (!firebaseUser) {
+        router.replace("/login");
+      }
+    });
+
+    return unsubscribe;
+  }, [router]);
   const [lastPlayed, setLastPlayed] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>("Player");
 
@@ -165,7 +179,7 @@ function AnimatedTile({
 
   const scale = useRef(new Animated.Value(1)).current;
   const isLastPlayed = lastPlayed === mode.key && mode.key !== "ladder";
-    const router = useRouter();
+
   const locked = mode.premium && !isPremium;
 
   const onPressIn = () => {
@@ -186,7 +200,6 @@ function AnimatedTile({
     >
       <TouchableOpacity
       onPress={() => {
-  if (locked) return router.push("/upgrade");
   onPress(mode);
 }}
 
@@ -417,3 +430,10 @@ label: {
 
 
 });
+
+
+
+
+
+
+

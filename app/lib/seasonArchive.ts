@@ -12,7 +12,7 @@ export async function archiveSeason(
 ) {
   if (!rows.length) return;
 
-  const ref = doc(collection(db, "seasonArchives"), String(seasonId));
+  const ref = doc(collection(db, "seasonArchive"), String(seasonId));
 
   await setDoc(ref, {
     seasonId,
@@ -25,3 +25,4 @@ export async function archiveSeason(
     })),
   });
 }
+

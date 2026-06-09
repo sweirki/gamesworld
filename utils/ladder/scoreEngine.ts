@@ -6,7 +6,11 @@ import { useAchievementsStore } from "../../app/stores/useAchievementsStore";
 import { db } from "../../firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { safeFirestoreCall } from "../../src/utils/firestoreSafe";
-type Difficulty = keyof typeof scoreConfig.base;
+export type Difficulty = keyof typeof scoreConfig.base;
+type PlayDifficulty = Difficulty | "classic" | "hyper" | "killer" | "x" | "daily" | string;
+const normalizeDifficulty = (difficulty: PlayDifficulty): Difficulty => {
+  return difficulty === "easy" || difficulty === "medium" || difficulty === "hard" ? difficulty : "medium";
+};
 
 /* -------------------------------------------------
    SCORE CALCULATOR (classic gameplay score)
@@ -14,28 +18,39 @@ type Difficulty = keyof typeof scoreConfig.base;
 export function calculateScore({
   difficulty,
   time,
+  timeSeconds,
   hints,
   undos,
   errors,
+  wrongs,
   streak,
 }: {
-  difficulty: Difficulty;
-  time: number;
-  hints: number;
-  undos: number;
-  errors: number;
-  streak: number;
+  difficulty: PlayDifficulty;
+  time?: number;
+  timeSeconds?: number;
+  hints?: number;
+  undos?: number;
+  errors?: number;
+  wrongs?: number;
+  streak?: number;
 }): number {
-  const base = scoreConfig.base[difficulty] || 0;
-  const timeBonus = Math.max(0, scoreConfig.timeFactor[difficulty] - time);
-  const hintPenalty = hints * scoreConfig.hintPenalty;
-  const undoPenalty = undos * scoreConfig.undoPenalty;
-  const errorPenalty = errors * scoreConfig.errorPenalty;
-  const streakBonus = streak * scoreConfig.streakBonus;
+  const normalizedDifficulty = normalizeDifficulty(difficulty);
+  const safeTime = time ?? timeSeconds ?? 0;
+  const safeHints = hints ?? 0;
+  const safeUndos = undos ?? 0;
+  const safeErrors = errors ?? wrongs ?? 0;
+  const safeStreak = streak ?? 0;
+
+  const base = scoreConfig.base[normalizedDifficulty] || 0;
+  const timeBonus = Math.max(0, scoreConfig.timeFactor[normalizedDifficulty] - safeTime);
+  const hintPenalty = safeHints * scoreConfig.hintPenalty;
+  const undoPenalty = safeUndos * scoreConfig.undoPenalty;
+  const errorPenalty = safeErrors * scoreConfig.errorPenalty;
+  const streakBonus = safeStreak * scoreConfig.streakBonus;
 
   const fastBonus =
-    time <= scoreConfig.fastSolveBonus[difficulty]
-      ? scoreConfig.fastSolveBonus[difficulty]
+    safeTime <= scoreConfig.fastSolveBonus[normalizedDifficulty]
+      ? scoreConfig.fastSolveBonus[normalizedDifficulty]
       : 0;
 
   return Math.max(
@@ -60,7 +75,7 @@ export function calculateXpForLadder({
   errors,
 }: {
   mode: string;
-  difficulty: Difficulty;
+  difficulty: PlayDifficulty;
   time: number;
   errors: number;
 }): number {
@@ -80,7 +95,7 @@ export function calculateXpForLadder({
     hard: 40,
   };
 
-  const difficultyBonus = difficultyBonusMap[difficulty] || 0;
+  const difficultyBonus = difficultyBonusMap[normalizeDifficulty(difficulty)] || 0;
   const speedBonus = Math.max(0, 200 - time);
   const penalty = errors * 5;
 
@@ -120,7 +135,7 @@ export async function getCurrentStreak(user: string): Promise<number> {
     if (!data) return 0;
 
     const games = JSON.parse(data).filter((g: any) => g.user === user);
-    const dates = [...new Set(games.map((g: any) => g.date.split("T")[0]))].sort();
+    const dates = [...new Set<string>(games.map((g: any) => String(g.date).split("T")[0]))].sort();
 
     if (dates.length === 0) return 0;
 
@@ -140,7 +155,7 @@ export async function getCurrentStreak(user: string): Promise<number> {
 }
 
 export function checkAchievements(game: {
-  difficulty: Difficulty;
+  difficulty: PlayDifficulty;
 
   time: number;
   totalGames: number;
@@ -157,7 +172,7 @@ export function checkAchievements(game: {
   if (game.totalGames >= scoreConfig.achievements.hundredWins)
     achieved.push("100 Wins");
 
-  if (game.time <= scoreConfig.achievements.speedDemon[game.difficulty])
+  if (game.time <= scoreConfig.achievements.speedDemon[normalizeDifficulty(game.difficulty)])
     achieved.push("Speed Demon");
 
   if (game.streak >= scoreConfig.achievements.streakMaster)
@@ -181,21 +196,22 @@ export function calculateSeasonXP({
   errors,
   streak,
   achievementLevel,
-}: {difficulty: Difficulty;
+}: {difficulty: PlayDifficulty;
   time: number;
   errors: number;
   streak: number;
   achievementLevel: string;
 }) {
-  const base = seasonXP.base[difficulty] || 40;
+  const normalizedDifficulty = normalizeDifficulty(difficulty);
+  const base = seasonXP.base[normalizedDifficulty] || 40;
  const fast =
-  time <= seasonXP.fastBonus[difficulty]
-    ? seasonXP.fastBonus[difficulty]
+  time <= seasonXP.fastBonus[normalizedDifficulty]
+    ? seasonXP.fastBonus[normalizedDifficulty]
     : 0;
 
   const clean = errors === 0 ? seasonXP.noErrorBonus : 0;
   const streakXP = streak * seasonXP.streakBonus;
-  const tierMult = seasonXP.tierMultiplier[achievementLevel] || 1.0;
+  const tierMult = seasonXP.tierMultiplier[achievementLevel as keyof typeof seasonXP.tierMultiplier] || 1.0;
 
   return Math.floor((base + fast + clean + streakXP) * tierMult);
 }
@@ -248,7 +264,7 @@ export async function writeSeasonalScore(
   score: number,
   time: number,
   streak: number,
-  difficulty: Difficulty
+  difficulty: PlayDifficulty
 )
  {
   try {
@@ -273,7 +289,7 @@ const userSnap = await safeFirestoreCall(
     let wins = score > 0 ? 1 : 0;
     let previousXP = 0;
 
-    if (userSnap.exists()) {
+    if (userSnap && userSnap.exists()) {
       const data = userSnap.data();
       games = (data.games || 0) + 1;
       wins = (data.wins || 0) + (score > 0 ? 1 : 0);
@@ -313,4 +329,20 @@ const userSnap = await safeFirestoreCall(
   } catch (err) {
     console.log("❌ Error writing seasonal score:", err);
   }
+}
+
+
+export function getRankBadge(rankOrXp: string | number): string {
+  const rank = typeof rankOrXp === "number" ? getLadderRank(rankOrXp) : rankOrXp;
+  const badges: Record<string, string> = {
+    Bronze: "🥉",
+    Silver: "🥈",
+    Gold: "🥇",
+    Platinum: "💠",
+    Diamond: "💎",
+    Master: "👑",
+    Grandmaster: "🏆",
+    Unranked: "🎮",
+  };
+  return badges[rank] ?? "🎮";
 }

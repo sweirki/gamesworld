@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -97,11 +97,7 @@ export default function StatsScreen() {
         );
         const rank = getRank(totalPoints);
         const streak = calculateStreak(allGames);
-        const achievements = getAchievements({
-          games: allGames,
-          points: totalPoints,
-          streak,
-        });
+        const achievements = await getAchievements(savedName || "local");
 
         setStats({
           games: allGames.length,

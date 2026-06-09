@@ -1,4 +1,4 @@
-﻿// /app/theme/colors/dark.ts
+// /app/theme/colors/dark.ts
 export const DarkTheme = {
   background: "#0B0B18",
   cellBackground: "#111628",
@@ -32,6 +32,23 @@ export const DarkTheme = {
 
   hyperZoneFill: "rgba(255,215,0,0.16)",
   hyperZoneBorder: "#D8B24A",
+
+  // Compatibility aliases used by legacy screens/components
+  fg: "#FBE7A1",
+  subText: "#6B7280",
+  secondaryText: "#6B7280",
+  textPrimary: "#FBE7A1",
+  primaryText: "#FBE7A1",
+  buttonText: "#FBE7A1",
+  buttonBg: "#1F2A4D",
+  surface: "#1A1E2D",
+  bgDark: "#0B0B18",
+  bgMid: "#1A1E2D",
+  disabled: "#9CA3AF",
+  rankDefault: "#87CEFA",
+  gold: "#FFD700",
+  goldLight: "#FBE7A1",
+  backgroundDark: "#0B0B18",
 
   overlay: "rgba(0,0,0,0.45)",
 };

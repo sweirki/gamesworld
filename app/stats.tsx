@@ -34,7 +34,7 @@ export default function StatsScreen() {
         const userId = auth.currentUser?.uid;
         if (!userId) return;
 
-        const analytics = await getAnalytics(userId);
+        const analytics = await getAnalytics();
 
         setSummary(getProgressSummary(analytics));
         setClassic(getModeProgress(analytics, "classic"));

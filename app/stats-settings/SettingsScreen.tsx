@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -75,11 +75,7 @@ export default function ProfileScreen() {
         const totalPoints = games.reduce((sum, g) => sum + (g.score || 0), 0);
         const rank = getRank(totalPoints);
         const streak = calculateStreak(games);
-        const achievements = getAchievements({
-          games,
-          points: totalPoints,
-          streak,
-        });
+        const achievements = await getAchievements(savedName || username || "local");
 
         setStats({
           games: games.length,

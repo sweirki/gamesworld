@@ -1,4 +1,4 @@
-﻿// /app/theme/colors/light.ts
+// /app/theme/colors/light.ts
 export const LightTheme = {
   // ==== BACKGROUND ====
   background: "#FFFFFF",
@@ -43,6 +43,23 @@ hyperZoneBorder: "rgba(90, 130, 209, 0.7)",  // slightly darker blue border
 
 
   // ==== OVERLAYS ====
+  // Compatibility aliases used by legacy screens/components
+  fg: "#0A1B3D",
+  subText: "#6B7280",
+  secondaryText: "#6B7280",
+  textPrimary: "#0A1B3D",
+  primaryText: "#0A1B3D",
+  buttonText: "#0A1B3D",
+  buttonBg: "#FBE7A1",
+  surface: "#FFFFFF",
+  bgDark: "#FFFFFF",
+  bgMid: "#FFFFFF",
+  disabled: "#9CA3AF",
+  rankDefault: "#87CEFA",
+  gold: "#FFD700",
+  goldLight: "#FBE7A1",
+  backgroundDark: "#FFFFFF",
+
   overlay: "rgba(0,0,0,0.15)",
 };
 

@@ -70,7 +70,7 @@ export async function saveWin(
 
       // 5️⃣ Update user profile streak / win counters (not ladder logic)
       if (username) {
-        const userRef = doc(db, "users", username);
+       const userRef = doc(db, "users", uid);
         const snap = await getDoc(userRef);
 
         if (snap.exists()) {

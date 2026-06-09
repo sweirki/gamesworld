@@ -13,7 +13,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { getColors } from "../theme";
 import { useRevenueCat } from "../src/hooks/useRevenueCat";
-import { getSeasonOutcome, getSeasonRank } from "../utils/ladder/scoreEngine";
+import { getLadderRank, getSeasonOutcome, getSeasonRank } from "../utils/ladder/scoreEngine";
 import { archiveSeason } from "./lib/seasonArchive";
 
 import {
@@ -98,9 +98,9 @@ export default function LeaderboardScreen() {
   const [dailyStatus, setDailyStatus] = useState<"idle" | "played">("idle");
   const { isPremium } = useRevenueCat();
 
-  const themeColors = getColors() ?? {};
-  const bgDark = themeColors.bgDark ?? "#0E1A2B";
-  const bgMid = themeColors.bgMid ?? "#10263D";
+  const themeColors = getColors() as any;
+  const bgDark = "#0E1A2B";
+  const bgMid = "#10263D";
 
   const [tab, setTab] = useState<Tab>("season");
   const [user, setUser] = useState<any>(null);
@@ -144,7 +144,13 @@ export default function LeaderboardScreen() {
         if (snap.exists()) setProfile(snap.data());
 
         const ladderSnap = await getDoc(doc(db, "ladderUsers", u.uid));
-        setLadderXP(ladderSnap.exists() ? ladderSnap.data().xp ?? 0 : 0);
+        if (ladderSnap.exists()) {
+          const ladderData = ladderSnap.data();
+          setLadderXP(typeof ladderData.xp === "number" ? ladderData.xp : 0);
+          setProfile((prev: any) => ({ ...(prev || {}), ...ladderData }));
+        } else {
+          setLadderXP(0);
+        }
       } finally {
         setLoading(false);
       }
@@ -197,7 +203,7 @@ export default function LeaderboardScreen() {
 
               await archiveSeason(last, rows);
 
-              const me = rows.find((r) => r.uid === user?.uid);
+              const me = rows.find((r: any) => r.uid === user?.uid || r.id === user?.uid);
               if (me && me.outcome !== "stay") {
                 setSeasonChange({
                   direction: me.outcome === "promote" ? "up" : "down",
@@ -259,7 +265,8 @@ export default function LeaderboardScreen() {
         setMyRank(rank);
         setPercentileValue(percentile);
         setUserNames(await loadUserNamesFromRows(data, userNames));
-      } catch {
+      } catch (err) {
+        console.warn("Leaderboard season load failed", err);
         setRows([]);
         setPercentileValue(50);
         setMyRank(0);
@@ -298,7 +305,8 @@ export default function LeaderboardScreen() {
 
         setRows(data);
         setUserNames(await loadUserNamesFromRows(data, userNames));
-      } catch {
+      } catch (err) {
+        console.warn("Daily leaderboard load failed", err);
         setRows([]);
       }
     };
@@ -327,7 +335,8 @@ export default function LeaderboardScreen() {
 
         setRows(data);
         setUserNames(await loadUserNamesFromRows(data, {}));
-      } catch {
+      } catch (err) {
+        console.warn("Daily leaderboard load failed", err);
         setRows([]);
       }
     };
@@ -361,14 +370,16 @@ export default function LeaderboardScreen() {
 
         result.sort((a, b) => b.season - a.season);
         setSeasonArchive(result);
-      } catch {}
+      } catch (err) {
+        console.warn("Season archive load failed", err);
+      }
     };
 
     run();
   }, [user]);
 
-  const league = profile?.seasonLeague ?? "Bronze";
-  const leagueUI = LEAGUE_UI[league];
+  const league = profile?.seasonLeague ?? profile?.rank ?? getLadderRank(ladderXP || 0) ?? "Bronze";
+  const leagueUI = LEAGUE_UI[league] ?? LEAGUE_UI.Bronze;
   const seasonEndsIn = getSeasonDaysLeftText();
 
   return (
@@ -503,12 +514,12 @@ export default function LeaderboardScreen() {
                   <View style={styles.archive}>
                     <Text style={styles.archiveTitle}>Past Seasons</Text>
                     {seasonArchive.map((s) => {
-                      const ui = LEAGUE_UI[s.league];
+                      const ui = LEAGUE_UI[s.league] ?? LEAGUE_UI.Bronze;
                       return (
                         <View key={s.season} style={styles.archiveRow}>
                           <Text style={styles.archiveSeason}>Season {s.season}</Text>
                           <Text style={[styles.archiveLeague, { color: ui.color }]}>
-                            {ui.badge} {s.league} • #{s.rank}
+                            {ui.badge} {s.league ?? "Bronze"} • #{s.rank ?? "—"}
                           </Text>
                         </View>
                       );

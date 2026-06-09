@@ -1,0 +1,26 @@
+Pass 2 repairs after local typecheck showed 8 errors:
+
+1. app/components/RankUpPopup.tsx
+   - Replaced Image badge rendering with Text emoji badge because getRankBadge returns a string, not an ImageSourcePropType.
+
+2. app/leaderboard.tsx
+   - Safely typed the archived season row lookup and allowed id fallback for current user matching.
+
+3. app/stats-settings/SettingsScreen.tsx
+   - Awaited getAchievements(...) correctly instead of passing a stats object to an async email-keyed helper.
+
+4. app/stats-settings/StatsScreen.tsx
+   - Awaited getAchievements(...) correctly instead of storing a Promise in string[] state.
+
+5. src/hooks/useRevenueCat.ts
+   - Removed invalid listener truthiness/remove cleanup because the installed react-native-purchases type returns void for addCustomerInfoUpdateListener.
+
+6. package.json
+   - Added eslint-config-expo to devDependencies so eslint.config.js can resolve eslint-config-expo/flat.
+
+After extracting this zip, run:
+  npm install
+  npm run typecheck
+  npm run lint
+
+Note: npm install is required because package.json has a new lint devDependency.

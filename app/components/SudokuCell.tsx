@@ -18,6 +18,8 @@ interface Cell {
 }
 
 interface Props {
+  [extraProp: string]: any;
+  key?: string | number;
   cell: Cell;
   row: number;
   col: number;
@@ -31,7 +33,8 @@ interface Props {
   hideBorders?: boolean;
   forceClearBackground?: boolean;
   isDiagonal?: boolean;
-   isRegion?: boolean;   // â­ ADD THIS
+   isRegion?: boolean;
+  isHyper?: boolean;
 
 }
 

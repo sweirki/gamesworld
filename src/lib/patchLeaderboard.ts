@@ -1,18 +1,18 @@
-﻿import {
+import {
   collection,
   getDocs,
   writeBatch,
   doc,
 } from "firebase/firestore";
-import { db } from "../../lib/firebase";
+import { db } from "../../firebase";
 
-// âœ… Run this ONCE to patch old leaderboard entries
+// ✅ Run this ONCE to patch old leaderboard entries
 export async function patchAllOldLeaderboard() {
   try {
     const leaderboardSnap = await getDocs(collection(db, "leaderboard"));
     const usersSnap = await getDocs(collection(db, "users"));
 
-    // Build username â†’ uid map
+    // Build username → uid map
     const userMap: Record<string, string> = {};
     usersSnap.docs.forEach((userDoc) => {
       const data = userDoc.data();
@@ -36,7 +36,7 @@ export async function patchAllOldLeaderboard() {
 
     await batch.commit();
   } catch (err) {
-    console.error("âŒ Error patching leaderboard:", err);
+    console.error("❌ Error patching leaderboard:", err);
   }
 }
 

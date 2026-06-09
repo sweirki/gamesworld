@@ -1,4 +1,4 @@
-﻿import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const theme = {
   mode: "light",
@@ -66,6 +66,10 @@ export const theme = {
     diamond: "#00BFFF",
     master: "#8A2BE2",
     legend: "#FF4500",
+    surface: "#ffffff",
+    buttonText: "#ffffff",
+    primaryText: "#333333",
+    buttonBg: "#2196f3",
   },
 
   darkColors: {
@@ -121,6 +125,10 @@ export const theme = {
     diamond: "#1E90FF",
     master: "#9370DB",
     legend: "#FF6347",
+    surface: "#1e1e1e",
+    buttonText: "#000000",
+    primaryText: "#eeeeee",
+    buttonBg: "#90caf9",
   },
 
   // âœ… New Blue Palette (Phase 3)
@@ -177,6 +185,10 @@ export const theme = {
     diamond: "#1E90FF",
     master: "#4682B4",
     legend: "#00BFFF",
+    surface: "#003366",
+    buttonText: "#ffffff",
+    primaryText: "#E0F7FA",
+    buttonBg: "#00BFFF",
   },
 
   spacing: {
@@ -197,11 +209,34 @@ AsyncStorage.getItem("appTheme").then((val) => {
   }
 });
 
-// âœ… Updated getColors
+const withColorAliases = <T extends Record<string, string>>(palette: T) => {
+  const text = palette.text ?? palette.modalTitle ?? "#0A1B3D";
+  const card = palette.card ?? palette.background;
+  const primaryBg = palette.buttonPrimaryBg ?? "#2196f3";
+  const primaryText = palette.buttonPrimaryText ?? "#ffffff";
+
+  return {
+    ...palette,
+    fg: palette.fg ?? text,
+    subText: palette.subText ?? palette.secondaryText ?? text,
+    textPrimary: palette.textPrimary ?? text,
+    primaryText: palette.primaryText ?? text,
+    buttonText: palette.buttonText ?? primaryText,
+    buttonBg: palette.buttonBg ?? primaryBg,
+    surface: palette.surface ?? card,
+    bgDark: palette.bgDark ?? palette.background,
+    bgMid: palette.bgMid ?? card,
+    backgroundDark: palette.backgroundDark ?? palette.background,
+    gold: palette.gold ?? "#FFD700",
+    goldLight: palette.goldLight ?? "#FBE7A1",
+  };
+};
+
+// Updated getColors
 export const getColors = () => {
-  if (cachedTheme === "dark") return theme.darkColors;
-  if (cachedTheme === "blue") return theme.blueColors;
-  return theme.colors;
+  if (cachedTheme === "dark") return withColorAliases(theme.darkColors);
+  if (cachedTheme === "blue") return withColorAliases(theme.blueColors);
+  return withColorAliases(theme.colors);
 };
 
 // ===== Added for Profile screen fixes =====

@@ -1,4 +1,4 @@
-﻿// /app/theme/colors/blue.ts
+// /app/theme/colors/blue.ts
 export const BlueTheme = {
   background: "#EAF2FF",
   cellBackground: "#FFFFFF",
@@ -33,6 +33,23 @@ text: "#0A1B3D",
 
   hyperZoneFill: "rgba(255,215,0,0.16)",
   hyperZoneBorder: "#D8B24A",
+
+  // Compatibility aliases used by legacy screens/components
+  fg: "#0A1B3D",
+  subText: "#6B7280",
+  secondaryText: "#6B7280",
+  textPrimary: "#0A1B3D",
+  primaryText: "#0A1B3D",
+  buttonText: "#0A1B3D",
+  buttonBg: "#FBE7A1",
+  surface: "#FFFFFF",
+  bgDark: "#EAF2FF",
+  bgMid: "#FFFFFF",
+  disabled: "#9CA3AF",
+  rankDefault: "#87CEFA",
+  gold: "#FFD700",
+  goldLight: "#FBE7A1",
+  backgroundDark: "#EAF2FF",
 
   overlay: "rgba(0,0,0,0.22)",
 };

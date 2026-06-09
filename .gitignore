@@ -50,3 +50,10 @@ app-example
 *.mobileprovision
 gamesworld-8b301-ed81c5160a67.json
 gamesworld-8b301-ed81c5160a67.json
+node_modules/
+android/app/build/
+android/.gradle/
+android/build/
+.expo/
+dist/
+*.apk

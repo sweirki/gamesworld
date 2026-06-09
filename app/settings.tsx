@@ -78,7 +78,7 @@ export default function SettingsScreen() {
   "authToken",
 ]);
 
-      router.replace("/splash");
+      router.replace("/login");
     } catch (err) {
       console.error("Logout error:", err);
     }

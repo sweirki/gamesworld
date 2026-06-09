@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Modal, Image, TouchableOpacity } from "react-native";
+import { View, Text, Modal, TouchableOpacity } from "react-native";
 import { useRankUpStore } from "../stores/useRankUpStore";
 import { getRankBadge } from "../../utils/ladder/scoreEngine";
 
@@ -41,11 +41,9 @@ export default function RankUpPopup() {
             {oldRank} → {newRank}
           </Text>
 
-          <Image
-            source={getRankBadge(newRank || "Bronze")}
-            style={{ width: 120, height: 120, marginBottom: 20 }}
-            resizeMode="contain"
-          />
+          <Text style={{ fontSize: 72, marginBottom: 20 }}>
+            {getRankBadge(newRank || "Bronze")}
+          </Text>
 
           <TouchableOpacity
             onPress={hideRankUp}

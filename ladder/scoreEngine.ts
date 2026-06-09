@@ -1,15 +1,19 @@
-﻿import { scoreConfig } from "./scoreConfig";
+import { scoreConfig } from "./scoreConfig";
+
+export type Difficulty = "easy" | "medium" | "hard";
 
 interface ScoreInput {
-  difficulty: "easy" | "medium" | "hard";
+  difficulty: Difficulty | string;
   time: number;
   hints: number;
   undos: number;
+  errors?: number;
   streak?: number;
 }
 
 export function calculateScore(input: ScoreInput): number {
-  const { difficulty, time, hints, undos, streak = 0 } = input;
+  const { time, hints, undos, streak = 0 } = input;
+  const difficulty: Difficulty = input.difficulty === "easy" || input.difficulty === "medium" || input.difficulty === "hard" ? input.difficulty : "medium";
   const base = scoreConfig.basePoints[difficulty];
   const timeBonus = Math.max(0, Math.floor((1000 - time) * scoreConfig.timeBonusFactor));
   const penalties = hints * scoreConfig.hintPenalty + undos * scoreConfig.undoPenalty;

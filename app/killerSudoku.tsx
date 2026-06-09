@@ -17,9 +17,9 @@ import { Svg, Line, Rect, Path, Text as SvgText } from "react-native-svg";
 import { useAchievementsStore } from "./stores/useAchievementsStore";
 import * as Haptics from "expo-haptics";
 import { calculateXpForLadder } from "../utils/ladder/scoreEngine";
-import { awardLadderXP } from "./lib/ladderBridge";
 import { getColors } from "./theme/index";
 import { useRouter } from "expo-router";
+import { useRevenueCat } from "../src/hooks/useRevenueCat";
 import { generateSudoku, generateKillerCages, validateCages } from "../utils/sudokuGen";
 import { saveGame, loadGame, clearGame } from "../utils/storageUtils";
 import { Ionicons } from "@expo/vector-icons";
@@ -28,9 +28,9 @@ import { useCallback } from "react";
 import NumberPad from "./components/NumberPad";
 import Controls from "./components/Controls";
 import WinModal from "./components/WinModal";
-import SudokuCell from "./components/SudokuCell";
+import KillerCell from "./components/KillerCell";
 import { auth } from "../firebase";
-import { updateStatsOnWin } from "./lib/statsManager";
+import { updateStatsOnWin } from "../lib/statsManager";
 import { refreshLadderData } from "./lib/ladderBridge";
 import { saveWin } from "../src/lib/saveWin";
 import UniversalModal from "./components/UniversalModal";
@@ -67,6 +67,13 @@ const [contextCells, setContextCells] = useState<[number, number][]>([]);
 
 
   const router = useRouter();
+  const { isPremium, loading } = useRevenueCat();
+
+  useEffect(() => {
+    if (!loading && !isPremium) {
+      router.replace("/upgrade");
+    }
+  }, [isPremium, loading, router]);
 const s = styles(colors);
 
   const [puzzle, setPuzzle] = useState<Cell[][]>([]);
@@ -144,7 +151,9 @@ const controlsLocked = gameWon || winVisible || gameOverVisible;
   const [confirmVisible, setConfirmVisible] = useState(false); // confirm difficulty switch
 
   const [resumeVisible, setResumeVisible] = useState(false);
-  const [resumeData, setResumeData] = useState<any | null>(null);
+const [resumeData, setResumeData] = useState<any | null>(null);
+const [isHydrating, setIsHydrating] = useState(true);
+const [boardInstanceKey, setBoardInstanceKey] = useState(0);
 
 
  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -154,15 +163,16 @@ const controlsLocked = gameWon || winVisible || gameOverVisible;
   };
 
   // ===== Load/resume
+
 useFocusEffect(
   useCallback(() => {
-        // 🚫 If we just finalized/closed a finished game, do NOT show resume
     if (skipNextResumeRef.current) {
       skipNextResumeRef.current = false;
       return;
     }
 
     let alive = true;
+    setIsHydrating(true);
 
     (async () => {
       try {
@@ -207,21 +217,25 @@ useFocusEffect(
 
         const validTimer = saved && typeof saved.timer === "number";
 
-       if (
-  alive &&
-  validPuzzle &&
-  validCages &&
-  validTimer &&
-  isBoardTouched(saved.puzzle)
-) {
-  setResumeData(saved);
-  setResumeVisible(true);
-} else {
-  await clearGame("killer"); // 🧠 discard pristine save
-  startNewBoard();
-}
+        if (
+          alive &&
+          validPuzzle &&
+          validCages &&
+          validTimer &&
+          isBoardTouched(saved.puzzle)
+        ) {
+         setResumeData(saved);
+setResumeVisible(true);
+setIsHydrating(false);
+return;
+        }
 
+        await clearGame("killer");
+
+        if (!alive) return;
+        startNewBoard();
       } catch {
+        if (!alive) return;
         startNewBoard();
       }
     })();
@@ -234,14 +248,6 @@ useFocusEffect(
 
   // React to difficulty changes (matches Hyper/X)
 
-useEffect(() => {
-  if (puzzle && puzzle.length > 0) {
-    console.log(" [Killer] Difficulty changed -> starting new board:", difficulty);
-    startNewBoard();
-  }
-}, [difficulty]);
-
-
   // ===== Strikes -> Game Over
    useEffect(() => {
     if (errorCount >= MAX_STRIKES && !gameOverShown.current) {
@@ -251,43 +257,117 @@ useEffect(() => {
   }, [errorCount]);
 
 
+function startNewBoard(forcedDifficulty?: "easy" | "medium" | "hard") {
+  const nextDifficulty = forcedDifficulty ?? difficulty;
 
-  const startNewBoard = () => {
-    const board: any = generateSudoku(difficulty);
-    const solution = board.map((r: any[]) => r.map((c: any) => c.solution));
-    console.log("Generated solution sample", solution);
-   const cageData = generateKillerCages(solution) as Array<{
+  setIsHydrating(true);
+
+ const raw = generateSudoku(nextDifficulty) as any[][];
+
+if (!Array.isArray(raw) || raw.length !== 9) {
+  console.warn("Killer raw board invalid, retrying...");
+  requestAnimationFrame(() => startNewBoard(nextDifficulty));
+  return;
+}
+
+const safeBoard: Cell[][] = raw.map((row: any[]) =>
+  row.map((cell: any) => ({
+    value: cell?.prefilled ? cell.value ?? cell.solution : null,
+    solution: cell?.solution ?? 0,
+    prefilled: !!cell?.prefilled,
+    notes: Array.isArray(cell?.notes) ? cell.notes : [],
+  }))
+);
+
+// validate board shape
+const validBoard =
+  Array.isArray(safeBoard) &&
+  safeBoard.length === 9 &&
+  safeBoard.every(
+    (row) =>
+      Array.isArray(row) &&
+      row.length === 9 &&
+      row.every(
+        (cell) =>
+          cell &&
+          typeof cell === "object" &&
+          typeof cell.solution === "number" &&
+          "value" in cell &&
+          "prefilled" in cell &&
+          Array.isArray(cell.notes ?? [])
+      )
+  );
+
+if (!validBoard) {
+  console.warn("Killer: invalid board generated, retrying...");
+requestAnimationFrame(() => startNewBoard(nextDifficulty));
+return;
+}
+
+const solution = safeBoard.map((r) => r.map((c) => c.solution));
+
+const cageData = generateKillerCages(solution) as Array<{
   id: string;
   sum?: number;
   target?: number;
   cells: [number, number][];
 }>;
 
-    console.log("Generated solution sample", solution);
-    console.log("solution grid:", solution);
-    console.log("generated cages:", cageData.length, cageData);
-console.log("Final puzzle size:", board?.length, "rows");
-console.log("Final cages count:", cageData?.length);
-console.log("CAGE SAMPLE:", cageData[0]);
+const validCages =
+  Array.isArray(cageData) &&
+  cageData.length > 0 &&
+  cageData.every(
+    (cage) =>
+      cage &&
+      Array.isArray(cage.cells) &&
+      cage.cells.every(
+        ([r, c]) =>
+          typeof r === "number" &&
+          typeof c === "number" &&
+          r >= 0 &&
+          r < 9 &&
+          c >= 0 &&
+          c < 9
+      )
+  );
 
-    setPuzzle(board);
-    setCages(cageData);
-    setBadCages(new Set<string>());
-    setErrorCount(0);
-    gameOverShown.current = false;
-    setSelected(null);
-    setHighlightDigit(null);
-    setContextCells([]);
-    setHistory([]);
-    setRedoStack([]);
-    setHintsLeft(3);
-    setGameWon(false);
-    setHasWon(false);
-    setWinVisible(false);
-    setTimer(0);
-    resumeTimer();
-    cageGlowAnim.setValue(0);
-  };
+if (!validCages) {
+ console.warn("Killer: invalid cages generated, retrying...");
+requestAnimationFrame(() => startNewBoard(nextDifficulty));
+return;
+}
+
+  setPuzzle(safeBoard);
+  setCages(cageData);
+  setBadCages(new Set<string>());
+  setErrorCount(0);
+  gameOverShown.current = false;
+  setSelected(null);
+  setHighlightDigit(null);
+  setContextCells([]);
+  setHistory([]);
+  setRedoStack([]);
+  setHintsLeft(3);
+  setGameWon(false);
+  setHasWon(false);
+   setWinVisible(false);
+  setResumeVisible(false);
+  setResumeData(null);
+  setTimer(0);
+  setBoardInstanceKey((k) => k + 1);
+
+  cageGlowAnim.setValue(0);
+
+  if (timerRef.current) {
+    clearInterval(timerRef.current);
+    timerRef.current = null;
+  }
+
+ requestAnimationFrame(() => {
+  setIsHydrating(false);
+  resumeTimer();
+});
+};
 
   const clone = (p: Cell[][]) => JSON.parse(JSON.stringify(p));
   const persistKiller = (
@@ -349,16 +429,20 @@ console.log("CAGE SAMPLE:", cageData[0]);
     return bad;
   };
 
- const handleCellPress = (row: number, col: number, cell?: any) => {
+const handleCellPress = (row: number, col: number, cell?: any) => {
   if (gameWon) return;
- setSelected([row, col]);
-setHighlightDigit(cell?.value ?? null);
 
-try { Haptics.selectionAsync(); } catch {}
+  setSelected([row, col]);
+
+  if (cell?.value != null) {
+    setHighlightDigit(cell.value);
+  }
+
+  try { Haptics.selectionAsync(); } catch {}
 
   let context: [number, number][] = [];
-  context = context.concat(puzzle[row].map((_, ci) => [row, ci]));          // row
-  context = context.concat(puzzle.map((_, ri) => [ri, col]));              // column
+  context = context.concat(puzzle[row].map((_, ci) => [row, ci]));
+  context = context.concat(puzzle.map((_, ri) => [ri, col]));
 
   const boxRow = Math.floor(row / 3);
   const boxCol = Math.floor(col / 3);
@@ -404,6 +488,7 @@ persistKiller(next);
     pushHistory();
     const next = clone(puzzle);
     next[r][c].value = num;
+    setHighlightDigit(num);
   setPuzzle(next);
 
 const nextErrors =
@@ -542,7 +627,7 @@ persistKiller(next);
 
 
   // ✅ Use the real app username (not email)
-  const ladderUser = username || auth.currentUser?.email || "Guest";
+  const ladderUser = auth.currentUser?.uid || "Guest";
 
   // ✅ Update stats
   await updateStatsOnWin("killer", timer, errorCount, 3 - hintsLeft, ladderUser);
@@ -558,8 +643,6 @@ persistKiller(next);
       time: timer,
       errors: errorCount,
     });
-
-    await awardLadderXP(xp);
     console.log("🔥 Ladder XP awarded (Killer):", xp);
   } catch (err) {
     console.warn("❌ Failed to award ladder XP (Killer):", err);
@@ -683,14 +766,13 @@ const CELL = CELL_SIZE;
 // dotted cage stroke style
 
 const strokeBase = {
-  stroke: "rgba(183, 140, 47, 0.55)",
-  strokeWidth: 1.6,
-  strokeDasharray: "3 2",
-  strokeLinecap: "butt",
+  stroke: "rgba(216, 178, 74, 0.58)",
+  strokeWidth: 1.35,
+  strokeDasharray: "2 2",
+  strokeLinecap: "round",
   strokeLinejoin: "round",
   fill: "none",
 } as const;
-
 
 // cage index map
 const cageMap: (string | null)[][] = Array.from({ length: 9 }, () =>
@@ -745,7 +827,7 @@ cages.forEach((cage, idx) => {
 });
 
 // pastel fills
-const palette = ["rgba(216,178,74,0.15)"];
+const palette = ["rgba(216,178,74,0.07)"];
 const fills = cages.flatMap((cage, i) => {
   if (!cage || !Array.isArray(cage.cells)) return [];
   return cage.cells.map(([r, c]) => (
@@ -793,9 +875,9 @@ const sums = cages.map((cage, i) => {
       key={`sum-${i}-${target}`}
       x={x + 4}
       y={y + 14}
-     fill={badCages.has(cage.id ?? String(i)) ? "#cc1f1f" : "#6286d4ff"}
-      fontSize="11"
-      fontWeight="700"
+   fill={badCages.has(cage.id ?? String(i)) ? "#cc1f1f" : "rgba(184, 146, 56, 0.95)"}
+      fontSize="10"
+      fontWeight="600"
       textAnchor="start"
     >
       {String(target)}
@@ -803,7 +885,42 @@ const sums = cages.map((cage, i) => {
   );
 });
   // Build cage edges for overlay
- return (
+ // 🔒 HARD HYDRATION GUARD
+const boardReady =
+  Array.isArray(puzzle) &&
+  puzzle.length === 9 &&
+  puzzle.every((row) => Array.isArray(row) && row.length === 9);
+
+const cagesReady =
+  Array.isArray(cages) &&
+  cages.length > 0 &&
+  cages.every((cage) => Array.isArray(cage.cells));
+
+if ((isHydrating || !boardReady || !cagesReady) && !resumeVisible) {
+  return (
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#081028",
+      }}
+    >
+      <Text
+        style={{
+          color: colors.buttonSecondaryBg,
+          fontWeight: "700",
+          fontSize: 16,
+        }}
+      >
+        Loading...
+      </Text>
+    </View>
+  );
+}
+
+// 👇 THIS is the correct return to keep
+return (
   <View style={{ flex: 1 }}>
     {showOnboarding && (
   <View
@@ -864,7 +981,7 @@ const sums = cages.map((cage, i) => {
       textAlign: "center",
     }}
   >
-    Killer Sudoku
+    Killers Sudoku
   </Text>
 </View>
   {/* CLASSIC HEADER (copied from sudoku.tsx) */}
@@ -902,10 +1019,16 @@ const sums = cages.map((cage, i) => {
 <View style={styles(colors).boardContainer}>
 
   {/* Board itself */}
-  <View style={styles(colors).board}>
+
+<View
+  key={`board-${boardInstanceKey}`}
+  style={styles(colors).board}
+>
 
     {/* Thin Grid INSIDE board */}
-    <Svg
+
+
+   <Svg
   width={GRID_SIZE}
   height={GRID_SIZE}
   style={{
@@ -918,38 +1041,66 @@ const sums = cages.map((cage, i) => {
 >
   {/* CAGE FILLS */}
   {fills}
-</Svg> 
+
+  {/* 🔥 DARK BLUE GRID */}
+
+{/* Vertical lines */}
+{Array.from({ length: 10 }, (_, i) => (
+  <Line
+    key={`v-${i}`}
+    x1={i * CELL_SIZE}
+    y1={0}
+    x2={i * CELL_SIZE}
+    y2={GRID_SIZE}
+   stroke="rgba(90, 110, 140, 0.55)"
+  strokeWidth={i % 3 === 0 ? 2 : 1}
+  />
+))}
+
+{/* Horizontal lines */}
+{Array.from({ length: 10 }, (_, i) => (
+  <Line
+    key={`h-${i}`}
+    x1={0}
+    y1={i * CELL_SIZE}
+    x2={GRID_SIZE}
+    y2={i * CELL_SIZE}
+  stroke="rgba(90, 110, 140, 0.55)"
+  strokeWidth={i % 3 === 0 ? 2 : 1}
+
+  />
+))}
+</Svg>
     {/* Cells (top) */}
-    <View
-      style={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        width: GRID_SIZE,
-        height: GRID_SIZE,
-        zIndex: 5,
-      }}
-    >
+
+   <View
+  pointerEvents="box-none"
+  style={{
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: GRID_SIZE,
+    height: GRID_SIZE,
+    zIndex: 20,
+    flexDirection: "column",
+  }}
+>
       {puzzle.map((row, r) => (
-        <View key={r} style={styles(colors).row}>
+      <View key={`row-${boardInstanceKey}-${r}`} style={styles(colors).row}>
           {row.map((cell, c) => (
-            <SudokuCell
-              key={`${r}-${c}`}
-              cell={cell}
-              row={r}
-              col={c}
-              hideBorders={false}
-              forceClearBackground={false}
-              isSelected={selected && selected[0] === r && selected[1] === c}
-            isHighlighted={highlightDigit !== null && cell.value === highlightDigit}
-isContext={contextCells.some(([rr, cc]) => rr === r && cc === c)}
-
-             isWrong={!!(cell.value && cell.value !== cell.solution && !cell.prefilled)}
-              blinkCells={blinkCells}
-              blinkAnim={blinkAnim}
-             onPress={() => handleCellPress(r, c, cell)}
-
-            />
+           <KillerCell
+  key={`cell-${boardInstanceKey}-${r}-${c}`}
+  cell={cell}
+  row={r}
+  col={c}
+  isSelected={!!selected && selected[0] === r && selected[1] === c}
+  isHighlighted={highlightDigit !== null && cell.value === highlightDigit}
+  isContext={contextCells.some(([rr, cc]) => rr === r && cc === c)}
+  isWrong={!!(cell.value && cell.value !== cell.solution && !cell.prefilled)}
+  blinkCells={blinkCells}
+  blinkAnim={blinkAnim}
+  onPress={() => handleCellPress(r, c, cell)}
+/>
           ))}
         </View>
 
@@ -963,7 +1114,7 @@ isContext={contextCells.some(([rr, cc]) => rr === r && cc === c)}
         position: "absolute",
         top: 0,
         left: 0,
-        zIndex: 7,
+        zIndex: 2,
       }}
       pointerEvents="none"
     >
@@ -979,7 +1130,7 @@ isContext={contextCells.some(([rr, cc]) => rr === r && cc === c)}
   onRedo={redo}
   onHint={handleHint}
   onDelete={handleDelete}
-  onRestart={startNewBoard}
+  onRestart={() => startNewBoard()}
   onSolve={handleWin}                      
   hintsLeft={hintsLeft}
   pencilMode={isPencilMode}            
@@ -1044,12 +1195,14 @@ isContext={contextCells.some(([rr, cc]) => rr === r && cc === c)}
     actions={[
       {
         label: "Yes, Start",
-        onPress: () => {
-          if (pendingDifficulty) {
-            setDifficulty(pendingDifficulty);
-          }
-          setConfirmVisible(false);
-        },
+       onPress: () => {
+  if (pendingDifficulty) {
+    setDifficulty(pendingDifficulty);
+    startNewBoard(pendingDifficulty);
+  }
+  setConfirmVisible(false);
+  setPendingDifficulty(null);
+},
       },
       { label: "Cancel", onPress: () => setConfirmVisible(false) },
     ]}
@@ -1080,24 +1233,23 @@ isContext={contextCells.some(([rr, cc]) => rr === r && cc === c)}
   />
 )}
 
-
-        <WinModal
+<WinModal
   visible={winVisible}
-  time={timer}
-  onPlayAgain={startNewBoard}
-  onRestart={startNewBoard}
-   onClose={async () => {
-    // prevent resume/save after leaving a finished board
+  onRestart={(level) =>
+    startNewBoard(
+      level === "easy" || level === "medium" || level === "hard"
+        ? level
+        : difficulty
+    )
+  }
+  onClose={async () => {
     skipNextResumeRef.current = true;
     skipNextSaveRef.current = true;
 
     await clearGame("killer");
     setWinVisible(false);
-
-    // exit screen so user can't sit on a finished board
     router.replace("/variantHub");
   }}
-
   difficulty={difficulty}
   isDaily={false}
 />
@@ -1108,32 +1260,57 @@ isContext={contextCells.some(([rr, cc]) => rr === r && cc === c)}
     title="Resume Game?"
     message="Would you like to continue your previous Killer puzzle?"
     actions={[
-     {
+   {
   label: "YES",
   onPress: () => {
     if (resumeData) {
-      setPuzzle(resumeData.puzzle);
-      if (resumeData.cages) setCages(resumeData.cages);
+      setIsHydrating(true);
 
+      setPuzzle(resumeData.puzzle);
+      setCages(Array.isArray(resumeData.cages) ? resumeData.cages : []);
       setTimer(typeof resumeData.timer === "number" ? resumeData.timer : 0);
       setErrorCount(resumeData.errorCount ?? 0);
       setHintsLeft(resumeData.hintsLeft ?? 3);
-      setDifficulty(resumeData.difficulty ?? "easy");
+     const restoredDifficulty =
+  resumeData.difficulty === "easy" ||
+  resumeData.difficulty === "medium" ||
+  resumeData.difficulty === "hard"
+    ? resumeData.difficulty
+    : "easy";
+
+setDifficulty(restoredDifficulty);
+      setBadCages(new Set<string>());
+      setSelected(null);
+      setHighlightDigit(null);
+      setContextCells([]);
+      setHistory([]);
+      setRedoStack([]);
+      setGameWon(false);
+      setHasWon(false);
+      setWinVisible(false);
+
+          setResumeVisible(false);
+      setResumeData(null);
+      setBoardInstanceKey((k) => k + 1);
+      setIsHydrating(false);
 
       resumeTimer();
+    } else {
+      setResumeVisible(false);
+      setIsHydrating(false);
     }
-    setResumeVisible(false);
   },
-
-      },
-      {
-        label: "NO",
-        onPress: async () => {
-          await clearGame("killer");
-          setResumeVisible(false);
-          startNewBoard();
-        },
-      },
+},
+     {
+  label: "NO",
+  onPress: async () => {
+    setIsHydrating(true);
+    await clearGame("killer");
+    setResumeVisible(false);
+    setResumeData(null);
+    startNewBoard();
+  },
+},
     ]}
   />
 )}
@@ -1289,12 +1466,15 @@ board: {
   alignSelf: "center",
   marginTop: 2,
   marginBottom: 0,
-  backgroundColor: colors.cellBackground,   // FULL WHITE BOARD
-  borderWidth: 2,
-  borderColor: colors.border,               // Classic border
+  backgroundColor: "rgba(255,255,255,0.96)",
+  borderWidth: 1.5,
+  borderColor: "rgba(216,178,74,0.42)",
 },
 
-    row: { flexDirection: "row" },
+   row: {
+  flexDirection: "row",
+  height: CELL_SIZE,
+},
 cell: {
   width: CELL_SIZE,
   height: CELL_SIZE,
@@ -1344,4 +1524,7 @@ menuButtonText: {
       marginBottom: 6,
     },
   });
+
+
+
 

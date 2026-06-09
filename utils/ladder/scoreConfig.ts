@@ -1,4 +1,4 @@
-﻿// Full scoring configuration for Ladder system
+// Full scoring configuration for Ladder system
 
 export const scoreConfig = {
   base: {
@@ -74,3 +74,5 @@ export const seasonXP = {
     Grandmaster: 1.3,
   },
 };
+
+export const STREAK_BONUS = scoreConfig.streakBonus;
