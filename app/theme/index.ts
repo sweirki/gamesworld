@@ -42,3 +42,5 @@ export const getColors = (): any => {
   if (currentTheme === "blue") return withAliases(BlueTheme);
   return withAliases(LightTheme);
 };
+
+export { default as sweirkiTheme, sweirkiAssets, sweirkiColors, sweirkiFonts, sweirkiLayout, sweirkiRadius, sweirkiShadows, sweirkiSpacing } from "./sweirkiTheme";
