@@ -1,57 +1,97 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  StyleSheet,
   Animated,
+  Image,
   ImageBackground,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
-import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { auth } from "../firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
+import { onAuthStateChanged } from "firebase/auth";
+
+import { auth } from "../firebase";
 import { useRevenueCat } from "../src/hooks/useRevenueCat";
+import { sweirkiAssets, sweirkiColors, sweirkiFonts, sweirkiLayout, sweirkiRadius, sweirkiShadows, sweirkiSpacing } from "./theme";
 
-const BUTTON_BASE = require("../assets/buttons/variants/btn_base_gold.png");
-const MODE_BUTTONS: Record<string, any> = {
-  classic: require("../assets/buttons/variants/icon_classic.png"),
-  killer: require("../assets/buttons/variants/icon_killer.png"),
-  hyper: require("../assets/buttons/variants/icon_hyper.png"),
-  x: require("../assets/buttons/variants/icon_x.png"),
-  ladder: require("../assets/buttons/variants/icon_ladder.png"),
-};
-
-
-
-
-const MODES = [
-  { key: "classic", label: "Classic\nSudoku", route: "/sudoku", premium: false },
-  { key: "killer", label: "Killer\nSudoku", route: "/killerSudoku", premium: true },
-  { key: "hyper", label: "Hyper\nSudoku", route: "/hyperSudoku", premium: true },
-  { key: "x", label: "X\nSudoku", route: "/xSudoku", premium: true },
-  { key: "ladder", label: "Ladder", route: "/leaderboard", premium: false },
-];
-
-
+type ModeKey = "classic" | "killer" | "hyper" | "x" | "ladder";
 
 type Mode = {
-  key: string;
-  label: string;
+  key: ModeKey;
+  title: string;
+  eyebrow: string;
+  description: string;
   route: string;
-  icon?: any;
   premium: boolean;
+  icon: any;
+  accent: string;
 };
 
-export default function VariantHub() {
- 
-const { isPremium } = useRevenueCat();
-  const router = useRouter();
+const MODES: Mode[] = [
+  {
+    key: "classic",
+    title: "Classic",
+    eyebrow: "Learn & Play",
+    description: "Clean boards, pure focus, daily progress.",
+    route: "/sudoku",
+    premium: false,
+    icon: require("../assets/branding/modes/classic-mode.png"),
+    accent: sweirkiColors.cyan,
+  },
+  {
+    key: "killer",
+    title: "Killer",
+    eyebrow: "Strategic",
+    description: "Cages, sums, and sharper decisions.",
+    route: "/killerSudoku",
+    premium: true,
+    icon: require("../assets/branding/modes/killer-mode.png"),
+    accent: sweirkiColors.gold,
+  },
+  {
+    key: "hyper",
+    title: "Hyper",
+    eyebrow: "Advanced",
+    description: "Extra regions for deeper mastery.",
+    route: "/hyperSudoku",
+    premium: true,
+    icon: require("../assets/branding/modes/hyper-mode.png"),
+    accent: sweirkiColors.purple,
+  },
+  {
+    key: "x",
+    title: "X Sudoku",
+    eyebrow: "Diagonal",
+    description: "Two diagonals. One elegant challenge.",
+    route: "/xSudoku",
+    premium: true,
+    icon: require("../assets/branding/modes/x-mode.png"),
+    accent: sweirkiColors.aqua,
+  },
+  {
+    key: "ladder",
+    title: "Ladder Mode",
+    eyebrow: "Progression",
+    description: "Climb through levels and prove consistency.",
+    route: "/leaderboard",
+    premium: false,
+    icon: require("../assets/branding/modes/ladder-mode.png"),
+    accent: sweirkiColors.cyanDeep,
+  },
+];
 
-  // AUTH GUARD: do not allow cached AsyncStorage profile to bypass Firebase login
+export default function VariantHub() {
+  const { isPremium } = useRevenueCat();
+  const router = useRouter();
+  const [lastPlayed, setLastPlayed] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>("Player");
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (!firebaseUser) {
@@ -61,379 +101,392 @@ const { isPremium } = useRevenueCat();
 
     return unsubscribe;
   }, [router]);
-  const [lastPlayed, setLastPlayed] = useState<string | null>(null);
-  const [userName, setUserName] = useState<string>("Player");
 
   useEffect(() => {
     AsyncStorage.getItem("lastPlayedMode").then(setLastPlayed);
-    AsyncStorage.getItem("username").then((n) => n && setUserName(n));
+    AsyncStorage.getItem("username").then((name) => {
+      if (name) setUserName(name);
+    });
   }, []);
 
   const handlePress = async (mode: Mode) => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    if (mode.premium && !isPremium) {
+      router.push("/upgrade");
+      return;
+    }
+
     await AsyncStorage.setItem("lastPlayedMode", mode.key);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push(mode.route);
   };
 
+  const firstInitial = userName[0]?.toUpperCase() ?? "P";
+
   return (
-  <View style={{ flex: 1, backgroundColor: "#000" }}>
-    <ImageBackground
-      source={require("../assets/bg.png")}
-      style={styles.bg}
-      blurRadius={4}
-      resizeMode="cover"
-    >
-      <View style={styles.container}>
-
-      {/* ===== Header (Minimal) ===== */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.profile}
-          onPress={() => router.push("/profile")}
-          activeOpacity={0.85}
+    <View style={styles.root}>
+      <ImageBackground source={sweirkiAssets.homeBackground} style={styles.background} resizeMode="cover">
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
         >
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {userName[0]?.toUpperCase() ?? "P"}
-            </Text>
+          <View style={styles.shell}>
+            <View style={styles.header}>
+              <Pressable style={styles.profileButton} onPress={() => router.push("/profile")}> 
+                <LinearGradient
+                  colors={["rgba(255,255,255,0.98)", "rgba(231,250,255,0.92)"]}
+                  style={styles.avatar}
+                >
+                  <Text style={styles.avatarText}>{firstInitial}</Text>
+                </LinearGradient>
+                <View>
+                  <Text style={styles.welcomeText}>Ready,</Text>
+                  <Text style={styles.userName} numberOfLines={1}>{userName}</Text>
+                </View>
+              </Pressable>
+
+              <Pressable style={styles.settingsButton} onPress={() => router.push("/settings")}> 
+                <Text style={styles.settingsIcon}>⚙</Text>
+              </Pressable>
+            </View>
+
+            <View style={styles.heroCard}>
+              <View style={styles.heroCopy}>
+                <Text style={styles.kicker}>SWEIRKI MODES</Text>
+                <Text style={styles.title}>Choose Your Challenge</Text>
+                <Text style={styles.subtitle}>5 Sudoku experiences, one mastery journey.</Text>
+              </View>
+              <Image source={sweirkiAssets.iconModes} style={styles.heroIcon} resizeMode="contain" />
+            </View>
+
+            <View style={styles.grid}>
+              <View style={styles.row}>
+                <ModeCard mode={MODES[0]} isPremium={isPremium} lastPlayed={lastPlayed} onPress={handlePress} />
+                <ModeCard mode={MODES[1]} isPremium={isPremium} lastPlayed={lastPlayed} onPress={handlePress} />
+              </View>
+
+              <View style={styles.row}>
+                <ModeCard mode={MODES[2]} isPremium={isPremium} lastPlayed={lastPlayed} onPress={handlePress} />
+                <ModeCard mode={MODES[3]} isPremium={isPremium} lastPlayed={lastPlayed} onPress={handlePress} />
+              </View>
+
+              <ModeCard mode={MODES[4]} isPremium={isPremium} lastPlayed={lastPlayed} onPress={handlePress} wide />
+            </View>
           </View>
-          <Text style={styles.userName}>{userName}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => router.push("/settings")}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.settings}>⚙️</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* ===== Title ===== */}
-      <Text style={styles.title}>Choose Your Challenge</Text>
-<Text style={styles.subtitle}>
-  Your progress is tracked across all modes
-</Text>
-
-      {/* ===== Grid ===== */}
-   {/* ===== Grid ===== */}
-<View style={styles.row}>
-  <AnimatedTile
-    mode={MODES[0]}
-    lastPlayed={lastPlayed}
-    onPress={handlePress}
-    isPremium={isPremium}
-  />
-  <AnimatedTile
-    mode={MODES[1]}
-    lastPlayed={lastPlayed}
-    onPress={handlePress}
-    isPremium={isPremium}
-  />
-</View>
-
-<View style={styles.row}>
-  <AnimatedTile
-    mode={MODES[2]}
-    lastPlayed={lastPlayed}
-    onPress={handlePress}
-    isPremium={isPremium}
-  />
-  <AnimatedTile
-    mode={MODES[3]}
-    lastPlayed={lastPlayed}
-    onPress={handlePress}
-    isPremium={isPremium}
-  />
-</View>
-
-<View style={styles.centerRow}>
-  <AnimatedTile
-    mode={MODES[4]}
-    lastPlayed={lastPlayed}
-    onPress={handlePress}
-    isPremium={isPremium}
-  />
-</View>
-
-
-         </View>
-    </ImageBackground>
-  </View>
-);
-
+        </ScrollView>
+      </ImageBackground>
+    </View>
+  );
 }
 
-/* ===== Tile ===== */
-
-function AnimatedTile({
+function ModeCard({
   mode,
-  onPress,
-  lastPlayed,
   isPremium,
+  lastPlayed,
+  onPress,
+  wide = false,
 }: {
-  mode: Mode & { premium: boolean };
-  onPress: (mode: Mode) => void;
-  lastPlayed: string | null;
+  mode: Mode;
   isPremium: boolean;
+  lastPlayed: string | null;
+  onPress: (mode: Mode) => void;
+  wide?: boolean;
 }) {
-
   const scale = useRef(new Animated.Value(1)).current;
+  const locked = mode.premium && !isPremium;
   const isLastPlayed = lastPlayed === mode.key && mode.key !== "ladder";
 
-  const locked = mode.premium && !isPremium;
-
   const onPressIn = () => {
-    Animated.spring(scale, { toValue: 0.97, useNativeDriver: true }).start();
+    Animated.spring(scale, {
+      toValue: 0.97,
+      friction: 7,
+      tension: 120,
+      useNativeDriver: true,
+    }).start();
   };
 
   const onPressOut = () => {
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true }).start();
+    Animated.spring(scale, {
+      toValue: 1,
+      friction: 7,
+      tension: 120,
+      useNativeDriver: true,
+    }).start();
   };
 
   return (
-    <Animated.View
-      style={[
-        styles.tileWrapper,
-        isLastPlayed && styles.lastPlayedGlow,
-        { transform: [{ scale }] },
-      ]}
-    >
-      <TouchableOpacity
-      onPress={() => {
-  onPress(mode);
-}}
+    <Animated.View style={[styles.cardMotion, wide && styles.wideMotion, { transform: [{ scale }] }]}>
+      <Pressable onPress={() => onPress(mode)} onPressIn={onPressIn} onPressOut={onPressOut}>
+        <LinearGradient
+          colors={wide ? ["rgba(255,255,255,0.98)", "rgba(232,249,255,0.94)"] : sweirkiColors.heroGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.modeCard, wide && styles.wideCard, isLastPlayed && styles.lastPlayedCard]}
+        >
+          <View style={[styles.accentDot, { backgroundColor: mode.accent }]} />
 
-        onPressIn={onPressIn}
-        onPressOut={onPressOut}
-        activeOpacity={0.9}
-      >
-<View style={styles.tile}>
-  {/* BUTTON IMAGE FIRST */}
-  <Image
-    source={MODE_BUTTONS[mode.key]}
-    style={[styles.buttonImg, locked && { opacity: 0.45 }]}
-  />
+          <View style={[styles.iconPlate, wide && styles.wideIconPlate]}>
+            <Image source={mode.icon} style={[styles.modeIcon, locked && styles.lockedIcon]} resizeMode="contain" />
+          </View>
 
-  {/* LABEL */}
-  <View style={styles.labelWrap}>
-    <Text style={styles.label}>{mode.label}</Text>
-  </View>
+          <View style={[styles.modeTextWrap, wide && styles.wideTextWrap]}>
+            <Text style={styles.modeEyebrow}>{mode.eyebrow}</Text>
+            <Text style={styles.modeTitle}>{mode.title}</Text>
+            <Text style={styles.modeDescription}>{mode.description}</Text>
+          </View>
 
-  {/* LAST PLAYED */}
-  {isLastPlayed && (
-    <Text style={styles.lastPlayedText}>Last played</Text>
-  )}
-
-  {/* 🔒 LOCK BADGE — MUST BE LAST */}
-  {locked && (
-    <View style={styles.lockBadge}>
-      <Text style={styles.lockText}>🔒 Premium</Text>
-    </View>
-  )}
-
-</View>
-
-
-
-
-      </TouchableOpacity>
+          <View style={styles.badgeRow}>
+            {isLastPlayed && <Text style={styles.lastPlayedBadge}>Last played</Text>}
+            {locked && <Text style={styles.lockBadge}>Premium</Text>}
+          </View>
+        </LinearGradient>
+      </Pressable>
     </Animated.View>
   );
 }
 
-/* ===== Styles ===== */
-
 const styles = StyleSheet.create({
-
-  bg: {
+  root: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "transparent",
+    backgroundColor: sweirkiColors.screen,
   },
-
-
-  container: {
-  flex: 1,
-  width: "100%",
-  paddingTop: 64,
-  alignItems: "center",
-},
-
-
+  background: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    alignItems: "center",
+    paddingTop: 48,
+    paddingBottom: 34,
+  },
+  shell: {
+    width: sweirkiLayout.contentWidth,
+  },
   header: {
-    width: "92%",
+    width: "100%",
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 28,
+    marginBottom: 16,
   },
-
-  profile: {
+  profileButton: {
+    maxWidth: "76%",
     flexDirection: "row",
     alignItems: "center",
+    gap: 10,
   },
-
   avatar: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-   backgroundColor: "#FFD76F",
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 10,
+    borderWidth: 1,
+    borderColor: sweirkiColors.borderCyanStrong,
+    ...sweirkiShadows.splashBadge,
   },
-
   avatarText: {
-    color: "#061B3A",
-    fontWeight: "900",
-    fontSize: 16,
-  },
-
-
-lockBadge: {
-  position: "absolute",
-  bottom: 10,
-  alignSelf: "center",
-  backgroundColor: "rgba(0,0,0,0.05)",
-  paddingHorizontal: 32,
-  paddingVertical: 2,
-  borderRadius: 10,
-},
-lockText: {
-  fontSize: 8,
-  color: "#F3C969",
-
-},
-
-premiumHint: {
-  marginTop: 12,
-  fontSize: 12,
-  color: "rgba(255,249,232,0.75)",
-  textAlign: "center",
-},
-
- userName: {
-  fontFamily: "BalooBold",
-  color: "rgba(255,249,232,0.92)",
-  fontSize: 16,
-},
-
-  settings: {
+    fontFamily: sweirkiFonts.bold,
     fontSize: 20,
-    opacity: 0.9,
+    color: sweirkiColors.inkStrong,
+    marginTop: -1,
   },
-
+  welcomeText: {
+    fontFamily: sweirkiFonts.regular,
+    fontSize: 12,
+    lineHeight: 16,
+    color: sweirkiColors.textSoft,
+  },
+  userName: {
+    maxWidth: 190,
+    fontFamily: sweirkiFonts.bold,
+    fontSize: 18,
+    lineHeight: 22,
+    color: sweirkiColors.inkStrong,
+  },
+  settingsButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: sweirkiColors.glassStrong,
+    borderWidth: 1,
+    borderColor: sweirkiColors.borderCyan,
+    ...sweirkiShadows.splashBadge,
+  },
+  settingsIcon: {
+    fontSize: 20,
+    color: sweirkiColors.inkStrong,
+  },
+  heroCard: {
+    minHeight: 112,
+    borderRadius: sweirkiRadius.hero,
+    padding: 12,
+    marginBottom: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: sweirkiColors.glassStrong,
+    borderWidth: 1,
+    borderColor: sweirkiColors.borderCyanStrong,
+    overflow: "hidden",
+    ...sweirkiShadows.hero,
+  },
+  heroCopy: {
+    flex: 1,
+    paddingRight: 10,
+  },
+  kicker: {
+    fontFamily: sweirkiFonts.bold,
+    fontSize: 11,
+    letterSpacing: 1.6,
+    color: sweirkiColors.cyanDeep,
+    marginBottom: 4,
+  },
   title: {
-  fontFamily: "BalooBold",
-  fontSize: 28,
-  color: "#FBE7A1",
-  textAlign: "center",
-  marginBottom: 28,
-  textShadowColor: "rgba(216,178,74,0.55)",
-  textShadowOffset: { width: 0, height: 2 },
-  textShadowRadius: 10,
-},
-
-subtitle: {
-  fontFamily: "BalooRegular",
-  fontSize: 13,
-  color: "rgba(255,249,232,0.75)",
-  textAlign: "center",
-  marginBottom: 22,
-},
-
-
- row: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  marginBottom: -18,
-},
-
-centerRow: {
-  flexDirection: "row",
-  justifyContent: "center",
-  marginTop: 0,    // 👈 pull it up
-  marginBottom: 0,
-},
-
-
- tileWrapper: {
-  marginVertical: -6,
-  marginHorizontal: -10,
-},
-
-
-
-  lastPlayedGlow: {
-    shadowColor: "#F6C76B",
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 10,
+    fontFamily: sweirkiFonts.bold,
+    fontSize: 25,
+    lineHeight: 29,
+    color: sweirkiColors.inkStrong,
   },
-
-  icon: {
-    width: 140,
-    height: 140,
-    resizeMode: "contain",
+  subtitle: {
+    marginTop: 5,
+    fontFamily: sweirkiFonts.regular,
+    fontSize: 13,
+    lineHeight: 17,
+    color: sweirkiColors.textSoft,
   },
-
- lastPlayedText: {
-  position: "absolute",
-  bottom: 14,           // 👈 closer to tile
-  alignSelf: "center",
-  fontSize: 9,         // 👈 subtler
-  fontWeight: "600",
-  color: "#FFD873",
-  opacity: 0.85,        // 👈 less shouty
-},
-
-
-buttonImg: {
-  width: 190,
-  height: 190,
-  position: "absolute",   // 🔑 REQUIRED
-  top: 0,
-  left: 0,
-},
-
-tile: {
-  width: 190,
-  height: 200,
-  position: "relative",   // 🔑 REQUIRED
-  overflow: "visible", // 🔑 REQUIRED
-},
-
-labelWrap: {
-  position: "absolute",
-  top: 0,
-  bottom: 0,
-  width: "100%",
-  alignItems: "center",
-  justifyContent: "center",
-
-  // optical tweak (very small, intentional)
-  paddingTop: 4,
-},
-
-
-label: {
-  textAlign: "center",
-  fontSize: 16,
-  fontWeight: "800",
-  color: "#061B3A",
-  lineHeight: 20,        // 🔑 gives X vertical mass
-  letterSpacing: 0.3,   // 🔑 optical balance
-},
-
-
-
-
+  heroIcon: {
+    width: 124,
+    height: 124,
+    marginRight: -10,
+  },
+  grid: {
+    gap: 10,
+  },
+  row: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  cardMotion: {
+    flex: 1,
+  },
+  wideMotion: {
+    flex: 0,
+    width: "100%",
+  },
+  modeCard: {
+    minHeight: 160,
+    borderRadius: sweirkiRadius.card,
+    padding: 10,
+    backgroundColor: sweirkiColors.glassStrong,
+    borderWidth: 1,
+    borderColor: sweirkiColors.borderCyan,
+    overflow: "hidden",
+    ...sweirkiShadows.glassCard,
+  },
+  wideCard: {
+    minHeight: 118,
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+  },
+  lastPlayedCard: {
+    borderColor: sweirkiColors.cyanStrong,
+  },
+  accentDot: {
+    position: "absolute",
+    top: 12,
+    right: 12,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    opacity: 0.75,
+  },
+  iconPlate: {
+    alignSelf: "center",
+    width: 92,
+    height: 78,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 4,
+    marginBottom: 5,
+    backgroundColor: "rgba(255,255,255,0.58)",
+    borderWidth: 1,
+    borderColor: "rgba(91,202,245,0.18)",
+  },
+  wideIconPlate: {
+    width: 98,
+    height: 90,
+    marginTop: 0,
+    marginBottom: 0,
+    marginRight: 12,
+  },
+  modeIcon: {
+    width: 88,
+    height: 88,
+  },
+  lockedIcon: {
+    opacity: 0.52,
+  },
+  modeTextWrap: {
+    flex: 1,
+  },
+  wideTextWrap: {
+    paddingRight: 4,
+  },
+  modeEyebrow: {
+    fontFamily: sweirkiFonts.bold,
+    fontSize: 11,
+    letterSpacing: 0.7,
+    textTransform: "uppercase",
+    color: sweirkiColors.cyanDeep,
+    marginBottom: 2,
+  },
+  modeTitle: {
+    fontFamily: sweirkiFonts.bold,
+    fontSize: 19,
+    lineHeight: 22,
+    color: sweirkiColors.inkStrong,
+  },
+  modeDescription: {
+    marginTop: 4,
+    fontFamily: sweirkiFonts.regular,
+    fontSize: 11.5,
+    lineHeight: 14,
+    color: sweirkiColors.textSoft,
+  },
+  badgeRow: {
+    minHeight: 21,
+    marginTop: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  lastPlayedBadge: {
+    overflow: "hidden",
+    borderRadius: sweirkiRadius.pill,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    backgroundColor: "rgba(53,200,244,0.12)",
+    fontFamily: sweirkiFonts.bold,
+    fontSize: 10,
+    color: sweirkiColors.cyanDeep,
+  },
+  lockBadge: {
+    overflow: "hidden",
+    borderRadius: sweirkiRadius.pill,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    backgroundColor: "rgba(245,185,67,0.22)",
+    borderWidth: 1,
+    borderColor: "rgba(245,185,67,0.28)",
+    fontFamily: sweirkiFonts.bold,
+    fontSize: 10.5,
+    color: "#A86F05",
+  },
 });
-
-
-
-
-
-
-
