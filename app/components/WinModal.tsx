@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+﻿import React, { useEffect, useRef, useState } from "react";
 import {
   Modal,
   View,
@@ -39,12 +39,12 @@ export default function WinModal({
   const router = useRouter();
   const [recordBadge, setRecordBadge] = useState<string | null>(null);
   const confettiRef = useRef<LottieView>(null);
-  /* ───────────── STATE ───────────── */
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   const [showMenu, setShowMenu] = useState(false);
   const [showPreCelebrate, setShowPreCelebrate] = useState(false);
   const [isFirstWin, setIsFirstWin] = useState(false);
 
-  /* ───────────── ANIM VALUES ───────────── */
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ANIM VALUES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   const fadeMenu = useRef(new Animated.Value(0)).current;
   const scaleMenu = useRef(new Animated.Value(0.94)).current;
   const particleAnim = useRef(new Animated.Value(0)).current;
@@ -52,7 +52,7 @@ export default function WinModal({
   const particleLoop = useRef<Animated.CompositeAnimation | null>(null);
   const victorySound = useRef<Audio.Sound | null>(null);
 
-  /* ───────────── FIRST WIN CHECK ───────────── */
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ FIRST WIN CHECK â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   useEffect(() => {
     if (!visible) return;
 
@@ -69,7 +69,7 @@ export default function WinModal({
         if (!uid) return;
 
         const a = await getAnalytics();
-        // show a tiny “record” badge when streak best equals current and current > 0
+        // show a tiny â€œrecordâ€ badge when streak best equals current and current > 0
         const prevActivityBestRaw = await AsyncStorage.getItem(
           "best_activity_streak_seen",
         );
@@ -124,7 +124,7 @@ export default function WinModal({
     };
   }, [visible]);
 
-  /* ───────────── PRE-CELEBRATION + MODAL ENTRANCE ───────────── */
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ PRE-CELEBRATION + MODAL ENTRANCE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   useEffect(() => {
     if (!visible) return;
 
@@ -162,7 +162,7 @@ export default function WinModal({
     };
   }, [visible]);
 
-  /* ───────────── START PARTICLES (AFTER MODAL IS VISIBLE) ───────────── */
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ START PARTICLES (AFTER MODAL IS VISIBLE) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   useEffect(() => {
     if (!visible) return;
 
@@ -235,7 +235,7 @@ export default function WinModal({
     };
   }, [showMenu]);
 
-  /* ───────────── HANDLERS ───────────── */
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ HANDLERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   const handlePrimary = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
@@ -243,7 +243,7 @@ export default function WinModal({
       onClose();
       setTimeout(() => router.replace("/sudokuIntro"), 400);
     } else {
-      // ✅ Restart ONLY — do NOT call onClose
+      // âœ… Restart ONLY â€” do NOT call onClose
       onRestart(difficulty);
     }
   };
@@ -253,7 +253,7 @@ export default function WinModal({
     setTimeout(() => router.replace("/leaderboard"), 400);
   };
 
-  /* ───────────── PARTICLES (BACKGROUND WOW) ───────────── */
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ PARTICLES (BACKGROUND WOW) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   const particles = Array.from({ length: 55 }).map(() => {
     const startY = Math.random() * height;
     const driftX = (Math.random() - 0.5) * 120;
@@ -286,7 +286,7 @@ export default function WinModal({
       ? "First milestone reached."
       : "Another step forward.";
 
-  /* ───────────── RENDER ───────────── */
+  /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ RENDER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   return (
     <Modal visible={visible} transparent animationType="fade">
       <LottieView
@@ -334,7 +334,7 @@ export default function WinModal({
                 height: p.size,
                 borderRadius: p.size / 2,
                 backgroundColor: "rgba(255,220,170,0.95)",
-                shadowColor: "#FFD700",
+                shadowColor: "#49D5FF",
                 shadowOpacity: 0.9,
                 shadowRadius: 10,
                 elevation: 10,
@@ -370,11 +370,11 @@ export default function WinModal({
 
           <View style={styles.cardWrap}>
             <LinearGradient
-              colors={["rgba(26,26,32,0.98)", "rgba(12,12,14,0.96)"]}
+              colors={["rgba(255,255,255,0.97)", "rgba(245,250,255,0.95)"]}
               style={[
                 styles.card,
                 {
-                  shadowColor: "#FFD700",
+                  shadowColor: "#49D5FF",
                   shadowOpacity: 0.12,
                   shadowRadius: 30,
                 },
@@ -382,9 +382,9 @@ export default function WinModal({
             >
               <Text style={styles.hero}>🏆</Text>
 
-              <Text style={styles.kicker}>Victory reward</Text>
-              <Text style={styles.title}>{outcomeTitle}</Text>
-              <Text style={styles.subtitle}>{outcomeSubtitle}</Text>
+              
+              <Text style={styles.title}>Puzzle Complete</Text>
+              <Text style={styles.modeSubtitle}>{modeLabel} • {difficultyLabel}</Text>
 
               <View style={styles.rewardRow}>
                 <View style={styles.rewardItem}>
@@ -420,7 +420,7 @@ export default function WinModal({
                 onPress={handlePrimary}
               >
                 <LinearGradient
-                  colors={["#FFD700", "#FFF2A8"]}
+                  colors={["#49D5FF", "#8BE8FF"]}
                   style={StyleSheet.absoluteFill}
                 />
                 <Text style={styles.primaryText}>
@@ -447,9 +447,7 @@ export default function WinModal({
                 </TouchableOpacity>
               </View>
 
-              <TouchableOpacity onPress={onClose}>
-                <Text style={styles.linkTextMuted}>Close</Text>
-              </TouchableOpacity>
+              
             </LinearGradient>
           </View>
         </Animated.View>
@@ -458,7 +456,7 @@ export default function WinModal({
   );
 }
 
-/* ───────────── STYLES ───────────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ STYLES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 const styles = StyleSheet.create({
   overlay: {
@@ -478,7 +476,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
 
     borderWidth: 1.5,
-    borderColor: "rgba(255,215,0,0.18)",
+    borderColor: "#B9E6FF",
 
     shadowColor: "#000",
     shadowOpacity: 0.85,
@@ -506,7 +504,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 23,
     fontWeight: "900",
-    color: "rgba(245,245,247,0.94)",
+    color: "#163A63",
     marginBottom: 6,
     textAlign: "center",
   },
@@ -514,7 +512,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     fontWeight: "700",
-    color: "rgba(220,220,226,0.76)",
+    color: "#6D86A3",
     marginBottom: 18,
     textAlign: "center",
   },
@@ -527,9 +525,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 12,
     borderRadius: 18,
-    backgroundColor: "rgba(255,255,255,0.055)",
+    backgroundColor: "#F5FAFF",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    borderColor: "#D8EEFF",
     marginBottom: 12,
   },
 
@@ -541,14 +539,14 @@ const styles = StyleSheet.create({
   rewardValue: {
     fontSize: 14,
     fontWeight: "900",
-    color: "rgba(255,255,255,0.94)",
+    color: "#163A63",
     marginBottom: 4,
   },
 
   rewardLabel: {
     fontSize: 11,
     fontWeight: "700",
-    color: "rgba(200,205,215,0.62)",
+    color: "#7E95AF",
   },
 
   rewardDivider: {
@@ -578,9 +576,9 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 14,
     borderRadius: 999,
-    backgroundColor: "rgba(255,255,255,0.055)",
+    backgroundColor: "#F5FAFF",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    borderColor: "#D8EEFF",
   },
 
   recordBadgeQuietText: {
@@ -615,15 +613,15 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 9,
     borderRadius: 14,
-    backgroundColor: "rgba(255,255,255,0.045)",
+    backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.075)",
+    borderColor: "#B9E6FF",
   },
 
   linkText: {
     fontSize: 13,
     fontWeight: "800",
-    color: "rgba(245,245,250,0.88)",
+    color: "#1A4E84",
     textAlign: "center",
   },
 
@@ -656,9 +654,34 @@ const styles = StyleSheet.create({
     borderRadius: 28,
   },
 
+  heroBadge: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "#F4FBFF",
+    borderWidth: 2,
+    borderColor: "#B9E6FF",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+
+  heroIcon: {
+    fontSize: 34,
+  },
+
+  modeSubtitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#6D86A3",
+    marginBottom: 18,
+    textAlign: "center",
+  },
+
   preText: {
     fontSize: 22,
     fontWeight: "900",
     color: "#FFD700",
   },
 });
+
