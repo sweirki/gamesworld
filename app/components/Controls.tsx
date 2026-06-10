@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { playControlClick } from "../../src/sound/clickSound";
 import { sweirkiTheme } from "../theme/sweirkiTheme";
@@ -16,6 +16,7 @@ interface ControlsProps {
   disableUndo?: boolean;
   disableRedo?: boolean;
   locked?: boolean;
+  hideRestart?: boolean;
 }
 
 type ControlTone = "soft" | "primary" | "danger" | "toggle";
@@ -44,6 +45,7 @@ export default function Controls({
   disableUndo,
   disableRedo,
   locked,
+  hideRestart = false,
 }: ControlsProps) {
   const run = async (action: () => void) => {
     await playControlClick();
@@ -102,7 +104,7 @@ export default function Controls({
       </View>
 
       <View style={styles.secondaryRow}>
-        <ControlButton label="Restart" onPress={onRestart} disabled={locked} tone="danger" wide />
+        {!hideRestart && <ControlButton label="Restart" onPress={onRestart} disabled={locked} tone="danger" wide />}
         <ControlButton
           label={pencilMode ? "Pencil ON" : "Pencil OFF"}
           onPress={onTogglePencil}
@@ -226,3 +228,4 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+

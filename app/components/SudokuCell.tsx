@@ -143,7 +143,7 @@ export default function SudokuCell({
 
   if (highlightRCB && isContext) overlayColor = highlightPalette.context;
   if (highlightSame && isHighlighted) overlayColor = highlightPalette.highlight;
-if (isDiagonal) overlayColor = "rgba(116, 148, 75, 0.28)"; // soft purple
+if (isDiagonal) overlayColor = "rgba(170, 140, 255, 0.22)"; // X Sudoku diagonal
 
 //  HYPER REGIONS YELLOW SHADING
 if (isContext === false && isHighlighted === false && isRegion) {
@@ -235,4 +235,5 @@ const styles = StyleSheet.create({
     lineHeight: CELL_SIZE * 0.33,
   },
 });
+
 

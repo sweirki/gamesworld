@@ -1,4 +1,4 @@
-// DAILY FORCE RELOAD v1
+﻿// DAILY FORCE RELOAD v1
 import React, { useEffect, useRef, useState } from "react";
 import {
   View,
@@ -22,7 +22,6 @@ import { generateSudoku } from "../utils/sudokuGen";
 import { getColors } from "./theme/index";
 import Sudoku from "./sudoku";
 import * as Haptics from "expo-haptics";
-import { useAchievementsStore } from "./stores/useAchievementsStore";
 import { useRevenueCat } from "../src/hooks/useRevenueCat";
 import { onGameFinished } from "../src/game/onGameFinished";
 
@@ -54,8 +53,6 @@ function getWeekId(date: Date) {
 ========================= */
 
 export default function DailyChallenge() {
- 
- const unlockAchievement = useAchievementsStore((s) => s.unlock);
 const { isPremium } = useRevenueCat();
 
 
@@ -70,7 +67,7 @@ const clearDailyDev = async () => {
 ]);
 
 
-    // 🔑 RESET LOCAL STATE
+    // ðŸ”‘ RESET LOCAL STATE
     setAlreadyPlayedToday(false);
     const storedStreak = await AsyncStorage.getItem(dailyKey("dailyStreak"));
 setDailyStreak(storedStreak ? parseInt(storedStreak, 10) : 0);
@@ -78,14 +75,14 @@ setDailyStreak(storedStreak ? parseInt(storedStreak, 10) : 0);
     setPuzzle(null);
     setLoading(true);
 
-    // 🔄 FORCE RELOAD DAILY
+    // ðŸ”„ FORCE RELOAD DAILY
    devReloadTimeoutRef.current = setTimeout(() => {
   router.replace("/daily");
 }, 0);
 
 
     // Alert.alert("DEV", "Daily AsyncStorage cleared");
-    // console.log("🧹 Daily AsyncStorage cleared");
+    // console.log("ðŸ§¹ Daily AsyncStorage cleared");
   } catch (e) {
     // Alert.alert("DEV ERROR", "Failed to clear AsyncStorage");
   }
@@ -151,7 +148,7 @@ if (played === today || lastPlayed === today) {
 
         if (!cancelled) setLoading(false);
       } catch (e) {
-        console.error("❌ Daily load failed:", e);
+        console.error("âŒ Daily load failed:", e);
         if (!cancelled) setLoading(false);
       }
     };
@@ -172,7 +169,7 @@ if (played === today || lastPlayed === today) {
 const commitDailyWin = async (result: any) => {
   const today = getDailyIdUTC();
 
-  // 🔒 Premium-only leaderboard model
+  // ðŸ”’ Premium-only leaderboard model
   if (!isPremium) {
     await AsyncStorage.setItem(dailyKey("dailyPlayed"), today);
     return;
@@ -197,7 +194,7 @@ const commitDailyWin = async (result: any) => {
       "Guest";
 
     /* =========================
-       1️⃣ Award Ladder XP
+       1ï¸âƒ£ Award Ladder XP
     ========================= */
 
     const xp = calculateXpForLadder({
@@ -211,7 +208,7 @@ const commitDailyWin = async (result: any) => {
     await refreshLadderData(username);
 
     /* =========================
-       2️⃣ Daily Leaderboard
+       2ï¸âƒ£ Daily Leaderboard
     ========================= */
 
     const dailyRef = doc(db, "dailyLeaderboard", today);
@@ -236,7 +233,7 @@ const commitDailyWin = async (result: any) => {
     }
 
     /* =========================
-       3️⃣ Daily Lock + Streak
+       3ï¸âƒ£ Daily Lock + Streak
     ========================= */
 
     const lastPlayed = await AsyncStorage.getItem(
@@ -266,19 +263,11 @@ const commitDailyWin = async (result: any) => {
     setDailyStreak(streak);
 
     /* =========================
-       4️⃣ Achievements
+       4ï¸âƒ£ Achievements
     ========================= */
-
-    unlockAchievement("first_win");
-    unlockAchievement("points_collector");
-
-    if (streak >= 3) {
-      unlockAchievement("streak_keeper");
-    }
-
-    setSaving(false);
+setSaving(false);
   } catch (e) {
-    console.error("❌ Daily commit failed:", e);
+    console.error("âŒ Daily commit failed:", e);
     setSaveError("Failed to save Daily progress.");
     setSaving(false);
     commitInProgress.current = false;
@@ -309,19 +298,21 @@ const handleDailyWin = async (result: any) => {
   }
 
   const today = getDailyIdUTC();
-  // rest of the function…
+  // rest of the functionâ€¦
 
-  // 🔒 HARD LOCK DAILY IMMEDIATELY (CRITICAL)
+  // ðŸ”’ HARD LOCK DAILY IMMEDIATELY (CRITICAL)
  await AsyncStorage.setItem(dailyKey("dailyPlayed"), today);
   pendingResult.current = result;
   Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-// ✅ HISTORY (UNIFIED PATTERN — DAILY)
+// âœ… HISTORY (UNIFIED PATTERN â€” DAILY)
 await onGameFinished({
   mode: "daily",
   win: true,
   time: result.time,
   errors: result.errors,
+  hintsUsed: 0,
+  difficulty: "daily",
 });
 
 
@@ -358,8 +349,8 @@ await onGameFinished({
           <View style={[styles.lockedCard, { backgroundColor: colors.card }]}>
             <Text style={styles.lockedTitle}>Daily Challenge</Text>
            <Text style={styles.lockedText}>
- Today’s Daily Challenge is complete.
-{"\n"}Come back tomorrow for a fresh puzzle 🌅
+ Todayâ€™s Daily Challenge is complete.
+{"\n"}Come back tomorrow for a fresh puzzle ðŸŒ…
 </Text>
 
             <TouchableOpacity
@@ -414,14 +405,14 @@ await onGameFinished({
           <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
             <Text style={styles.modalTitle}>
   {dailyStreak >= 3
-    ? "🔥 Streak Maintained!"
-    : "🎉 Daily Challenge Completed!"}
+    ? "ðŸ”¥ Streak Maintained!"
+    : "ðŸŽ‰ Daily Challenge Completed!"}
 </Text>
 
            <Text style={[styles.modalSub, { marginBottom: 6 }]}>
   {isPremium
-    ? "✨ Progress saved · Daily XP applied"
-    : "✨ Daily completed · Practice mode"}
+    ? "âœ¨ Progress saved Â· Daily XP applied"
+    : "âœ¨ Daily completed Â· Practice mode"}
 </Text>
 
 
@@ -432,7 +423,7 @@ await onGameFinished({
   </Text>
 )}
 
-        {saving && <Text style={styles.modalSub}>⏳ Finalizing today’s results…</Text>}
+        {saving && <Text style={styles.modalSub}>â³ Finalizing todayâ€™s resultsâ€¦</Text>}
 
             {saveError && (
               <Text style={[styles.modalSub, { color: "#E74C3C" }]}>
@@ -568,3 +559,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
+
+
+
+

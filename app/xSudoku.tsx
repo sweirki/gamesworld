@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+﻿import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -7,16 +7,13 @@ import {
   TouchableOpacity,
   Animated,
   ImageBackground,
-  Modal,
 } from "react-native";
 
 import { LinearGradient } from "expo-linear-gradient";
-import { useAchievementsStore } from "./stores/useAchievementsStore";
 import * as Haptics from "expo-haptics";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { writeSeasonalScore, getCurrentStreak } from "../utils/ladder/scoreEngine";
 import { useRouter } from "expo-router";
-import { useRevenueCat } from "../src/hooks/useRevenueCat";
 import { makePuzzle } from "../utils/puzzleFactory";
 import { auth } from "../firebase";
 import Svg, { Line } from "react-native-svg";
@@ -86,23 +83,12 @@ function violatesXRule(board: any[][], r: number, c: number, val: number) {
 export default function XSudoku() {
   const skipNextResumeRef = useRef(false);
 const skipNextSaveRef = useRef(false);
-
-const unlockAchievement = useAchievementsStore((s) => s.unlock);
-
- const colors = getColors();
+const colors = getColors();
 const s = styles(colors);
 
 
   const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("easy");
   const router = useRouter();
-  const { isPremium, loading } = useRevenueCat();
-
-  useEffect(() => {
-    if (!loading && !isPremium) {
-      router.replace("/upgrade");
-    }
-  }, [isPremium, loading, router]);
-
 
   // ---- puzzle state ----
   const [puzzle, setPuzzle] = useState<any[][]>([]);
@@ -129,22 +115,6 @@ const [showOnboarding, setShowOnboarding] = useState(false);
 const [isHydrating, setIsHydrating] = useState(true);
 const [username, setUsername] = useState("Guest");
 
-  // ---- drawer (same as Killer) ----
-  const [drawerVisible, setDrawerVisible] = useState(false);
-
-const drawerAnim = useRef(new Animated.Value(300)).current;
-
-const toggleDrawer = (show: boolean) => {
-  if (show) setDrawerVisible(true);
-
-  Animated.timing(drawerAnim, {
-    toValue: show ? 0 : 300,
-    duration: 250,
-    useNativeDriver: true,
-  }).start(() => {
-    if (!show) setDrawerVisible(false);
-  });
-};
 
    const [hasWon, setHasWon] = useState(false);
 
@@ -282,7 +252,7 @@ useEffect(() => {
   });
 }, []);
 
-// ⭐ Phase 10 — X onboarding (one-time)
+// â­ Phase 10 â€” X onboarding (one-time)
 useEffect(() => {
   let alive = true;
 
@@ -620,14 +590,14 @@ const handleGameOverClose = async () => {
   );
   setPuzzle(solved);
 
-  // ✅ Correct identity (same as Classic / Hyper / Killer)
+  // âœ… Correct identity (same as Classic / Hyper / Killer)
   const ladderUser = auth.currentUser?.uid || "Guest";
 
-  // ✅ Update stats
+  // âœ… Update stats
   await updateStatsOnWin("x", timer, errorCount, 3 - hintsLeft, ladderUser);
 
 
-  // ⭐ Award LADDER XP (same formula as other boards)
+  // â­ Award LADDER XP (same formula as other boards)
   try {
     const xp = calculateXpForLadder({
       mode: "x",
@@ -637,15 +607,15 @@ const handleGameOverClose = async () => {
     });
 
     await awardLadderXP(xp);
-    console.log("🔥 Ladder XP awarded (X):", xp);
+    console.log("ðŸ”¥ Ladder XP awarded (X):", xp);
   } catch (err) {
-    console.warn("❌ Failed to award ladder XP (X):", err);
+    console.warn("âŒ Failed to award ladder XP (X):", err);
   }
 
   // Refresh cached Ladder stats
   await refreshLadderData(ladderUser);
 
-  // ⭐ Seasonal leaderboard write (corrected username)
+  // â­ Seasonal leaderboard write (corrected username)
   try {
     await writeSeasonalScore(
       ladderUser,
@@ -656,7 +626,7 @@ const handleGameOverClose = async () => {
       "x"
     );
   } catch (err) {
-    console.error("❌ Seasonal write (X) failed:", err);
+    console.error("âŒ Seasonal write (X) failed:", err);
   }
 
 await onGameFinished({
@@ -664,15 +634,13 @@ await onGameFinished({
   win: true,
   time: timer,
   errors: errorCount,
+  hintsUsed: 0,
+  difficulty: "x",
+  score: Math.max(0, 999 - timer),
 });
 
 
   setWinVisible(true);
-
-  // ---------- ACHIEVEMENTS ----------
-unlockAchievement("x_master");
-unlockAchievement("first_win");
-
 };
 
 
@@ -684,7 +652,7 @@ unlockAchievement("first_win");
     if (!Array.isArray(puzzle) || puzzle.length !== 9) return;
     if (!puzzle.every(row => Array.isArray(row) && row.length === 9)) return;
 
-    // 🧠 do not save untouched boards
+    // ðŸ§  do not save untouched boards
     if (!isBoardTouched(puzzle)) return;
 
   saveGame("x", { puzzle, solution, timer, hintsLeft, errorCount });
@@ -780,52 +748,50 @@ unlockAchievement("first_win");
           lineHeight: 20,
         }}
       >
-        Both diagonals must also contain the numbers 1–9.
+        Both diagonals must also contain the numbers 1â€“9.
       </Text>
     </View>
   </View>
 )}
 
     <ImageBackground
-
-    source={require("../assets/bg.png")}
-    style={{ flex: 1 }}
+    // removed old dark background
+    style={s.bg}
     resizeMode="cover"
   >
  <View style={s.screen}>
  
 
 
-  
-        {/* Header Section â€“ MATCHED TO HyperSudoku */}
-        <View style={{ width: "100%", alignItems: "center", marginBottom: 4 }}>
-  <Text
-    style={{
-      fontSize: 22,
-      fontWeight: "800",
-      color: colors.buttonSecondaryBg,  // same gold as Hyper/Killer
-    }}
-  >
-    X Sudoku
-  </Text>
-</View>
+        <View style={s.gameplayHeader}>
+          <View style={s.modeTitleRow}>
+            <Ionicons name="close-outline" size={22} color={"#F5B943"} />
+            <Text style={s.modeTitle}>X Sudoku</Text>
+          </View>
 
+          <View style={s.statusRow}>
+            <TouchableOpacity
+              activeOpacity={0.82}
+              style={[s.statusChip, s.difficultyChip]}
+              onPress={() => setMenuVisible(true)}
+            >
+              <Text style={s.statusChipText}>{difficulty.toUpperCase()}</Text>
+              <Ionicons name="chevron-down" size={13} color={"#12385A"} />
+            </TouchableOpacity>
 
-        <View style={s.infoRow}>
-          <Text style={s.timerTextGold}>{formatTime(timer)}</Text>
-          <TouchableOpacity onPress={() => setMenuVisible(true)}>
-            <Text style={s.difficultyTextGold}>{difficulty}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => toggleDrawer(true)} style={{ padding: 4 }}>
-            <Ionicons name="menu" size={26} color={colors.buttonSecondaryBg} />
-          </TouchableOpacity>
+            <View style={s.statusChip}>
+              <Ionicons name="time-outline" size={14} color={"#12385A"} />
+              <Text style={s.statusChipText}>{formatTime(timer)}</Text>
+            </View>
+
+            <View style={s.statusChip}>
+              <Ionicons name="close-circle-outline" size={14} color={errorCount > 0 ? "#D9534F" : "#12385A"} />
+              <Text style={[s.statusChipText, errorCount > 0 && s.strikeChipText]}>
+                {Math.min(errorCount, MAX_STRIKES)}/{MAX_STRIKES}
+              </Text>
+            </View>
+          </View>
         </View>
-
-{/* Strikes â€“ match Hyper spacing */}
-  <Text style={s.strikeTextInline}>
-    Strikes: {errorCount} / {MAX_STRIKES}
-  </Text>
-
 
 
   {/* Board container */}
@@ -842,9 +808,9 @@ unlockAchievement("first_win");
   y1={0}
   x2={BOARD_SIZE}
   y2={BOARD_SIZE}
-  stroke={colors.buttonSecondaryBg}
-  strokeWidth={1.4}
-  strokeOpacity={0.18}
+  stroke={"rgba(143, 121, 255, 0.62)"}
+  strokeWidth={2.2}
+  strokeOpacity={0.55}
 />
 
 <Line
@@ -852,9 +818,9 @@ unlockAchievement("first_win");
   y1={0}
   x2={0}
   y2={BOARD_SIZE}
-  stroke={colors.buttonSecondaryBg}
-  strokeWidth={1.4}
-  strokeOpacity={0.18}
+  stroke={"rgba(143, 121, 255, 0.62)"}
+  strokeWidth={2.2}
+  strokeOpacity={0.55}
 />
 
 
@@ -936,7 +902,7 @@ unlockAchievement("first_win");
 
 
  {/* Controls (MATCH Hyper spacing) */}
-<View style={{ marginTop: 6, marginBottom: 4, width: "100%", alignItems: "center" }}>
+<View style={{ marginTop: 12, marginBottom: 10, width: "100%", alignItems: "center" }}>
   <Controls
     onUndo={undo}
     onRedo={redo}
@@ -1159,125 +1125,22 @@ unlockAchievement("first_win");
   />
 )}
 
-{drawerVisible && (
-  <Modal visible transparent animationType="fade">
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: "rgba(0,0,0,0.55)",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Animated.View
-        style={{
-          width: "78%",
-          backgroundColor: colors.card ?? colors.backgroundDark,
-          borderRadius: 24,
-          paddingTop: 32,
-          paddingBottom: 26,
-          paddingHorizontal: 24,
-          alignItems: "center",
-          transform: [{ translateX: drawerAnim }],
-        }}
-      >
-        {/* Title */}
-        <Text
-          style={{
-            fontSize: 22,
-            fontWeight: "800",
-            color: colors.enteredNumber ?? "#FBE7A1",
-            marginBottom: 16,
-          }}
-        >
-          Menu
-        </Text>
-
-        {/* User Icon */}
-        <Ionicons
-          name="person-circle"
-          size={72}
-          color={colors.enteredNumber ?? "#FBE7A1"}
-          style={{ marginBottom: 6 }}
-        />
-
-        {/* Username */}
-        <Text
-          style={{
-            fontSize: 18,
-            fontWeight: "700",
-            marginBottom: 24,
-            color: colors.enteredNumber ?? "#FBE7A1",
-          }}
-        >
-          {username}
-        </Text>
-
-        {/* Buttons */}
-        <TouchableOpacity
-          style={styles(colors).menuButton}
-          onPress={() => {
-            toggleDrawer(false);
-            router.push("/profile");
-          }}
-        >
-          <Text style={styles(colors).menuButtonText}>Profile</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles(colors).menuButton}
-          onPress={() => {
-            toggleDrawer(false);
-            router.push("/stats");
-          }}
-        >
-          <Text style={styles(colors).menuButtonText}>Stats</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles(colors).menuButton}
-          onPress={() => {
-            toggleDrawer(false);
-            router.push("/settings");
-          }}
-        >
-          <Text style={styles(colors).menuButtonText}>Settings</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles(colors).menuButton}
-          onPress={() => {
-            toggleDrawer(false);
-            router.push("/leaderboard");
-          }}
-        >
-          <Text style={styles(colors).menuButtonText}>Leaderboard</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles(colors).menuButton, { marginTop: 8 }]}
-          onPress={() => toggleDrawer(false)}
-        >
-          <Text style={styles(colors).menuButtonText}>Close</Text>
-        </TouchableOpacity>
-      </Animated.View>
-    </View>
-  </Modal>
-)}
 </View>
   );
 }
 
 const styles = (colors: ReturnType<typeof getColors>) =>
   StyleSheet.create({
+    bg: { flex: 1, width: "100%", height: "100%", backgroundColor: "#F6FBFF" },
+
     // ===== Screen & Header =====
     screen: {
   flex: 1,
   backgroundColor: "transparent",
   justifyContent: "flex-start",
   alignItems: "center",
-  paddingTop: 20,
-  paddingBottom: 20,
+  paddingTop: 76,
+  paddingBottom: 18,
 },
 
 
@@ -1329,13 +1192,13 @@ headerRow: {
 timerTextGold: {
   fontSize: 16,
   fontWeight: "700",
-  color: colors.buttonSecondaryBg, // gold-like
+  color: "#12385A", // Classic/Hyper shell
 },
 
 difficultyTextGold: {
   fontSize: 16,
   fontWeight: "600",
-  color: colors.buttonPrimaryBg, // same as hyper
+  color: "#12385A", // same as Classic/Hyper
 },
 
 
@@ -1367,6 +1230,59 @@ strikeTextInline: {
 
 
     // ===== Board & Cells =====
+
+   gameplayHeader: {
+    paddingHorizontal: 28,
+    paddingTop: 0,
+    paddingBottom: 16,
+    alignItems: "center",
+  },
+  modeTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 7,
+    marginBottom: 9,
+  },
+  modeTitle: {
+    fontSize: 21,
+    fontWeight: "800",
+    color: "#12385A",
+    textAlign: "center",
+  },
+  statusRow: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 8,
+  },
+  statusChip: {
+    flex: 1,
+    minHeight: 30,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "rgba(55, 190, 230, 0.72)",
+    backgroundColor: "rgba(255,255,255,0.72)",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 5,
+  },
+  difficultyChip: {
+    borderColor: "rgba(55, 190, 230, 0.90)",
+  },
+  statusChipText: {
+    fontSize: 13,
+    fontWeight: "800",
+    letterSpacing: 0.3,
+    color: "#12385A",
+  },
+  strikeChipText: {
+    color: "#D9534F",
+  },
+
    boardWrap: {
   alignItems: "center",
   marginTop: 12,
@@ -1375,8 +1291,8 @@ strikeTextInline: {
 
 boardContainer: {
   alignSelf: "center",
-  marginTop: 6,
-  marginBottom: 4,
+  marginTop: 0,
+  marginBottom: 6,
 },
 
 board: {
@@ -1461,6 +1377,10 @@ board: {
       textShadowRadius: 4,
     },
   });
+
+
+
+
 
 
 

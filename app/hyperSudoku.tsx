@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+﻿import React, { useEffect, useState, useRef } from "react";
 import Svg, { Rect, Line } from "react-native-svg";
 import {
   View,
@@ -8,9 +8,8 @@ import {
   TouchableOpacity,
   Animated,
   Modal,
-  ImageBackground, // Å½Â¨ THEME: added for background image
+  ImageBackground, // Ã…Â½Ã‚Â¨ THEME: added for background image
 } from "react-native";
-import { useAchievementsStore } from "./stores/useAchievementsStore";
 import { getColors } from "./theme/index";
 import { writeSeasonalScore } from "../utils/ladder/scoreEngine";
 import { getCurrentStreak } from "../utils/ladder/scoreEngine";
@@ -30,7 +29,6 @@ import * as Haptics from "expo-haptics";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback } from "react";
 import { useRouter } from "expo-router";
-import { useRevenueCat } from "../src/hooks/useRevenueCat";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { strokeBase } from "./theme/boardTheme";
@@ -61,20 +59,11 @@ const GRID_SIZE = CELL_SIZE * 9;
 export default function HyperSudoku() {
   const skipNextResumeRef = useRef(false);
 const skipNextSaveRef = useRef(false);
-
-const unlockAchievement = useAchievementsStore((s) => s.unlock);
 const colors = getColors();
 
 
 
   const router = useRouter();
-  const { isPremium, loading } = useRevenueCat();
-
-  useEffect(() => {
-    if (!loading && !isPremium) {
-      router.replace("/upgrade");
-    }
-  }, [isPremium, loading, router]);
   const s = styles(colors);
   const [puzzle, setPuzzle] = useState<any[][]>([]);
  const emptyGrid = Array.from({ length: 9 }, () => []);
@@ -97,8 +86,6 @@ const [contextCells, setContextCells] = useState<[number, number][]>([]);
   const [menuVisible, setMenuVisible] = useState(false);
   const [difficultyVisible, setDifficultyVisible] = useState(false);
   const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("easy");
-  const [drawerVisible, setDrawerVisible] = useState(false);
-const drawerAnim = useRef(new Animated.Value(300)).current;
 const [username, setUsername] = useState("Guest");
   const [pendingDifficulty, setPendingDifficulty] =
     useState<"easy" | "medium" | "hard" | null>(null);
@@ -116,7 +103,7 @@ useEffect(() => {
   });
 }, []);
 
-// ⭐ Phase 10 — Hyper onboarding (one-time)
+// â­ Phase 10 â€” Hyper onboarding (one-time)
 useEffect(() => {
   let alive = true;
 
@@ -141,20 +128,8 @@ useEffect(() => {
 }, []);
 
 
-const toggleDrawer = (show: boolean) => {
-  if (show) setDrawerVisible(true);
-
-  Animated.timing(drawerAnim, {
-    toValue: show ? 0 : 300,
-    duration: 250,
-    useNativeDriver: true,
-  }).start(() => {
-    if (!show) setDrawerVisible(false);
-  });
-};
-
   const BOARD_SIZE = width - 40;
-  // ðŸŸ¥ Strike system (max 5 mistakes)
+  // Ã°Å¸Å¸Â¥ Strike system (max 5 mistakes)
 const [errorCount, setErrorCount] = useState(0);
 const MAX_STRIKES = 5;
 const gameOverShown = useRef(false);
@@ -402,7 +377,7 @@ const toggleCandidate = (r: number, c: number, num: number) => {
     const [r, c] = selected;
     const cell = puzzle[r][c];
     if (cell.prefilled) return;
-    // âœï¸ Pencil first â€” if on, toggle notes and stop
+    // Ã¢Å“ÂÃ¯Â¸Â Pencil first Ã¢â‚¬â€ if on, toggle notes and stop
 if (isPencilMode) {
   toggleCandidate(r, c, num);
   try { Haptics.selectionAsync(); } catch {}
@@ -487,7 +462,7 @@ checkCompletion(next);
   };
 
   // HINT: fill ONLY the selected cell with its solution
-// â€™Â¡ Fill only the selected cell with its correct number
+// Ã¢â‚¬â„¢Ã‚Â¡ Fill only the selected cell with its correct number
 const handleHint = async () => {
  if (!selected) {
   setHintPopup(true);
@@ -510,7 +485,7 @@ const handleHint = async () => {
   checkRowColBoxCompletion(updated, r, c);
   checkCompletion(updated);
   
-  console.log("â€™Â¡ [Hint] Filled cell", r, c, "with", updated[r][c].solution);
+  console.log("Ã¢â‚¬â„¢Ã‚Â¡ [Hint] Filled cell", r, c, "with", updated[r][c].solution);
 };
 
 const handleErase = () => {
@@ -602,14 +577,14 @@ const handleGameOverClose = async () => {
    await refreshLadderData(ladderUser);
 
 
-     console.log("⚔ [ Hyper Sudoku] Win saved for user:", "Guest", {
+     console.log("âš” [ Hyper Sudoku] Win saved for user:", "Guest", {
     Timer,
     hintsUsed: 3 - hintsLeft,
   });
 
   
 
-// ⭐ LADDER XP for Hyper
+// â­ LADDER XP for Hyper
 try {
   const xp = calculateXpForLadder({
     mode: "hyper",
@@ -619,12 +594,12 @@ try {
   });
 
 
-  console.log("🔥 Ladder XP awarded (Hyper):", xp);
+  console.log("ðŸ”¥ Ladder XP awarded (Hyper):", xp);
 } catch (err) {
-  console.warn("❌ Failed to award ladder XP (Hyper):", err);
+  console.warn("âŒ Failed to award ladder XP (Hyper):", err);
 }
 
-  // ⭐ Seasonal leaderboard write for Hyper
+  // â­ Seasonal leaderboard write for Hyper
   try {
     await writeSeasonalScore(
       username || "Guest",                 // uid substitute
@@ -635,7 +610,7 @@ try {
       "hyper"                              // mode id
     );
   } catch (err) {
-    console.error("❌ Seasonal write (Hyper) failed:", err);
+    console.error("âŒ Seasonal write (Hyper) failed:", err);
   }
 
   if (TimerRef.current) clearInterval(TimerRef.current);
@@ -646,24 +621,21 @@ const solved = puzzle.map((row) =>
 
 setPuzzle(solved);
 
-// ✅ HISTORY (UNIFIED PATTERN)
+// âœ… HISTORY (UNIFIED PATTERN)
 await onGameFinished({
   mode: "hyper",
   win: true,
   time: Timer,
   errors: errorCount,
+  hintsUsed: 0,
+  difficulty: "hyper",
+  score: Math.max(0, 999 - Timer),
 });
 
 
 setWinVisible(true);
 saveWin(username, "hyper", Timer, errorCount);
-
-// ---------- ACHIEVEMENTS ----------
-unlockAchievement("hyper_samurai");
-unlockAchievement("first_win");
-
-
-  };
+};
 
 
   const getDigitCounts = () => {
@@ -678,7 +650,7 @@ useEffect(() => {
   if (!Array.isArray(puzzle) || puzzle.length !== 9) return;
   if (!puzzle.every(row => Array.isArray(row) && row.length === 9)) return;
 
-  // 🧠 do not save untouched boards
+  // ðŸ§  do not save untouched boards
   if (!isBoardTouched(puzzle)) return;
 
  saveGame("hyper", { puzzle, solution, timer: Timer, errorCount });
@@ -698,7 +670,7 @@ if (isHydrating) {
     >
       <Text
         style={{
-          color: colors.buttonSecondaryBg,
+          color: "#12385A",
           fontWeight: "700",
           fontSize: 16,
         }}
@@ -712,7 +684,7 @@ if (isHydrating) {
   // THEME: wrapped root in ImageBackground
 return (
   <ImageBackground
-    source={require("../assets/bg.png")}
+    // removed old dark background
     style={styles(colors).bg}
     resizeMode="cover"
   >
@@ -759,43 +731,45 @@ return (
 )}
 
    <View style={styles(colors).screen}>
-  {/* â­ Title with gold icon */}
- <View style={{ width:"100%", alignItems:"center", marginBottom:4 }}>
-  <Text style={{ fontSize:22, fontWeight:"800", color: colors.buttonSecondaryBg }}>
-    Hyper Sudoku
-  </Text>
-</View>
-{/* CLASSIC HEADER ROW */}
-{/* CLASSIC HEADER (copied from sudoku.tsx) */}
-<View style={styles(colors).headerRow}>
-  <View style={{ flex: 1, alignItems: "flex-start" }}>
-    <Text style={styles(colors).TimerText}>
-      {Math.floor(Timer / 60)}:{String(Timer % 60).padStart(2, "0")}
-    </Text>
+  <View style={styles(colors).gameplayHeader}>
+    <View style={styles(colors).modeTitleRow}>
+      <Ionicons
+        name="grid-outline"
+        size={18}
+        color={colors.buttonSecondaryBg}
+      />
+      <Text style={styles(colors).modeTitle}>Hyper Sudoku</Text>
+    </View>
+
+    <View style={styles(colors).statusRow}>
+      <TouchableOpacity
+        activeOpacity={0.82}
+        style={[styles(colors).statusChip, styles(colors).difficultyChip]}
+        onPress={() => setMenuVisible(true)}
+      >
+        <Text style={styles(colors).statusChipText}>{difficulty.toUpperCase()}</Text>
+        <Ionicons name="chevron-down" size={13} color={"#12385A"} />
+      </TouchableOpacity>
+
+      <View style={styles(colors).statusChip}>
+        <Ionicons name="time-outline" size={14} color={"#12385A"} />
+        <Text style={styles(colors).statusChipText}>
+          {Math.floor(Timer / 60)}:{String(Timer % 60).padStart(2, "0")}
+        </Text>
+      </View>
+
+      <View style={styles(colors).statusChip}>
+        <Ionicons
+          name="close-circle-outline"
+          size={14}
+          color={errorCount > 0 ? "#D9534F" : "#12385A"}
+        />
+        <Text style={[styles(colors).statusChipText, errorCount > 0 && styles(colors).strikeChipText]}>
+          {errorCount}/{MAX_STRIKES}
+        </Text>
+      </View>
+    </View>
   </View>
-
-  <View style={{ flex: 1, alignItems: "center" }}>
-    <TouchableOpacity
-      style={{ flexDirection: "row", alignItems: "center" }}
-      onPress={() => setMenuVisible(true)}
-    >
-      <Text style={styles(colors).difficultyText}>{difficulty}</Text>
-    </TouchableOpacity>
-  </View>
-
-  <View style={{ flex: 1, alignItems: "flex-end" }}>
-    <TouchableOpacity onPress={() => toggleDrawer(true)} style={{ padding: 4 }}>
-      <Ionicons name="menu" size={32} color={colors.buttonSecondaryBg} />
-    </TouchableOpacity>
-  </View>
-</View>
-
-
-
-
-      <Text style={styles(colors).strikeTextInline}>
-  Strikes: {errorCount} / {MAX_STRIKES}
-</Text>
 
       <UniversalModal
   visible={menuVisible}
@@ -1159,114 +1133,6 @@ strokeWidth={i % 3 === 0 ? strokeWidthBold : strokeWidthThin}
 />
 
 
-        {drawerVisible && (
-  <Modal visible transparent animationType="fade">
-    <View
-      style={{
-        flex: 1,
-       backgroundColor: "rgba(0,0,0,0.55)",
-
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Animated.View
-        style={{
-          width: "78%",
-          backgroundColor: colors.card ?? "colors.backgroundDark",
-          borderRadius: 24,
-          paddingTop: 32,
-          paddingBottom: 26,
-          paddingHorizontal: 24,
-          alignItems: "center",
-          transform: [{ translateX: drawerAnim }],
-        }}
-      >
-        {/* Title */}
-        <Text
-          style={{
-            fontSize: 22,
-            fontWeight: "800",
-          color: colors.buttonSecondaryBg,
-            marginBottom: 16,
-          }}
-        >
-          Menu
-        </Text>
-
-        {/* User icon */}
-        <Ionicons
-          name="person-circle"
-          size={72}
-          color={colors.enteredNumber ?? "#FBE7A1"}
-          style={{ marginBottom: 6 }}
-        />
-
-        {/* User name (email or Guest) */}
-        <Text
-          style={{
-            fontSize: 18,
-            fontWeight: "700",
-            marginBottom: 24,
-            color: colors.enteredNumber ?? "#FBE7A1",
-          }}
-        >
-         {username}
-
-        </Text>
-
-        {/* Buttons */}
-        <TouchableOpacity
-          style={styles(colors).menuButton}
-          onPress={() => {
-            toggleDrawer(false);
-            router.push("/profile");
-          }}
-        >
-          <Text style={styles(colors).menuButtonText}>Profile</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles(colors).menuButton}
-          onPress={() => {
-            toggleDrawer(false);
-            router.push("/stats");
-          }}
-        >
-          <Text style={styles(colors).menuButtonText}>Stats</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles(colors).menuButton}
-          onPress={() => {
-            toggleDrawer(false);
-            router.push("/settings");
-          }}
-        >
-          <Text style={styles(colors).menuButtonText}>Settings</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles(colors).menuButton}
-          onPress={() => {
-            toggleDrawer(false);
-            router.push("/leaderboard");
-          }}
-        >
-          <Text style={styles(colors).menuButtonText}>Leaderboard</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles(colors).menuButton, { marginTop: 8 }]}
-          onPress={() => toggleDrawer(false)}
-        >
-          <Text style={styles(colors).menuButtonText}>Close</Text>
-        </TouchableOpacity>
-      </Animated.View>
-    </View>
-  </Modal>
-)}
-
       </View>
     </ImageBackground>
   );
@@ -1281,20 +1147,73 @@ const styles = (colors: ReturnType<typeof getColors>) =>
   backgroundColor: "transparent",
   justifyContent: "flex-start",
   alignItems: "center",
-  paddingTop: 20,
-  paddingBottom: 36,
+  paddingTop: 76,
+  paddingBottom: 18,
 },
 
 
     title: {
       fontSize: 20,
       fontWeight: "800",
-      color: colors.buttonSecondaryBg,
+      color: "#12385A",
       fontFamily: "Rajdhani-Bold",
       textShadowColor: colors.enteredNumber,
       textShadowRadius: 8,
       marginBottom: 2,
     },
+
+    gameplayHeader: {
+      paddingHorizontal: 28,
+      paddingTop: 0,
+      paddingBottom: 16,
+      alignItems: "center",
+    },
+    modeTitleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 7,
+      marginBottom: 9,
+    },
+    modeTitle: {
+      fontSize: 21,
+      fontWeight: "800",
+      color: "#12385A",
+      textAlign: "center",
+    },
+    statusRow: {
+      width: "100%",
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: 8,
+    },
+    statusChip: {
+      flex: 1,
+      minHeight: 30,
+      paddingHorizontal: 10,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: "rgba(55, 190, 230, 0.72)",
+      backgroundColor: "rgba(255,255,255,0.72)",
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      gap: 5,
+    },
+    difficultyChip: {
+      borderColor: "rgba(55, 190, 230, 0.90)",
+    },
+    statusChipText: {
+      fontSize: 13,
+      fontWeight: "800",
+      letterSpacing: 0.3,
+      color: "#12385A",
+    },
+    strikeChipText: {
+      color: "#D9534F",
+    },
+
     headerRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -1305,7 +1224,7 @@ marginBottom: 4,
 
     },
   TimerText: {
-  color: colors.buttonSecondaryBg,
+  color: "#12385A",
   fontSize: 16,
   fontWeight: "700",
 },
@@ -1313,13 +1232,13 @@ marginBottom: 4,
  difficultyText: {
   fontSize: 16,
   fontWeight: "600",
-  color: colors.buttonPrimaryBg,
+  color: "#12385A",
 },
 
 
 boardContainer: {
   alignSelf: "center",
-  marginTop: 12,
+  marginTop: 6,
   marginBottom: 6,
 },
 
@@ -1386,7 +1305,7 @@ noteText: {
 menuTitle: {
   fontSize: 18,                   // smaller title
   fontWeight: "700",
-    color: colors.buttonSecondaryBg,
+    color: "#12385A",
   fontFamily: "Rajdhani-Bold",
   textShadowColor: colors.enteredNumber,
   textShadowRadius: 6,
@@ -1410,7 +1329,7 @@ menuButton: {
 menuButtonText: {
   fontSize: 15,
   fontWeight: "700",
-  color: colors.buttonSecondaryBg,
+  color: "#12385A",
 },
 
 strikeTextInline: {
@@ -1426,5 +1345,12 @@ marginBottom: 6,
 },
 
   });
+
+
+
+
+
+
+
 
 

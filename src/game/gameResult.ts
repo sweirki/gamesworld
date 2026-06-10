@@ -1,7 +1,14 @@
-export type GameResult = {
+﻿export type GameResult = {
   mode: "classic" | "daily" | "hyper" | "x" | "killer";
   win: boolean;
   time: number;     // seconds
   errors: number;
-  hintsUsed?: number; // ✅ add this (optional)
+  hintsUsed?: number;
+  difficulty?: string;
+  score?: number;
+  totalPoints?: number;
+  dailyStreak?: number;
+  activityStreak?: number;
 };
+
+

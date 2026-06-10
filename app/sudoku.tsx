@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+﻿import React, { useState, useEffect, useRef } from "react";
 import { calculateScore } from "../ladder";
 import * as Haptics from "expo-haptics";
 import { generateKillerCages } from "../utils/sudokuGen";
@@ -17,13 +17,11 @@ import {
   ImageBackground,
   Platform,
 } from "react-native";
-import { useAchievementsStore } from "./stores/useAchievementsStore";
 import { useRouter } from "expo-router";
 import { saveGame, loadGame, clearGame } from "../utils/storageUtils";
 import { useLocalSearchParams } from "expo-router";
 import { Alert } from "react-native";
-import { getCurrentStreak } from "../utils/ladder/scoreEngine"; // âœ… NEW
-import { checkAchievements } from "../utils/ladder/scoreEngine"; // âœ… FIX
+import { getCurrentStreak } from "../utils/ladder/scoreEngine"; // Ã¢Å“â€¦ NEW
 import { db } from "../firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { saveWin } from "../src/lib/saveWin";
@@ -33,11 +31,11 @@ import SudokuCell from './components/SudokuCell';
 import WinModal from "./components/WinModal";
 import Controls from "./components/Controls";
 import NumberPad from "./components/NumberPad";
-import UniversalModal from "./components/UniversalModal";  // ⭐ ADD THIS
+import UniversalModal from "./components/UniversalModal";  // â­ ADD THIS
 import RankUpPopup from "./components/RankUpPopup";   // this goes at the top with imports
 import { generateSudoku, validateCages } from "../utils/sudokuGen";
-import MenuButton from "./components/MenuButton";
 import { getColors } from "./theme/index";
+import { sweirkiTheme } from "./theme/sweirkiTheme";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback } from "react";
 import { calculateXpForLadder } from "../utils/ladder/scoreEngine";
@@ -76,9 +74,7 @@ export default function SudokuScreen(
 )
 
 {
- const unlockAchievement = useAchievementsStore((s) => s.unlock);
- 
-  const { mode } = useLocalSearchParams<{ mode?: string }>();
+const { mode } = useLocalSearchParams<{ mode?: string }>();
   const isDaily = mode === "daily" || isDailyProp;
 
 
@@ -130,7 +126,7 @@ const [isHydrating, setIsHydrating] = useState(true);
   const [history, setHistory] = useState<any[]>([]);
   const [redoStack, setRedoStack] = useState<any[]>([]);
   const [username, setUsername] = useState("Guest");
-  // âœ… Killer Sudoku support
+  // Ã¢Å“â€¦ Killer Sudoku support
 const [cages, setCages] = useState<any[]>([]);
 
   useEffect(() => {
@@ -138,7 +134,7 @@ const [cages, setCages] = useState<any[]>([]);
       if (name) setUsername(name);
     });
   }, []);
-// ⭐ Phase 10 — Classic onboarding (one-time)
+// â­ Phase 10 â€” Classic onboarding (one-time)
 useEffect(() => {
   let alive = true;
 
@@ -166,7 +162,6 @@ useEffect(() => {
   const [errorCount, setErrorCount] = useState(0);
   const [time, setTime] = useState(0);
   const [digitCounts, setDigitCounts] = useState<number[]>(Array(10).fill(0));
-  const [drawerVisible, setDrawerVisible] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
 const [difficulty, setDifficulty] = useState(
   isDaily ? "medium" : level?.toString() || "easy"
@@ -187,7 +182,7 @@ useEffect(() => {
   if (errorCount >= 4 && !gameOverShown.current) {
     gameOverShown.current = true;
 
-    // 🔒 DAILY: one attempt only
+    // ðŸ”’ DAILY: one attempt only
     if (isDaily && onDailyLose) {
       onDailyLose();
       return;
@@ -208,7 +203,6 @@ useEffect(() => {
 const loginRedirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 const postWinTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-const drawerAnim = useRef(new Animated.Value(300)).current;
 const winHandledRef = useRef(false);
 const skipNextResumeRef = useRef(false);
 const forceFreshStartRef = useRef(false);
@@ -216,7 +210,7 @@ const skipNextSaveRef = useRef(false);
 const restartingFromWinRef = useRef(false);
 
 
-// ✅ AUTO-RESUME (CLASSIC ONLY) — refresh on every focus
+// âœ… AUTO-RESUME (CLASSIC ONLY) â€” refresh on every focus
 
 useFocusEffect(
   useCallback(() => {
@@ -250,7 +244,7 @@ useFocusEffect(
 ) {
   setResumeData(saved);
   setResumeVisible(true);
-  setIsHydrating(false);   // ⭐ ADD THIS
+  setIsHydrating(false);   // â­ ADD THIS
 }
 
 
@@ -264,13 +258,13 @@ useFocusEffect(
     };
   }, [isDaily])
 );
-// ✅ Save on leave (so timer updates even if you just leave without entering a number)
+// âœ… Save on leave (so timer updates even if you just leave without entering a number)
 useFocusEffect(
   useCallback(() => {
     return () => {
       if (isDaily) return;
 
-      // 🚫 do not save after Game Over → Close
+      // ðŸš« do not save after Game Over â†’ Close
       if (skipNextSaveRef.current) {
         skipNextSaveRef.current = false;
         return;
@@ -279,7 +273,7 @@ useFocusEffect(
     if (!puzzle) return;
 if (winVisible) return;
 
-// 🧠 do not save pristine boards
+// ðŸ§  do not save pristine boards
 if (!isBoardTouched(puzzle)) return;
 
 
@@ -371,7 +365,7 @@ useEffect(() => {
 
   // ---------- Placement ----------
   const handleSelectNumber = (num: number) => {
-  if (gameWon) return;   // ⭐ STOP NUMBER PLACEMENT ONLY ON FULL WIN
+  if (gameWon) return;   // â­ STOP NUMBER PLACEMENT ONLY ON FULL WIN
 
     if (!selected) return;
     const [r, c] = selected;
@@ -395,12 +389,12 @@ const newPuzzle = puzzle.map((row, ri) =>
   )
 );
 
-// ⭐ FIRST UPDATE THE UI
+// â­ FIRST UPDATE THE UI
 setPuzzle(newPuzzle);
 setRedoStack([]);
 updateDigitCounts(newPuzzle);
 
-// ⭐ THEN SAVE TO STORAGE
+// â­ THEN SAVE TO STORAGE
 if (!isDaily) {
   saveGame("classic", {
   puzzle: newPuzzle,
@@ -524,7 +518,7 @@ const toggleCandidate = (r: number, c: number, num: number) => {
 
   // ---------- Undo/Redo/Delete/Hints/AutoSolve/Restart ----------
   const handleUndo = () => {
-    if (gameWon || winVisible) return;   // ⭐ STOP UNDO AFTER WIN
+    if (gameWon || winVisible) return;   // â­ STOP UNDO AFTER WIN
 
     if (history.length === 0) return;
     const prev = history[history.length - 1];
@@ -535,7 +529,7 @@ const toggleCandidate = (r: number, c: number, num: number) => {
   };
 
   const handleRedo = () => {
-    if (gameWon || winVisible) return;   // ⭐ STOP REDO AFTER WIN
+    if (gameWon || winVisible) return;   // â­ STOP REDO AFTER WIN
 
     if (redoStack.length === 0) return;
     const next = redoStack[0];
@@ -546,7 +540,7 @@ const toggleCandidate = (r: number, c: number, num: number) => {
   };
 
   const handleDelete = () => {
-    if (gameWon || winVisible) return;   // ⭐ STOP DELETE AFTER WIN
+    if (gameWon || winVisible) return;   // â­ STOP DELETE AFTER WIN
     if (!selected) return;
     const [r, c] = selected;
   if (puzzle[r][c].prefilled === true) return;
@@ -570,7 +564,7 @@ const toggleCandidate = (r: number, c: number, num: number) => {
   };
 
   const handleHint = () => {
-    if (gameWon || winVisible) return;   // ⭐ STOP HINT AFTER WIN
+    if (gameWon || winVisible) return;   // â­ STOP HINT AFTER WIN
     if (!selected || hintsLeft <= 0) return;
     const [r, c] = selected;
     if (puzzle[r][c].prefilled) return;
@@ -660,7 +654,7 @@ AsyncStorage.removeItem("gameFinished");
     setErrorCount(0);
   };
 
-  // 🔒 WinModal helpers — MUST be here (component scope, before return)
+  // ðŸ”’ WinModal helpers â€” MUST be here (component scope, before return)
 
 const handleWinCloseToHub = () => {
   requestAnimationFrame(() => {
@@ -680,7 +674,7 @@ const handleWin = async () => {
   if (winHandledRef.current) return;
   winHandledRef.current = true;
 
-  // 🔒 FINALIZE: no resume + no autosave after a win
+  // ðŸ”’ FINALIZE: no resume + no autosave after a win
   skipNextResumeRef.current = true;
   skipNextSaveRef.current = true;
   await AsyncStorage.setItem("gameFinished", "true");
@@ -724,7 +718,7 @@ if (isDaily) {
   return;
 }
 
-  // ✅ NON-DAILY FLOW
+  // âœ… NON-DAILY FLOW
   try {
     Haptics.notificationAsync(
       Haptics.NotificationFeedbackType.Success
@@ -750,17 +744,6 @@ if (isDaily) {
       streak: await getCurrentStreak(username),
     });
 
-    const achievements = checkAchievements({
-      difficulty,
-      time,
-      totalGames: (history.length || 0) + 1,
-      streak: await getCurrentStreak(username),
-    });
-
-    if (Array.isArray(achievements)) {
-      achievements.forEach(unlockAchievement);
-    }
-
     setScore(newScore);
 
     await saveWin(
@@ -777,6 +760,8 @@ await onGameFinished({
   time,
   errors: errorCount,
   hintsUsed: 3 - hintsLeft,
+  difficulty,
+  score: newScore,
 });
 
   } catch (err) {
@@ -786,23 +771,23 @@ await onGameFinished({
 };
 
 const handleGameOverClose = async () => {
-  // 1️⃣ Stop timer
+  // 1ï¸âƒ£ Stop timer
   if (timerRef.current) {
     clearInterval(timerRef.current);
     timerRef.current = null;
   }
 
-  // 2️⃣ Clear saved game
+  // 2ï¸âƒ£ Clear saved game
   await clearGame("classic");
-// 🚫 block auto-save AFTER game over close
+// ðŸš« block auto-save AFTER game over close
 skipNextSaveRef.current = true;
-  // 🚫 IMPORTANT: block next auto-resume
+  // ðŸš« IMPORTANT: block next auto-resume
   skipNextResumeRef.current = true;
   forceFreshStartRef.current = true;
   setResumeData(null);
   setResumeVisible(false);
 
-  // 3️⃣ Clear board + state
+  // 3ï¸âƒ£ Clear board + state
   setPuzzle(null);
   setHistory([]);
   setRedoStack([]);
@@ -815,31 +800,16 @@ skipNextSaveRef.current = true;
   setHasWon(false);
   setWinVisible(false);
 
-  // 4️⃣ Reset loss state
+  // 4ï¸âƒ£ Reset loss state
   setErrorCount(0);
   gameOverShown.current = false;
 
-  // 5️⃣ Close modal
+  // 5ï¸âƒ£ Close modal
   setGameOverVisible(false);
 
-  // 6️⃣ Navigate out
+  // 6ï¸âƒ£ Navigate out
   router.replace("/variantHub");
 };
-
-
-  // ---------- Drawer Animation ----------
-
-  function toggleDrawer(show: boolean) {
-    if (show) setDrawerVisible(true);
-
-    Animated.timing(drawerAnim, {
-      toValue: show ? 0 : 300,
-      duration: 250,
-      useNativeDriver: true,
-    }).start(() => {
-      if (!show) setDrawerVisible(false);
-    });
-  }
 
 
 
@@ -853,32 +823,16 @@ skipNextSaveRef.current = true;
     ]).start(() => setBlinkCells([]));
   }
 
-  // ---------- Drawer button style ----------
-const drawerBtn = {
-  width: "100%",
-  paddingVertical: 8,
-  borderWidth: 2,
-  borderColor: colors.gold,
-  borderRadius: 10,
-  marginBottom: 8,
-  alignItems: "center",
-};
-
-const drawerBtnText = {
-  color: colors.gold,
-  fontSize: 14,
-  fontWeight: "600",
-};
-
 // ---------- Render ----------
 const controlsLocked = gameWon || gameOverVisible;
+const maxStrikes = 4;
 
 // Prevent rendering until puzzle is initialized
 if (isHydrating || !puzzle) {
   return (
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text style={{ color: colors.buttonPrimaryBg, fontWeight: "700" }}>
-        Loading…
+      <Text style={{ color: "#D6A21F", fontWeight: "700" }}>
+        Loadingâ€¦
       </Text>
     </View>
   );
@@ -921,64 +875,55 @@ return (
           lineHeight: 20,
         }}
       >
-        Complete the grid so every row, column, and box contains 1–9.
+        Complete the grid so every row, column, and box contains 1â€“9.
       </Text>
     </View>
   </View>
 )}
 
-  <ImageBackground
-  source={require("../assets/bg.png")}
-  style={s.bg}
-blurRadius={Platform.OS === "android" ? 0 : (winVisible ? 0 : 5)}
-  resizeMode="cover"
->
+  <View style={s.bg}>
 
-  <Text
-  style={{
-    fontSize: 22,
-    fontWeight: "800",
-    color: colors.buttonSecondaryBg,
-    textAlign: "center",
-    marginBottom: 4,
-  }}
->
-  {isDaily ? "Daily Challenge" : "Classic Sudoku"}
-</Text>
+  <View style={s.gameplayHeader}>
+    <View style={s.modeTitleRow}>
+      <Ionicons
+        name={isDaily ? "sunny-outline" : "grid-outline"}
+        size={18}
+        color={"#12385A"}
+      />
+      <Text style={s.modeTitle}>
+        {isDaily ? "Daily Challenge" : "Classic Sudoku"}
+      </Text>
+    </View>
 
-
-
-
-      {/* Top Bar */}
-            {/* Top Bar (no card background) */}
-      <View style={s.headerRow}>
-        <View style={{ flex: 1, alignItems: "flex-start" }}>
-          <Text style={s.timer}>{formatTime(time)}</Text>
+    <View style={s.statusRow}>
+      {!isDaily ? (
+        <TouchableOpacity
+          activeOpacity={0.82}
+          style={[s.statusChip, s.difficultyChip]}
+          onPress={() => setShowMenu(true)}
+        >
+          <Text style={s.statusChipText}>{difficulty.toUpperCase()}</Text>
+          <Ionicons name="chevron-down" size={13} color={"#12385A"} />
+        </TouchableOpacity>
+      ) : (
+        <View style={[s.statusChip, s.difficultyChip]}>
+          <Text style={s.statusChipText}>DAILY</Text>
         </View>
+      )}
 
-       <View style={{ flex: 1, alignItems: "center" }}>
-  {!isDaily && (
-    <TouchableOpacity
-      style={{ flexDirection: "row", alignItems: "center" }}
-      onPress={() => setShowMenu(true)}
-    >
-      <Text style={s.difficulty}>{difficulty}</Text>
-      <Text style={s.difficulty}> </Text>
-    </TouchableOpacity>
-  )}
-</View>
-
-
-    <View style={{ flex: 1 }} />
-
+      <View style={s.statusChip}>
+        <Ionicons name="time-outline" size={14} color={"#12385A"} />
+        <Text style={s.statusChipText}>{formatTime(time)}</Text>
       </View>
-  {/* Strike Counter */}
-<View style={s.strikeTop}>
-  <Text style={s.strikeTopText}>
-  Strikes: {errorCount} / 4
-</Text>
 
-</View>
+      <View style={s.statusChip}>
+        <Ionicons name="close-circle-outline" size={14} color={errorCount > 0 ? "#D9534F" : colors.buttonPrimaryBg} />
+        <Text style={[s.statusChipText, errorCount > 0 && s.strikeChipText]}>
+          {errorCount}/{maxStrikes}
+        </Text>
+      </View>
+    </View>
+  </View>
 
 
 <View style={[s.board, winVisible && { opacity: 0.35 }]}>
@@ -997,7 +942,7 @@ blurRadius={Platform.OS === "android" ? 0 : (winVisible ? 0 : 5)}
           blinkCells={blinkCells}
           blinkAnim={blinkAnim}
           onPress={() => {
-            if (winVisible) return; // 🔒 lock board
+            if (winVisible) return; // ðŸ”’ lock board
             handleCellPress(ri, ci, cell);
           }}
         />
@@ -1010,7 +955,7 @@ blurRadius={Platform.OS === "android" ? 0 : (winVisible ? 0 : 5)}
  {!winVisible && (
   <>
     {/* Controls */}
-    <View style={{ height: 90, marginBottom: 4 }}>
+    <View style={{ marginTop: 12, marginBottom: 24 }}>
       <Controls
         onUndo={handleUndo}
         onRedo={handleRedo}
@@ -1024,6 +969,7 @@ blurRadius={Platform.OS === "android" ? 0 : (winVisible ? 0 : 5)}
         disableUndo={history.length === 0}
         disableRedo={redoStack.length === 0}
         locked={controlsLocked}
+        hideRestart={isDaily}
       />
     </View>
 
@@ -1040,7 +986,7 @@ blurRadius={Platform.OS === "android" ? 0 : (winVisible ? 0 : 5)}
 )}
 
 
-        </ImageBackground>
+        </View>
 
  
 
@@ -1069,7 +1015,7 @@ blurRadius={Platform.OS === "android" ? 0 : (winVisible ? 0 : 5)}
   ]}
 />
 
-{/* RESUME GAME MODAL 👇 PASTE THIS BLOCK */}
+{/* RESUME GAME MODAL ðŸ‘‡ PASTE THIS BLOCK */}
 <UniversalModal
   visible={resumeVisible}
   title="Resume Game?"
@@ -1104,7 +1050,7 @@ blurRadius={Platform.OS === "android" ? 0 : (winVisible ? 0 : 5)}
     }
 
   setResumeVisible(false);
-setIsHydrating(false);   // ⭐ ADD THIS
+setIsHydrating(false);   // â­ ADD THIS
 startTimer();
   },
 },
@@ -1116,7 +1062,7 @@ startTimer();
  onPress: async () => {
   await clearGame("classic");
   setResumeVisible(false);
-  setIsHydrating(false);   // ⭐ ADD THIS
+  setIsHydrating(false);   // â­ ADD THIS
 },
 },
 
@@ -1168,7 +1114,7 @@ startTimer();
       label: "Yes, Start",
     onPress: () => {
   if (pendingDifficulty) {
-    handleRestart(pendingDifficulty); // ✅ this regenerates the board
+    handleRestart(pendingDifficulty); // âœ… this regenerates the board
   }
   setPendingDifficulty(null);
   setConfirmVisible(false);
@@ -1180,23 +1126,23 @@ startTimer();
 />
 
 
-    {/* ✅ Win Modal only mounts when visible */}
- {winVisible && (
+    {/* âœ… Win Modal only mounts when visible */}
+ {!isDaily && winVisible && (
   <WinModal
     visible={winVisible}
 
 onClose={() => {
-  // 🔒 block resume & autosave
+  // ðŸ”’ block resume & autosave
   skipNextResumeRef.current = true;
   skipNextSaveRef.current = true;
 
-  // clear save (fire-and-forget — NO await)
+  // clear save (fire-and-forget â€” NO await)
   clearGame("classic");
 
   // close modal first
   setWinVisible(false);
 
-  // 🚀 navigate AFTER modal unmount
+  // ðŸš€ navigate AFTER modal unmount
   requestAnimationFrame(() => {
     router.replace("/variantHub");
   });
@@ -1204,11 +1150,11 @@ onClose={() => {
 
 
   onRestart={(level) => {
-  // 🔒 This restart starts a BRAND NEW session
+  // ðŸ”’ This restart starts a BRAND NEW session
   skipNextResumeRef.current = true;
   skipNextSaveRef.current = true;
 
-  // 🚫 absolutely forbid resume from previous win
+  // ðŸš« absolutely forbid resume from previous win
   AsyncStorage.removeItem("gameFinished");
   clearGame("classic");
 
@@ -1227,7 +1173,7 @@ onClose={() => {
 
 
 
-    {/* ✅ Ladder Rank-Up Popup */}
+    {/* âœ… Ladder Rank-Up Popup */}
     <RankUpPopup />
   
   </View>
@@ -1261,53 +1207,75 @@ buttonText: {
   fontWeight: "700",
 },
 
-drawerBtn: {
-  paddingVertical: 12,
-  paddingHorizontal: 16,
-},
 
    bg: {
   flex: 1,
   resizeMode: "cover",
- backgroundColor: "transparent",
+ backgroundColor: sweirkiTheme.colors.screen,
 
   justifyContent: "flex-start",
-  paddingTop: 20,
-  paddingBottom: 30,   // ⭐ ADD THIS
+  paddingTop: 64,
+  paddingBottom: 30,   // â­ ADD THIS
 },
 
 
-   headerRow: {
+   gameplayHeader: {
+    paddingHorizontal: 28,
+    paddingTop: 0,
+    paddingBottom: 16,
+    alignItems: "center",
+  },
+  modeTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 7,
+    marginBottom: 9,
+  },
+  modeTitle: {
+    fontSize: 21,
+    fontWeight: "800",
+    color: "#12385A",
+    textAlign: "center",
+  },
+  statusRow: {
+    width: "100%",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingTop: 4,
-    paddingBottom: 4,
-    marginBottom: 4,
-    // no background, no radius, no shadow
+    gap: 8,
   },
-
-
-
-
-    timer: {
-      fontSize: 18,
-      fontWeight: "bold",
-      color: colors.buttonPrimaryBg, // light gold
-    },
-    difficulty: {
-      fontSize: 16,
-      fontWeight: "600",
-    color: colors.buttonPrimaryBg, // light gold
-
-    },
+  statusChip: {
+    flex: 1,
+    minHeight: 30,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "rgba(55, 190, 230, 0.72)",
+    backgroundColor: "rgba(255,255,255,0.72)",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 5,
+  },
+  difficultyChip: {
+    borderColor: "rgba(212, 160, 32, 0.95)",
+  },
+  statusChipText: {
+    fontSize: 13,
+    fontWeight: "800",
+    letterSpacing: 0.3,
+    color: "#12385A",
+  },
+  strikeChipText: {
+    color: "#D9534F",
+  },
 
  board: {
   width: CELL_SIZE * 9,
   height: CELL_SIZE * 9,
   alignSelf: "center",
-  marginTop: 2,
+  marginTop: 6,
   marginBottom: 8,
 },
 
@@ -1324,7 +1292,7 @@ drawerBtn: {
 
   modalCard: {
   width: "80%",
-  backgroundColor: colors.card,
+  backgroundColor: "#FFFFFF",
   borderRadius: 16,
   padding: 24,
   alignItems: "center",
@@ -1335,18 +1303,6 @@ drawerBtn: {
   elevation: 8,
 },
 
-strikeTop: {
-  alignSelf: "center",
-  marginBottom: 4,
-},
-
-strikeTopText: {
-  fontSize: 15,
-  fontWeight: "700",
-  color: "#D9534F", // same red as Hyper
-},
-
-
     modalTitle: {
   fontSize: 16,
   fontWeight: "600",
@@ -1354,34 +1310,6 @@ strikeTopText: {
   color: colors.gold,
   textAlign: "center",
 },
-drawerOverlay: {
-  flex: 1,
-  backgroundColor: "rgba(0,0,0,0.45)",
-},
-
-drawer: {
-  position: "absolute",
-  right: 0,
-  top: 0,
-  bottom: 0,
-  width: "70%",              // REAL drawer width
-  backgroundColor: colors.card,
-  paddingTop: 60,
-  paddingHorizontal: 20,
-  borderTopRightRadius: 0,
-  borderBottomRightRadius: 0,
-  justifyContent: "flex-start",
-    alignItems: "flex-start",   // ⭐ THIS FIXES THE EMPTY PANEL
-},
-
-    drawerTitle: {
-  fontSize: 16,
-  fontWeight: "800",
-  color: colors.enteredNumber,
-  marginBottom: 8,
-  textAlign: "auto",
-},
-
 
 
 strikeBox: {
@@ -1408,7 +1336,7 @@ menuOverlay: {
 },
 menuBox: {
   width: "70%",
-  backgroundColor: colors.card,
+  backgroundColor: "#FFFFFF",
   borderRadius: 14,
   padding: 16,
   alignItems: "center",
@@ -1421,39 +1349,15 @@ menuTitle: {
   marginBottom: 10,
 },
 
-menuButton: {
-  width: "85%",
-  paddingVertical: 12,
-  marginVertical: 5,
-  borderRadius: 16,                         // tall premium style
-  backgroundColor: "transparent",   // theme base
-  borderWidth: 2,
-  borderColor: colors.gold,
-  alignItems: "center",
-  shadowColor: colors.gold,
-  shadowOpacity: 0.25,
-  shadowRadius: 6,
-  shadowOffset: { width: 0, height: 2 },
-  elevation: 4,
-},
-
-menuButtonText: {
-  fontSize: 15,
-  fontWeight: "700",
-  color: colors.gold,
-},
-drawerBtnAlt: {
-  paddingVertical: 12,
-  paddingHorizontal: 16,
-},
-
-drawerBtnText: {
-  color: "#fff",
-  fontSize: 16,
-  fontWeight: "600",
-},
-
-
   })
+
+
+
+
+
+
+
+
+
 
 
