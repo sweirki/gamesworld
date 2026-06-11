@@ -537,7 +537,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 13,
     marginBottom: 10,
     minHeight: 106,
-    ...T.shadows.soft,
+    ...T.shadows.glassCard,
   },
 
   statIcon: {
@@ -575,7 +575,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 12,
     marginBottom: 18,
-    ...T.shadows.soft,
+    ...T.shadows.glassCard,
   },
 
   masteryItem: {
@@ -668,7 +668,7 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
     paddingHorizontal: 12,
     marginBottom: 9,
-    ...T.shadows.soft,
+    ...T.shadows.glassCard,
   },
 
   modeIconBox: {
