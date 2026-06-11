@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
 
   title: {
     fontFamily: F.bold,
-    fontSize: 34,
+    fontSize: 26,
     lineHeight: 38,
     color: C.inkDeep,
     marginBottom: 5,
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
 
   subtitle: {
     fontFamily: F.regular,
-    fontSize: 14,
+    fontSize: 13,
     lineHeight: 20,
     color: C.text,
   },
@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
 
   compactValue: {
     fontFamily: F.bold,
-    fontSize: 20,
+    fontSize: 18,
     lineHeight: 22,
     color: C.inkDeep,
   },
@@ -535,7 +535,7 @@ const styles = StyleSheet.create({
 
   bestValue: {
     fontFamily: F.bold,
-    fontSize: 16,
+    fontSize: 14,
     color: C.inkDeep,
     marginTop: -1,
   },
@@ -557,7 +557,7 @@ const styles = StyleSheet.create({
 
   sectionTitle: {
     fontFamily: F.bold,
-    fontSize: 23,
+    fontSize: 20,
     lineHeight: 26,
     color: C.inkDeep,
   },
@@ -589,7 +589,7 @@ const styles = StyleSheet.create({
 
   emptyTitle: {
     fontFamily: F.bold,
-    fontSize: 23,
+    fontSize: 18,
     color: C.inkDeep,
     marginBottom: 5,
   },
@@ -637,7 +637,7 @@ const styles = StyleSheet.create({
 
   mode: {
     fontFamily: F.bold,
-    fontSize: 18,
+    fontSize: 16,
     lineHeight: 21,
     color: C.inkDeep,
     marginRight: 7,
@@ -645,7 +645,7 @@ const styles = StyleSheet.create({
 
   modeSub: {
     fontFamily: F.regular,
-    fontSize: 13,
+    fontSize: 12,
     lineHeight: 16,
     color: C.text,
     marginBottom: 0,
@@ -699,14 +699,14 @@ const styles = StyleSheet.create({
 
   time: {
     fontFamily: F.bold,
-    fontSize: 18,
+    fontSize: 16,
     lineHeight: 21,
     color: C.inkDeep,
   },
 
   errors: {
     fontFamily: F.bold,
-    fontSize: 12,
+    fontSize: 11,
     lineHeight: 16,
     color: "#D98916",
     marginTop: 1,

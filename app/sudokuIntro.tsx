@@ -21,13 +21,13 @@ import { useRevenueCat } from "../src/hooks/useRevenueCat";
 import { useProgression } from "../hooks/useProgression";
 
 const { width } = Dimensions.get("window");
-const CONTENT_WIDTH = Math.min(400, width * 0.92);
-const CTA_WIDTH = Math.min(330, width * 0.84);
+const CONTENT_WIDTH = Math.min(402, width * 0.92);
 
 const HOME_BG = require("../assets/branding/home-background.png");
-const ICON_MODES = require("../assets/branding/icon-modes.png");
-const ICON_ARENA = require("../assets/branding/icon-arena.png");
-const ICON_ACHIEVEMENTS = require("../assets/branding/icon-achievements.png");
+const ICON_DAILY = require("./assets/home/daily-hero.png");
+const ICON_MODES = require("./assets/home/modes-hub.png");
+const ICON_ARENA = require("./assets/home/arena-hub.png");
+const ICON_ACHIEVEMENTS = require("./assets/home/achievements-hub.png");
 const TIER_STANDARD = require("../assets/branding/tier-standard-light-transparent.png");
 const TIER_PREMIUM = require("../assets/branding/tier-premium-light.png");
 
@@ -36,34 +36,37 @@ function dailyKey(key: string) {
   return `${key}:${uid}`;
 }
 
-type DepthItem = {
+type HubItem = {
   label: string;
+  subtitle: string;
   path: string;
   image: number;
   accent: string;
 };
 
-const DEPTH_ITEMS: DepthItem[] = [
+const HUB_ITEMS: HubItem[] = [
   {
-    label: "Multiple Modes",
+    label: "Modes",
+    subtitle: "Classic, Hyper, Killer, X",
     path: "/variantHub",
     image: ICON_MODES,
-    accent: "#28C7F3",
+    accent: "#27C7F4",
   },
   {
     label: "Arena",
+    subtitle: "Competition hub",
     path: "/arena",
     image: ICON_ARENA,
-    accent: "#8F79FF",
+    accent: "#8E79FF",
   },
   {
     label: "Achievements",
+    subtitle: "Badges and progress",
     path: "/achievements",
     image: ICON_ACHIEVEMENTS,
-    accent: "#F5B943",
+    accent: "#F4B844",
   },
 ];
-
 
 export default function SudokuIntro() {
   const router = useRouter();
@@ -141,11 +144,11 @@ export default function SudokuIntro() {
             if (!active) return;
 
             if (played === today) {
-              setDailyStatus("Daily completed — streak continues");
+              setDailyStatus("Daily complete");
             } else if (streak && parseInt(streak, 10) > 0) {
-              setDailyStatus(`${streak}-day Daily streak`);
+              setDailyStatus(`${streak}-day streak ready`);
             } else {
-              setDailyStatus("Today's Daily Challenge is ready");
+              setDailyStatus("Today's board is ready");
             }
           } catch {
             if (active) setDailyStatus(null);
@@ -157,9 +160,9 @@ export default function SudokuIntro() {
             if (!active) return;
 
             if (streak > 0) {
-              setActivityStreakLine(`${streak}-day Activity Streak · x${mult.toFixed(2)} XP`);
+              setActivityStreakLine(`${streak}-day Activity Streak  x${mult.toFixed(2)} XP`);
             } else {
-              setActivityStreakLine("Start a streak to earn XP boosts");
+              setActivityStreakLine("Start a streak and boost your XP");
             }
           } catch {
             if (active) setActivityStreakLine(null);
@@ -171,9 +174,9 @@ export default function SudokuIntro() {
             if (!active) return;
 
             if (weeklyGames && parseInt(weeklyGames, 10) > 0) {
-              setWeeklyStatus(`Weekly standing updated · ${weeklyGames} games`);
+              setWeeklyStatus(`Weekly standing updated  ${weeklyGames} games`);
             } else {
-              setWeeklyStatus("New week — climb the ladder");
+              setWeeklyStatus("New week. Climb the ladder.");
             }
           } catch {
             if (active) setWeeklyStatus(null);
@@ -201,17 +204,6 @@ export default function SudokuIntro() {
     }, [progression])
   );
 
-  const handleContinue = async () => {
-    const today = new Date().toISOString().split("T")[0];
-    const played = await AsyncStorage.getItem(dailyKey("dailyPlayed"));
-
-    if (played !== today) {
-      go("/daily");
-    } else {
-      go("/variantHub");
-    }
-  };
-
   const handleDailyButton = async () => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
 
@@ -231,107 +223,150 @@ export default function SudokuIntro() {
     go("/daily");
   };
 
+  const openHubItem = async (path: string) => {
+    if (isGuest) return;
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
+    go(path);
+  };
+
+  const dailyComplete = dailyStatus === "Daily complete";
+  const tierLabel = isPremium ? "PREMIUM LEAGUE" : "STANDARD LEAGUE";
+
   return (
     <View style={styles.root}>
       <ImageBackground source={HOME_BG} style={styles.bg} resizeMode="cover">
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scroll}
-        >
-          <View style={styles.brandBlock}>
+        <LinearGradient
+          pointerEvents="none"
+          colors={["rgba(248,253,255,0.72)", "rgba(255,255,255,0.46)", "rgba(222,244,255,0.62)"]}
+          locations={[0, 0.48, 1]}
+          style={styles.bgMuteLayer}
+        />
+        <View pointerEvents="none" style={styles.bgTopGlow} />
+        <View pointerEvents="none" style={styles.bgMiddleWash} />
+        <View pointerEvents="none" style={styles.bgBottomLift} />
+
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+          <View style={styles.topBlock}>
+            <Text style={styles.eyebrow}>PLAY TODAY</Text>
             <Text style={styles.brandTitle}>Sweirki Sudoku</Text>
-            <Text style={styles.brandSubline}>A brighter way to play every day</Text>
+            <Text style={styles.brandSubline}>A brighter daily Sudoku ritual</Text>
           </View>
 
-          <View style={styles.statusCard}>
-            <Text style={styles.statusTitle}>
-              {dailyStatus ?? "Today counts toward your league journey"}
-            </Text>
-            {weeklyStatus && !dailyStatus?.includes("completed") && !dailyStatus?.includes("streak") ? (
-              <Text style={styles.statusSub}>{weeklyStatus}</Text>
-            ) : null}
-            {progressHint && !dailyStatus?.includes("completed") && !dailyStatus?.includes("streak") ? (
-              <Text style={styles.statusSub}>{progressHint}</Text>
-            ) : null}
-            {activityStreakLine ? (
-              <Text style={styles.streakText}>{activityStreakLine}</Text>
-            ) : null}
-            {dailyStatus?.includes("completed") && nextDailyCountdown ? (
-              <Text style={styles.statusSub}>{nextDailyCountdown}</Text>
-            ) : null}
-          </View>
-
-          <TouchableOpacity
-            activeOpacity={0.88}
-            onPress={handleDailyButton}
-            style={styles.dailyFeatureTouchable}
-          >
+          <TouchableOpacity activeOpacity={0.9} onPress={handleDailyButton} style={styles.heroTouch}>
             <LinearGradient
-              colors={["rgba(255,255,255,0.96)", "rgba(231,250,255,0.94)", "rgba(243,239,255,0.92)"]}
+              colors={["rgba(255,255,255,0.98)", "rgba(223,248,255,0.96)", "rgba(239,235,255,0.94)"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={styles.dailyFeatureCard}
+              style={styles.heroCard}
             >
-              <View style={styles.dailyCopy}>
-                <Text style={styles.kicker}>FEATURED TODAY</Text>
-                <Text style={styles.dailyTitle}>Daily Challenge</Text>
-                <Text style={styles.dailyDescription}>
-                  Tap to solve today's board, protect your streak, and keep climbing.
-                </Text>
+              <View style={styles.heroGlowOne} />
+              <View style={styles.heroGlowTwo} />
+
+              <View style={styles.heroHeaderRow}>
+                <View>
+                  <Text style={styles.heroKicker}>DAILY CHALLENGE</Text>
+                  <Text style={styles.heroTitle}>{dailyStatus ?? "Today's board is ready"}</Text>
+                </View>
+
+                <View style={styles.dailyArtWrap}>
+                  <Image source={ICON_DAILY} style={styles.dailyHeroImage} />
+                </View>
               </View>
 
-              <View style={styles.dailyMarkWrap}>
-                <View style={styles.dailyRing}>
-                  <Text style={styles.dailyCrystal}>◆</Text>
+              <Text style={styles.heroBody}>
+                Solve one polished board, protect your streak, and keep your weekly climb alive.
+              </Text>
+
+              <View style={styles.rewardRail}>
+                <View style={styles.rewardPill}>
+                  <Text style={styles.rewardPillText}>{weeklyStatus ?? "New week. Climb the ladder."}</Text>
                 </View>
-                <Text style={styles.dailyArrow}>›</Text>
+                <View style={styles.rewardPillStrong}>
+                  <Text style={styles.rewardPillStrongText}>{activityStreakLine ?? "XP boost ready"}</Text>
+                </View>
               </View>
+
+              {progressHint ? <Text style={styles.progressHint}>{progressHint}</Text> : null}
+
+              <LinearGradient
+                colors={dailyComplete ? ["#AFC8D8", "#C8DCE8"] : ["#2FBFF2", "#64E4C7"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.primaryButton}
+              >
+                <Text style={styles.primaryButtonText}>{dailyComplete ? "View Other Modes" : "Play Daily Now"}</Text>
+              </LinearGradient>
+
+              {dailyComplete && nextDailyCountdown ? (
+                <Text style={styles.nextDailyText}>{nextDailyCountdown}</Text>
+              ) : null}
             </LinearGradient>
           </TouchableOpacity>
 
-          <View style={styles.secondaryButtons}>
+          <View style={styles.quickRow}>
             <TouchableOpacity
               onPress={async () => {
                 await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
                 isGuest ? go("/login") : go("/variantHub");
               }}
-              activeOpacity={0.82}
-              style={styles.secondaryButton}
+              activeOpacity={0.85}
+              style={styles.quickButton}
             >
-              <Text style={styles.secondaryButtonText}>Start a New Game</Text>
+              <Text style={styles.quickButtonText}>Start New Game</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={async () => {
+                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
+                isGuest ? go("/login") : go("/leaderboard");
+              }}
+              activeOpacity={0.85}
+              style={styles.quickButtonGhost}
+            >
+              <Text style={styles.quickButtonGhostText}>Leaderboards</Text>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.depthStrip}>
-            {DEPTH_ITEMS.map((item) => (
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Explore</Text>
+            <Text style={styles.sectionCaption}>Modes, progress, competition</Text>
+          </View>
+
+          <View style={styles.hubGrid}>
+            {HUB_ITEMS.map((item) => (
               <TouchableOpacity
                 key={item.label}
-                style={[styles.depthItem, isGuest && styles.disabledItem]}
-                activeOpacity={isGuest ? 1 : 0.78}
+                style={[styles.hubCard, isGuest && styles.disabledItem]}
+                activeOpacity={isGuest ? 1 : 0.82}
                 disabled={isGuest}
-                onPress={async () => {
-                  if (isGuest) return;
-                  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => null);
-                  go(item.path);
-                }}
+                onPress={() => openHubItem(item.path)}
               >
-                <View style={[styles.depthImageShell, { shadowColor: item.accent }]}>
-                  <Image source={item.image} style={styles.depthImage} />
+                <View style={[styles.hubAccent, { backgroundColor: item.accent }]} />
+                <View style={[styles.hubImageShell, { shadowColor: item.accent }]}> 
+                  <Image source={item.image} style={styles.hubImage} />
                 </View>
-                <Text style={styles.depthLabel}>{item.label}</Text>
+                <Text style={styles.hubLabel}>{item.label}</Text>
+                <Text style={styles.hubSubtitle}>{item.subtitle}</Text>
               </TouchableOpacity>
             ))}
           </View>
 
           {!isGuest ? (
-            <View style={styles.tierSection}>
-              <View style={styles.tierBadgeGlow}>
+            <View style={styles.tierCard}>
+              <View style={styles.tierTextBlock}>
+                <Text style={styles.tierKicker}>CURRENT TIER</Text>
+                <Text style={styles.tierTitle}>{tierLabel}</Text>
+                <Text style={styles.tierSubline}>
+                  {isPremium ? "All variants and leaderboards unlocked." : "Classic and Daily unlocked. Premium modes are waiting."}
+                </Text>
+              </View>
+
+              <View style={styles.tierBadgeWrap}>
                 <Image
                   source={isPremium ? TIER_PREMIUM : TIER_STANDARD}
                   style={isPremium ? styles.tierBadgePremium : styles.tierBadgeStandard}
                 />
               </View>
-              <Text style={styles.tierLabel}>{isPremium ? "PREMIUM" : "STANDARD"}</Text>
             </View>
           ) : null}
         </ScrollView>
@@ -349,10 +384,7 @@ export default function SudokuIntro() {
             <Text style={styles.modalBody}>
               You already completed today's Daily Challenge.{"\n"}Come back tomorrow for a new board.
             </Text>
-            <TouchableOpacity
-              onPress={() => setDailyLockedVisible(false)}
-              activeOpacity={0.85}
-            >
+            <TouchableOpacity onPress={() => setDailyLockedVisible(false)} activeOpacity={0.85}>
               <LinearGradient
                 colors={["#35C8F4", "#6BE5C9"]}
                 start={{ x: 0, y: 0 }}
@@ -376,246 +408,396 @@ const styles = StyleSheet.create({
   },
   bg: {
     flex: 1,
+    backgroundColor: "#F5FBFF",
+  },
+  bgMuteLayer: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  bgTopGlow: {
+    position: "absolute",
+    top: -90,
+    right: -80,
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    backgroundColor: "rgba(255,255,255,0.54)",
+  },
+  bgMiddleWash: {
+    position: "absolute",
+    left: -80,
+    right: -80,
+    top: 430,
+    height: 360,
+    borderRadius: 180,
+    backgroundColor: "rgba(255,255,255,0.34)",
+  },
+  bgBottomLift: {
+    position: "absolute",
+    left: -70,
+    right: -70,
+    bottom: -120,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: "rgba(199,235,255,0.32)",
   },
   scroll: {
     alignItems: "center",
-    paddingTop: 92,
-    paddingBottom: 56,
+    paddingTop: 84,
+    paddingBottom: 42,
   },
-  brandBlock: {
+  topBlock: {
     width: CONTENT_WIDTH,
     alignItems: "center",
-    marginBottom: 18,
+    marginBottom: 12,
+  },
+  eyebrow: {
+    fontSize: 10,
+    fontWeight: "900",
+    letterSpacing: 2.8,
+    color: "#38BEEA",
+    marginBottom: 2,
   },
   brandTitle: {
     fontFamily: "BalooBold",
-    fontSize: 36,
+    fontSize: 34,
+    lineHeight: 42,
     color: "#14385F",
     textAlign: "center",
-    letterSpacing: 0.2,
-    textShadowColor: "rgba(255,255,255,0.9)",
-    textShadowRadius: 10,
+    letterSpacing: 0.1,
+    textShadowColor: "rgba(255,255,255,0.95)",
+    textShadowRadius: 12,
     textShadowOffset: { width: 0, height: 2 },
   },
   brandSubline: {
     marginTop: -2,
     fontFamily: "BalooRegular",
     fontSize: 13,
-    color: "#6C8AA6",
+    color: "#6E8BA6",
     textAlign: "center",
   },
-  statusCard: {
+  heroTouch: {
     width: CONTENT_WIDTH,
-    borderRadius: 24,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.82)",
-    borderWidth: 1,
-    borderColor: "rgba(91,202,245,0.28)",
-    shadowColor: "#61D0F7",
-    shadowOpacity: 0.13,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 3,
+    borderRadius: 30,
+    shadowColor: "#31BFEF",
+    shadowOpacity: 0.2,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 13 },
+    elevation: 5,
   },
-  statusTitle: {
-    fontFamily: "BalooBold",
-    fontSize: 16,
-    color: "#163A5F",
-    textAlign: "center",
-    lineHeight: 20,
-  },
-  statusSub: {
-    marginTop: 4,
-    fontFamily: "BalooRegular",
-    fontSize: 12,
-    color: "#7D93A8",
-    textAlign: "center",
-  },
-  streakText: {
-    marginTop: 7,
-    fontFamily: "BalooBold",
-    fontSize: 13,
-    color: "#248DCE",
-    textAlign: "center",
-  },
-  dailyFeatureTouchable: {
-    width: CONTENT_WIDTH,
-    marginTop: 14,
-    borderRadius: 25,
-    shadowColor: "#39BFEF",
-    shadowOpacity: 0.16,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 4,
-  },
-  dailyFeatureCard: {
+  heroCard: {
     width: "100%",
-    minHeight: 142,
-    borderRadius: 25,
+    borderRadius: 30,
     overflow: "hidden",
+    paddingHorizontal: 18,
+    paddingTop: 14,
+    paddingBottom: 12,
     borderWidth: 1,
-    borderColor: "rgba(91,202,245,0.28)",
+    borderColor: "rgba(91,202,245,0.36)",
+  },
+  heroGlowOne: {
+    position: "absolute",
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    right: -46,
+    top: -52,
+    backgroundColor: "rgba(64,205,246,0.16)",
+  },
+  heroGlowTwo: {
+    position: "absolute",
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    left: -56,
+    bottom: -74,
+    backgroundColor: "rgba(246,187,67,0.12)",
+  },
+  heroHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 18,
-    paddingVertical: 18,
+    gap: 12,
   },
-  dailyCopy: {
-    flex: 1,
-    paddingRight: 12,
-    zIndex: 2,
-  },
-  kicker: {
+  heroKicker: {
     fontSize: 11,
     fontWeight: "900",
-    color: "#2EB9E9",
-    letterSpacing: 1.7,
+    color: "#28B8E9",
+    letterSpacing: 1.8,
     marginBottom: 4,
   },
-  dailyTitle: {
+  heroTitle: {
     fontFamily: "BalooBold",
-    fontSize: 29,
+    fontSize: 28,
     lineHeight: 32,
-    color: "#14385F",
+    color: "#12395F",
+    maxWidth: 230,
   },
-  dailyDescription: {
-    marginTop: 5,
+  dailyArtWrap: {
+    width: 108,
+    height: 96,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: -8,
+    marginTop: -8,
+    shadowColor: "#35C8F4",
+    shadowOpacity: 0.26,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+  },
+  dailyHeroImage: {
+    width: 136,
+    height: 136,
+    resizeMode: "contain",
+  },
+  heroBody: {
+    marginTop: 6,
     fontFamily: "BalooRegular",
     fontSize: 13,
     lineHeight: 18,
-    color: "#7891A8",
+    color: "#6E8CA6",
+    maxWidth: 290,
   },
-  dailyMarkWrap: {
-    width: 104,
-    alignItems: "flex-start",
-    justifyContent: "center",
-    paddingLeft: 4,
-    paddingRight: 22,
+  rewardRail: {
+    marginTop: 10,
+    gap: 6,
   },
-  dailyRing: {
-    width: 66,
-    height: 66,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.78)",
+  rewardPill: {
+    alignSelf: "flex-start",
+    borderRadius: 99,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: "rgba(255,255,255,0.72)",
     borderWidth: 1,
-    borderColor: "rgba(53,200,244,0.32)",
-    shadowColor: "#35C8F4",
-    shadowOpacity: 0.16,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 5 },
+    borderColor: "rgba(58,191,238,0.18)",
   },
-  dailyCrystal: {
-    fontSize: 34,
-    color: "#35C8F4",
-    textShadowColor: "rgba(245,185,67,0.55)",
-    textShadowRadius: 8,
+  rewardPillText: {
+    fontFamily: "BalooBold",
+    fontSize: 12,
+    color: "#5A7893",
   },
-  dailyArrow: {
-    position: "absolute",
-    right: -8,
-    fontSize: 34,
-    color: "#53A8D6",
-    fontWeight: "800",
+  rewardPillStrong: {
+    alignSelf: "flex-start",
+    borderRadius: 99,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: "rgba(220,252,246,0.76)",
+    borderWidth: 1,
+    borderColor: "rgba(95,223,204,0.24)",
   },
-  secondaryButtons: {
-    width: CTA_WIDTH,
-    gap: 12,
-    marginTop: 16,
-    marginBottom: 18,
+  rewardPillStrongText: {
+    fontFamily: "BalooBold",
+    fontSize: 12,
+    color: "#1D94C9",
   },
-  secondaryButton: {
+  progressHint: {
+    marginTop: 8,
+    fontFamily: "BalooRegular",
+    fontSize: 12,
+    color: "#6F89A2",
+  },
+  primaryButton: {
     height: 48,
     borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "rgba(90,196,235,0.36)",
-    backgroundColor: "rgba(255,255,255,0.78)",
     alignItems: "center",
     justifyContent: "center",
+    marginTop: 12,
+    shadowColor: "#31BFEF",
+    shadowOpacity: 0.22,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 7 },
   },
-  secondaryButtonText: {
-    color: "#2C587D",
-    fontSize: 13,
-    fontWeight: "800",
+  primaryButtonText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "900",
+    letterSpacing: 0.2,
   },
-  depthStrip: {
+  nextDailyText: {
+    marginTop: 9,
+    textAlign: "center",
+    fontFamily: "BalooBold",
+    fontSize: 12,
+    color: "#5E819E",
+  },
+  quickRow: {
     width: CONTENT_WIDTH,
     flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 10,
-    paddingVertical: 14,
-    borderRadius: 26,
-    backgroundColor: "rgba(255,255,255,0.84)",
+    gap: 10,
+    marginTop: 10,
+  },
+  quickButton: {
+    flex: 1,
+    height: 42,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.88)",
     borderWidth: 1,
-    borderColor: "rgba(91,202,245,0.28)",
-    shadowColor: "#5CCDF3",
-    shadowOpacity: 0.12,
-    shadowRadius: 14,
+    borderColor: "rgba(90,196,235,0.34)",
+  },
+  quickButtonText: {
+    color: "#255579",
+    fontSize: 13,
+    fontWeight: "900",
+  },
+  quickButtonGhost: {
+    flex: 1,
+    height: 42,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(232,249,255,0.62)",
+    borderWidth: 1,
+    borderColor: "rgba(90,196,235,0.22)",
+  },
+  quickButtonGhostText: {
+    color: "#4B7899",
+    fontSize: 13,
+    fontWeight: "900",
+  },
+  sectionHeaderRow: {
+    width: CONTENT_WIDTH,
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    marginTop: 12,
+    marginBottom: 7,
+    paddingHorizontal: 2,
+  },
+  sectionTitle: {
+    fontFamily: "BalooBold",
+    fontSize: 20,
+    color: "#14385F",
+  },
+  sectionCaption: {
+    fontFamily: "BalooRegular",
+    fontSize: 11,
+    color: "#7D96AC",
+    marginBottom: 4,
+  },
+  hubGrid: {
+    width: CONTENT_WIDTH,
+    gap: 8,
+  },
+  hubCard: {
+    height: 84,
+    borderRadius: 24,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    overflow: "hidden",
+    backgroundColor: "rgba(255,255,255,0.96)",
+    borderWidth: 1,
+    borderColor: "rgba(91,202,245,0.30)",
+    shadowColor: "#65D1F3",
+    shadowOpacity: 0.16,
+    shadowRadius: 15,
     shadowOffset: { width: 0, height: 8 },
     elevation: 3,
-  },
-  depthItem: {
-    flex: 1,
-    alignItems: "center",
   },
   disabledItem: {
     opacity: 0.45,
   },
-  depthImageShell: {
-    width: 110,
-    height: 82,
+  hubAccent: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 5,
+    opacity: 0.82,
+  },
+  hubImageShell: {
+    width: 106,
+    height: 78,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 0,
-    shadowOpacity: 0.22,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 6 },
+    marginRight: 12,
+    backgroundColor: "transparent",
+    borderWidth: 0,
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    shadowOffset: { width: 0, height: 0 },
   },
-  depthImage: {
-    width: 104,
+  hubImage: {
+    width: 108,
     height: 82,
     resizeMode: "contain",
   },
-  depthLabel: {
-    color: "#245073",
-    fontSize: 11,
-    fontWeight: "900",
-    textAlign: "center",
+  hubLabel: {
+    position: "absolute",
+    left: 134,
+    top: 14,
+    fontFamily: "BalooBold",
+    fontSize: 18,
+    color: "#173B60",
   },
-  tierSection: {
+  hubSubtitle: {
+    position: "absolute",
+    left: 134,
+    top: 42,
+    right: 14,
+    fontFamily: "BalooRegular",
+    fontSize: 12,
+    color: "#7A94AA",
+  },
+  tierCard: {
+    width: CONTENT_WIDTH,
+    minHeight: 92,
+    borderRadius: 26,
+    paddingLeft: 18,
+    paddingVertical: 12,
+    paddingRight: 8,
+    marginTop: 12,
+    flexDirection: "row",
     alignItems: "center",
-    marginTop: 16,
+    justifyContent: "space-between",
+    backgroundColor: "rgba(255,255,255,0.88)",
+    borderWidth: 1,
+    borderColor: "rgba(91,202,245,0.28)",
   },
-  tierBadgeGlow: {
-    width: 184,
-    height: 126,
+  tierTextBlock: {
+    flex: 1,
+    paddingRight: 8,
+  },
+  tierKicker: {
+    fontSize: 10,
+    fontWeight: "900",
+    letterSpacing: 1.7,
+    color: "#35BCEB",
+    marginBottom: 4,
+  },
+  tierTitle: {
+    fontFamily: "BalooBold",
+    fontSize: 19,
+    color: "#183D62",
+  },
+  tierSubline: {
+    marginTop: 2,
+    fontFamily: "BalooRegular",
+    fontSize: 12,
+    lineHeight: 16,
+    color: "#718CA4",
+  },
+  tierBadgeWrap: {
+    width: 104,
+    height: 84,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#35C8F4",
-    shadowOpacity: 0.22,
-    shadowRadius: 22,
-    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
   },
   tierBadgeStandard: {
-    width: 182,
-    height: 122,
+    width: 112,
+    height: 78,
     resizeMode: "contain",
   },
   tierBadgePremium: {
-    width: 118,
-    height: 104,
+    width: 82,
+    height: 76,
     resizeMode: "contain",
-  },
-  tierLabel: {
-    marginTop: -4,
-    fontSize: 13,
-    fontWeight: "900",
-    letterSpacing: 2.2,
-    color: "#41627E",
   },
   modalBackdrop: {
     flex: 1,

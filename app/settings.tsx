@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   },
   scroll: {
     alignItems: "center",
-    paddingTop: 12,
+    paddingTop: 62,
     paddingBottom: 44,
     paddingHorizontal: 18,
   },
@@ -274,14 +274,14 @@ const styles = StyleSheet.create({
   },
   backText: {
     color: "#14385F",
-    fontSize: 32,
+    fontSize: 26,
     fontWeight: "800",
     lineHeight: 34,
     marginTop: -2,
   },
   screenTitle: {
     color: "#14385F",
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "900",
     letterSpacing: 0.2,
   },
@@ -321,13 +321,13 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     color: "#14385F",
-    fontSize: 25,
+    fontSize: 22,
     fontWeight: "900",
     lineHeight: 28,
   },
   heroSubtitle: {
     color: "#5E7F9B",
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "700",
     lineHeight: 18,
     marginTop: 6,
@@ -363,12 +363,12 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: "#14385F",
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: "900",
   },
   sectionHint: {
     color: "#76A3C1",
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "800",
     textTransform: "uppercase",
     letterSpacing: 0.7,
@@ -395,12 +395,12 @@ const styles = StyleSheet.create({
   },
   rowTitle: {
     color: "#14385F",
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: "900",
   },
   rowSubtitle: {
     color: "#7291A9",
-    fontSize: 11.5,
+    fontSize: 11,
     fontWeight: "700",
     lineHeight: 15,
     marginTop: 2,
@@ -432,11 +432,11 @@ const styles = StyleSheet.create({
   infoTitle: {
     color: "#14385F",
     fontWeight: "900",
-    fontSize: 16,
+    fontSize: 15,
   },
   infoText: {
     color: "#6C8CA5",
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "700",
     marginTop: 2,
   },

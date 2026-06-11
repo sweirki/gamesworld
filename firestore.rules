@@ -29,10 +29,23 @@ service cloud.firestore {
         && docId.matches('^[0-9]+_' + request.auth.uid + '$');
     }
 
+    function ownsExistingUid() {
+      return signedIn()
+        && resource.data.uid is string
+        && resource.data.uid == request.auth.uid;
+    }
+
+    function seasonExistingOwner(docId) {
+      return signedIn()
+        && resource.data.uid is string
+        && resource.data.uid == request.auth.uid
+        && docId.matches('^[0-9]+_' + request.auth.uid + '$');
+    }
+
     match /users/{uid} {
       allow read: if signedIn();
       allow create, update: if isOwner(uid);
-      allow delete: if false;
+      allow delete: if isOwner(uid);
 
       match /{sub=**} {
         allow read: if isOwner(uid) || isLegacyEmailOwner(uid);
@@ -43,19 +56,19 @@ service cloud.firestore {
     match /ladderUsers/{uid} {
       allow read: if signedIn();
       allow create, update: if isOwner(uid);
-      allow delete: if false;
+      allow delete: if isOwner(uid);
     }
 
     match /seasonUsers/{docId} {
       allow read: if signedIn();
       allow create, update: if seasonDocOwner(docId);
-      allow delete: if false;
+      allow delete: if seasonExistingOwner(docId);
     }
 
     match /leaderboard/{entryId} {
       allow read: if signedIn();
       allow create, update: if hasUid();
-      allow delete: if false;
+      allow delete: if ownsExistingUid();
     }
 
     match /dailyLeaderboard/{docId} {
@@ -67,19 +80,19 @@ service cloud.firestore {
     match /weeklyLeaderboard/{entryId} {
       allow read: if signedIn();
       allow create, update: if hasUid();
-      allow delete: if false;
+      allow delete: if ownsExistingUid();
     }
 
     match /globalLeaderboard/{entryId} {
       allow read: if signedIn();
       allow create, update: if hasUid();
-      allow delete: if false;
+      allow delete: if ownsExistingUid();
     }
 
     match /seasonLeaderboard/{entryId} {
       allow read: if signedIn();
       allow create, update: if hasUid();
-      allow delete: if false;
+      allow delete: if ownsExistingUid();
     }
 
     match /dailyPuzzles/{dayId} {

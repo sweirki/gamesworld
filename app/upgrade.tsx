@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingTop: 28,
+    paddingTop: 48,
     paddingBottom: 34,
   },
   center: {
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: COLORS.ink,
-    fontSize: 35,
+    fontSize: 26,
     fontWeight: "900",
     letterSpacing: -0.7,
   },
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     color: COLORS.ink,
-    fontSize: 30,
+    fontSize: 22,
     fontWeight: "900",
     lineHeight: 34,
     marginBottom: 8,
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
   },
   statusTitle: {
     color: COLORS.ink,
-    fontSize: 23,
+    fontSize: 20,
     fontWeight: "900",
     marginBottom: 3,
   },
@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
   },
   priceTitle: {
     color: COLORS.ink,
-    fontSize: 25,
+    fontSize: 23,
     fontWeight: "900",
   },
   priceBadge: {
@@ -549,7 +549,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   modalTitle: {
-    fontSize: 23,
+    fontSize: 21,
     fontWeight: "900",
     color: COLORS.ink,
     textAlign: "center",

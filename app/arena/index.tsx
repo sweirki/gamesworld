@@ -92,14 +92,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: sweirkiTheme.fonts.bold,
-    fontSize: 42,
+    fontSize: 26,
     color: sweirkiTheme.colors.ink,
-    lineHeight: 46,
+    lineHeight: 36,
   },
   subtitle: {
     fontFamily: sweirkiTheme.fonts.regular,
-    fontSize: 17,
-    lineHeight: 24,
+    fontSize: 12,
+    lineHeight: 18,
     color: sweirkiTheme.colors.textSoft,
     marginTop: 8,
   },
@@ -130,8 +130,8 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontFamily: sweirkiTheme.fonts.regular,
-    fontSize: 15,
-    lineHeight: 21,
+    fontSize: 12,
+    lineHeight: 18,
     color: sweirkiTheme.colors.textSoft,
     marginTop: 4,
   },
@@ -177,8 +177,8 @@ const styles = StyleSheet.create({
   cardDesc: {
     fontFamily: sweirkiTheme.fonts.regular,
     color: sweirkiTheme.colors.textSoft,
-    fontSize: 15,
-    lineHeight: 21,
+    fontSize: 12,
+    lineHeight: 18,
     marginTop: 4,
   },
 });

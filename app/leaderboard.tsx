@@ -127,6 +127,12 @@ export default function LeaderboardScreen() {
   const { isPremium } = useRevenueCat();
 
   const [tab, setTab] = useState<Tab>("season");
+
+  useEffect(() => {
+    if (!isPremium && tab === "daily") {
+      setTab("season");
+    }
+  }, [isPremium, tab]);
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -453,11 +459,19 @@ export default function LeaderboardScreen() {
           const active = tab === t;
           const meta = getTabMeta(t);
           return (
-            <TouchableOpacity key={t} onPress={() => setTab(t)} style={[styles.tab, active && styles.tabActive]}>
+            <TouchableOpacity
+              key={t}
+              onPress={() => {
+                if (t === "daily" && !isPremium) return;
+                setTab(t);
+              }}
+              style={[styles.tab, active && styles.tabActive, t === "daily" && !isPremium && styles.tabLocked]}
+              activeOpacity={t === "daily" && !isPremium ? 1 : 0.75}
+            >
               <View style={[styles.tabIcon, active && styles.tabIconActive]}>
                 <Text style={[styles.tabIconText, active && styles.tabIconTextActive]}>{meta.icon}</Text>
               </View>
-              <Text style={[styles.tabText, active && styles.tabTextActive]}>{meta.label}</Text>
+              <Text style={[styles.tabText, active && styles.tabTextActive]}>{meta.label}{t === "daily" && !isPremium ? "  Lock" : ""}</Text>
             </TouchableOpacity>
           );
         })}
@@ -741,6 +755,9 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 5 },
     elevation: 3,
+  },
+  tabLocked: {
+    opacity: 0.48,
   },
   tabIcon: {
     width: 20,

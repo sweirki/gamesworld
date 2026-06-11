@@ -254,6 +254,7 @@ if (loading || !fontsReady) {
         <Stack.Screen name="daily" />
         <Stack.Screen name="history" />
         <Stack.Screen name="profile" />
+        <Stack.Screen name="account" />
         <Stack.Screen name="leaderboard" />
         <Stack.Screen name="settings" />
         <Stack.Screen name="stats" />

@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Svg, { Rect, Line } from "react-native-svg";
 import {
   View,
@@ -29,6 +29,7 @@ import * as Haptics from "expo-haptics";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback } from "react";
 import { useRouter } from "expo-router";
+import { useRevenueCat } from "../src/hooks/useRevenueCat";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { strokeBase } from "./theme/boardTheme";
@@ -57,6 +58,28 @@ const GRID_SIZE = CELL_SIZE * 9;
 
 
 export default function HyperSudoku() {
+  const { isPremium, loading } = useRevenueCat();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !isPremium) {
+      router.replace("/upgrade");
+    }
+  }, [loading, isPremium, router]);
+
+  if (loading || !isPremium) {
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#F6FBFF", padding: 24 }}>
+        <Text style={{ fontSize: 20, fontWeight: "800", color: "#14385F", textAlign: "center" }}>Hyper Sudoku is Premium</Text>
+        <Text style={{ marginTop: 8, fontSize: 15, color: "#6F7F91", textAlign: "center" }}>Premium access is required.</Text>
+      </View>
+    );
+  }
+
+  return <HyperSudokuGame />;
+}
+
+function HyperSudokuGame() {
   const skipNextResumeRef = useRef(false);
 const skipNextSaveRef = useRef(false);
 const colors = getColors();

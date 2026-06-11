@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
   },
   levelNumber: {
     fontFamily: sweirkiFonts.bold,
-    fontSize: 34,
+    fontSize: 26,
     color: sweirkiColors.inkStrong,
     lineHeight: 38,
   },
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     fontFamily: sweirkiFonts.bold,
-    fontSize: 38,
+    fontSize: 27,
     lineHeight: 42,
     color: sweirkiColors.inkDeep,
   },
@@ -517,12 +517,12 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: sweirkiFonts.bold,
-    fontSize: 22,
+    fontSize: 20,
     color: sweirkiColors.inkStrong,
   },
   sectionBadge: {
     fontFamily: sweirkiFonts.bold,
-    fontSize: 13,
+    fontSize: 12,
     color: sweirkiColors.cyanDeep,
     backgroundColor: "rgba(53,200,244,0.12)",
     paddingHorizontal: 12,
@@ -557,12 +557,12 @@ const styles = StyleSheet.create({
   },
   modeTitle: {
     fontFamily: sweirkiFonts.bold,
-    fontSize: 18,
+    fontSize: 16,
     color: sweirkiColors.inkStrong,
   },
   modeSubtitle: {
     fontFamily: sweirkiFonts.regular,
-    fontSize: 13,
+    fontSize: 12,
     color: sweirkiColors.textSoft,
     marginTop: -2,
   },
@@ -571,7 +571,7 @@ const styles = StyleSheet.create({
   },
   modePercent: {
     fontFamily: sweirkiFonts.bold,
-    fontSize: 17,
+    fontSize: 16,
     color: sweirkiColors.inkStrong,
   },
   modeCount: {
@@ -609,13 +609,13 @@ const styles = StyleSheet.create({
   },
   milestoneTitle: {
     fontFamily: sweirkiFonts.bold,
-    fontSize: 17,
+    fontSize: 16,
     color: sweirkiColors.inkStrong,
   },
   milestoneSubtitle: {
     fontFamily: sweirkiFonts.regular,
     color: sweirkiColors.textSoft,
-    fontSize: 13,
+    fontSize: 12,
     marginTop: -1,
   },
   smallTrack: {
@@ -649,7 +649,7 @@ const styles = StyleSheet.create({
   },
   miniValue: {
     fontFamily: sweirkiFonts.bold,
-    fontSize: 20,
+    fontSize: 18,
     color: sweirkiColors.inkStrong,
     marginTop: 4,
   },

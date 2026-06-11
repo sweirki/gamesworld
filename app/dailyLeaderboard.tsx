@@ -9,8 +9,32 @@ import {
 import { db } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { getColors } from "../theme";
+import { useRouter } from "expo-router";
+import { useRevenueCat } from "../src/hooks/useRevenueCat";
 
 export default function DailyLeaderboard() {
+  const { isPremium, loading } = useRevenueCat();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !isPremium) {
+      router.replace("/upgrade");
+    }
+  }, [loading, isPremium, router]);
+
+  if (loading || !isPremium) {
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#F6FBFF", padding: 24 }}>
+        <Text style={{ fontSize: 20, fontWeight: "800", color: "#14385F", textAlign: "center" }}>Daily Leaderboard is Premium</Text>
+        <Text style={{ marginTop: 8, fontSize: 15, color: "#6F7F91", textAlign: "center" }}>Standard players can play Daily, but leaderboard access requires Premium.</Text>
+      </View>
+    );
+  }
+
+  return <DailyLeaderboardContent />;
+}
+
+function DailyLeaderboardContent() {
   const [scores, setScores] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const colors = getColors();

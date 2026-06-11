@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: spacing.lg,
-    paddingTop: 58,
+    paddingTop: 68,
     paddingBottom: 34,
   },
   heroCard: {
@@ -248,13 +248,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: fonts.bold,
-    fontSize: 31,
+    fontSize: 26,
     color: colors.inkStrong,
     lineHeight: 36,
   },
   subtitle: {
     fontFamily: fonts.regular,
-    fontSize: 14,
+    fontSize: 12,
     color: colors.textSoft,
     marginTop: spacing.xs,
   },
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontFamily: fonts.bold,
-    fontSize: 18,
+    fontSize: 16,
     color: colors.ink,
   },
   sectionSubtitle: {
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(53,200,244,0.13)",
   },
   badgeIcon: {
-    fontSize: 23,
+    fontSize: 21,
   },
   lockedIcon: {
     opacity: 0.44,
@@ -470,7 +470,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   sheetIcon: {
-    fontSize: 35,
+    fontSize: 32,
   },
   sheetTitle: {
     fontFamily: fonts.bold,
@@ -524,7 +524,7 @@ const styles = StyleSheet.create({
   },
   closeButtonText: {
     fontFamily: fonts.bold,
-    fontSize: 16,
+    fontSize: 15,
     color: colors.white,
   },
 });

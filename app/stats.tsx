@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
 
   emptyTitle: {
     fontFamily: "BalooBold",
-    fontSize: 28,
+    fontSize: 26,
     color: "#153D66",
     marginBottom: 6,
   },
@@ -314,15 +314,15 @@ const styles = StyleSheet.create({
 
   title: {
     fontFamily: "BalooBold",
-    fontSize: 34,
+    fontSize: 26,
     color: "#153D66",
     marginBottom: 4,
   },
 
   subtitle: {
     fontFamily: "BalooRegular",
-    fontSize: 14,
-    lineHeight: 19,
+    fontSize: 12,
+    lineHeight: 16,
     color: "#63809F",
   },
 
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
 
   heroBadgeValue: {
     fontFamily: "BalooBold",
-    fontSize: 12,
+    fontSize: 11,
     color: "#153D66",
   },
 
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
 
   metricValue: {
     fontFamily: "BalooBold",
-    fontSize: 25,
+    fontSize: 16,
     color: "#153D66",
   },
 
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
 
   sectionTitle: {
     fontFamily: "BalooBold",
-    fontSize: 19,
+    fontSize: 17,
     color: "#153D66",
   },
 
@@ -446,13 +446,13 @@ const styles = StyleSheet.create({
   statLabel: {
     fontFamily: "BalooRegular",
     color: "#6A86A3",
-    fontSize: 14,
+    fontSize: 13,
   },
 
   statValue: {
     fontFamily: "BalooBold",
     color: "#153D66",
-    fontSize: 15,
+    fontSize: 14,
   },
 
   modeRow: {
@@ -489,14 +489,14 @@ const styles = StyleSheet.create({
 
   modeTitle: {
     fontFamily: "BalooBold",
-    fontSize: 16,
+    fontSize: 15,
     color: "#153D66",
   },
 
   modeSubtitle: {
     marginTop: -2,
     fontFamily: "BalooRegular",
-    fontSize: 12,
+    fontSize: 11,
     color: "#7A93AD",
   },
 
@@ -507,7 +507,7 @@ const styles = StyleSheet.create({
 
   modeStatValue: {
     fontFamily: "BalooBold",
-    fontSize: 17,
+    fontSize: 15,
     color: "#153D66",
   },
 

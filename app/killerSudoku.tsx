@@ -1,4 +1,4 @@
-﻿// Killer â€ renderer reset with original cosmetics preserved
+// Killer â€ renderer reset with original cosmetics preserved
 
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -18,6 +18,7 @@ import * as Haptics from "expo-haptics";
 import { calculateXpForLadder } from "../utils/ladder/scoreEngine";
 import { getColors } from "./theme/index";
 import { useRouter } from "expo-router";
+import { useRevenueCat } from "../src/hooks/useRevenueCat";
 import { generateSudoku, generateKillerCages, validateCages } from "../utils/sudokuGen";
 import { saveGame, loadGame, clearGame } from "../utils/storageUtils";
 import { Ionicons } from "@expo/vector-icons";
@@ -55,6 +56,28 @@ type Cell = {
   notes?: number[]; // you use notes elsewhere; keep it here too
 };
 export default function KillerSudoku() {
+  const { isPremium, loading } = useRevenueCat();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !isPremium) {
+      router.replace("/upgrade");
+    }
+  }, [loading, isPremium, router]);
+
+  if (loading || !isPremium) {
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#F6FBFF", padding: 24 }}>
+        <Text style={{ fontSize: 20, fontWeight: "800", color: "#14385F", textAlign: "center" }}>Killer Sudoku is Premium</Text>
+        <Text style={{ marginTop: 8, fontSize: 15, color: "#6F7F91", textAlign: "center" }}>Premium access is required.</Text>
+      </View>
+    );
+  }
+
+  return <KillerSudokuGame />;
+}
+
+function KillerSudokuGame() {
 const colors = getColors();
 
 const [highlightDigit, setHighlightDigit] = useState<number | null>(null);
