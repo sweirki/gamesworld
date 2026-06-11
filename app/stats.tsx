@@ -18,7 +18,7 @@ import {
 } from "../src/analytics/playerAnalytics";
 
 const backgroundAsset = require("../assets/branding/home-background.png");
-const heroAsset = require("../assets/branding/multiple_modes_hero.png");
+const heroAsset = require("../assets/branding/heroes/stats-hero.png");
 const emptyAsset = require("../assets/branding/profile/stats-icon.png");
 const classicAsset = require("../assets/branding/modes/classic-mode.png");
 const dailyAsset = require("../assets/branding/daily-challenge-card.png");
@@ -90,9 +90,16 @@ export default function StatsScreen() {
     return winner?.games > 0 ? winner.name : "Start playing";
   }, [classic, daily, hyper, killer, xMode]);
 
+  const winRateNumber = Number(summary?.winRate ?? 0);
+  const masteryLabel = winRateNumber >= 75 ? "Elite rhythm" : winRateNumber >= 50 ? "Rising mastery" : "Building streak";
+
   if (loading) {
     return (
       <ImageBackground source={backgroundAsset} style={styles.bg} resizeMode="cover">
+        <LinearGradient
+          colors={["rgba(255,255,255,0.78)", "rgba(232,246,255,0.44)", "rgba(255,255,255,0.7)"]}
+          style={StyleSheet.absoluteFillObject}
+        />
         <View style={styles.center}>
           <ActivityIndicator size="large" color="#35B8F4" />
           <Text style={styles.loadingText}>Loading your progress...</Text>
@@ -104,6 +111,10 @@ export default function StatsScreen() {
   if (!summary) {
     return (
       <ImageBackground source={backgroundAsset} style={styles.bg} resizeMode="cover">
+        <LinearGradient
+          colors={["rgba(255,255,255,0.78)", "rgba(232,246,255,0.44)", "rgba(255,255,255,0.7)"]}
+          style={StyleSheet.absoluteFillObject}
+        />
         <View style={styles.center}>
           <Image source={emptyAsset} style={styles.emptyIcon} resizeMode="contain" />
           <Text style={styles.emptyTitle}>No stats yet</Text>
@@ -116,25 +127,35 @@ export default function StatsScreen() {
   return (
     <ImageBackground source={backgroundAsset} style={styles.bg} resizeMode="cover">
       <LinearGradient
-        colors={["rgba(255,255,255,0.72)", "rgba(232,246,255,0.38)", "rgba(255,255,255,0.66)"]}
+        colors={["rgba(255,255,255,0.74)", "rgba(232,246,255,0.38)", "rgba(255,255,255,0.68)"]}
         style={StyleSheet.absoluteFillObject}
       />
 
-      <ScrollView
-        contentContainerStyle={styles.container}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.heroCard}>
+          <View style={styles.heroGlowOne} />
+          <View style={styles.heroGlowTwo} />
+
           <View style={styles.heroCopy}>
             <Text style={styles.eyebrow}>YOUR JOURNEY</Text>
             <Text style={styles.title}>Statistics</Text>
-            <Text style={styles.subtitle}>Track your Sudoku mastery across every mode.</Text>
-            <View style={styles.heroBadge}>
-              <Text style={styles.heroBadgeLabel}>Most played</Text>
-              <Text style={styles.heroBadgeValue}>{mostPlayedMode}</Text>
+            <Text style={styles.subtitle}>Your progress, rhythm, and mastery across every Sudoku mode.</Text>
+
+            <View style={styles.heroBadgeRow}>
+              <View style={styles.heroBadge}>
+                <Text style={styles.heroBadgeLabel}>Most played</Text>
+                <Text style={styles.heroBadgeValue}>{mostPlayedMode}</Text>
+              </View>
+              <View style={styles.heroBadgeGold}>
+                <Text style={styles.heroBadgeLabelGold}>Form</Text>
+                <Text style={styles.heroBadgeValueGold}>{masteryLabel}</Text>
+              </View>
             </View>
           </View>
-          <Image source={heroAsset} style={styles.heroImage} resizeMode="contain" />
+
+          <View style={styles.heroImageWrap}>
+            <Image source={heroAsset} style={styles.heroImage} resizeMode="contain" />
+          </View>
         </View>
 
         <View style={styles.summaryGrid}>
@@ -144,30 +165,42 @@ export default function StatsScreen() {
           <MetricCard label="Play Time" value={displayValue(summary.totalTime, "0m")} />
         </View>
 
-        <View style={styles.card}>
+        <View style={styles.recordCard}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Overall Record</Text>
+            <View>
+              <Text style={styles.sectionTitle}>Overall Record</Text>
+              <Text style={styles.sectionSubtitle}>Lifetime performance</Text>
+            </View>
             <Text style={styles.sectionBadge}>All modes</Text>
           </View>
 
-          <StatRow label="Games Played" value={displayValue(summary.totalGames)} />
-          <StatRow label="Wins" value={displayValue(summary.totalWins)} />
-          <StatRow label="Losses" value={displayValue(summary.totalLosses)} />
-          <StatRow label="Win Rate" value={`${displayValue(summary.winRate)}%`} />
-          <StatRow label="Total Play Time" value={displayValue(summary.totalTime, "0m")} />
+          <View style={styles.recordGrid}>
+            <RecordPill label="Played" value={displayValue(summary.totalGames)} />
+            <RecordPill label="Wins" value={displayValue(summary.totalWins)} />
+            <RecordPill label="Losses" value={displayValue(summary.totalLosses)} />
+            <RecordPill label="Win Rate" value={`${displayValue(summary.winRate)}%`} accent />
+          </View>
+
+          <View style={styles.timeStrip}>
+            <Text style={styles.timeStripLabel}>Total Play Time</Text>
+            <Text style={styles.timeStripValue}>{displayValue(summary.totalTime, "0m")}</Text>
+          </View>
         </View>
 
         <View style={styles.card}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Mode Breakdown</Text>
+            <View>
+              <Text style={styles.sectionTitle}>Mode Breakdown</Text>
+              <Text style={styles.sectionSubtitle}>Games played and best times</Text>
+            </View>
             <Text style={styles.sectionBadge}>Best times</Text>
           </View>
 
-          <ModeRow title="Classic" subtitle="Original Sudoku" asset={classicAsset} data={classic} accent="#35B8F4" />
+          <ModeRow title="Classic" subtitle="Pure Sudoku focus" asset={classicAsset} data={classic} accent="#35B8F4" />
           <ModeRow title="Daily" subtitle="Daily challenge" asset={dailyAsset} data={daily} accent="#766AF6" />
-          <ModeRow title="Hyper" subtitle="Fast pressure" asset={hyperAsset} data={hyper} accent="#2FD4C6" />
-          <ModeRow title="Killer" subtitle="Cage logic" asset={killerAsset} data={killer} accent="#FFB547" />
-          <ModeRow title="X Sudoku" subtitle="Diagonal mastery" asset={xAsset} data={xMode} accent="#FF6F91" last />
+          <ModeRow title="Hyper" subtitle="Extra-region challenge" asset={hyperAsset} data={hyper} accent="#9B70FF" />
+          <ModeRow title="Killer" subtitle="Strategic cage puzzles" asset={killerAsset} data={killer} accent="#FFB547" />
+          <ModeRow title="X Sudoku" subtitle="Diagonal mastery" asset={xAsset} data={xMode} accent="#2FD4C6" last />
         </View>
       </ScrollView>
     </ImageBackground>
@@ -179,17 +212,18 @@ export default function StatsScreen() {
 function MetricCard({ label, value, highlight }: { label: string; value: any; highlight?: boolean }) {
   return (
     <View style={[styles.metricCard, highlight && styles.metricCardHighlight]}>
-      <Text style={styles.metricValue}>{value}</Text>
+      <View style={styles.metricShine} />
+      <Text style={[styles.metricValue, highlight && styles.metricValueHighlight]}>{value}</Text>
       <Text style={styles.metricLabel}>{label}</Text>
     </View>
   );
 }
 
-function StatRow({ label, value }: { label: string; value: any }) {
+function RecordPill({ label, value, accent }: { label: string; value: any; accent?: boolean }) {
   return (
-    <View style={styles.statRow}>
-      <Text style={styles.statLabel}>{label}</Text>
-      <Text style={styles.statValue}>{displayValue(value)}</Text>
+    <View style={[styles.recordPill, accent && styles.recordPillAccent]}>
+      <Text style={[styles.recordValue, accent && styles.recordValueAccent]}>{value}</Text>
+      <Text style={styles.recordLabel}>{label}</Text>
     </View>
   );
 }
@@ -214,7 +248,8 @@ function ModeRow({
 
   return (
     <View style={[styles.modeRow, last && styles.modeRowLast]}>
-      <View style={[styles.modeIconWrap, { borderColor: `${accent}55` }]}>
+      <View style={[styles.modeIconWrap, { borderColor: `${accent}55`, shadowColor: accent }]}>
+        <View style={[styles.modeAccentGlow, { backgroundColor: `${accent}18` }]} />
         <Image source={asset} style={styles.modeIcon} resizeMode="contain" />
       </View>
 
@@ -226,7 +261,7 @@ function ModeRow({
       <View style={styles.modeStats}>
         <Text style={styles.modeStatValue}>{gamesPlayed}</Text>
         <Text style={styles.modeStatLabel}>Games</Text>
-        <Text style={styles.modeBest}>Best {bestTime}</Text>
+        <Text style={[styles.modeBest, { color: accent }]}>Best {bestTime}</Text>
       </View>
     </View>
   );
@@ -261,8 +296,8 @@ const styles = StyleSheet.create({
   },
 
   emptyIcon: {
-    width: 92,
-    height: 92,
+    width: 110,
+    height: 110,
     marginBottom: 16,
   },
 
@@ -282,59 +317,95 @@ const styles = StyleSheet.create({
   },
 
   heroCard: {
-    minHeight: 164,
-    borderRadius: 32,
+    minHeight: 188,
+    borderRadius: 34,
     padding: 20,
     marginBottom: 16,
     flexDirection: "row",
     alignItems: "center",
     overflow: "hidden",
-    backgroundColor: "rgba(255,255,255,0.88)",
+    backgroundColor: "rgba(255,255,255,0.9)",
     borderWidth: 1,
-    borderColor: "rgba(170,220,255,0.9)",
-    shadowColor: "#7CC8F8",
-    shadowOpacity: 0.22,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 12 },
-    elevation: 6,
+    borderColor: "rgba(161,218,255,0.95)",
+    shadowColor: "#65C4F8",
+    shadowOpacity: 0.25,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 14 },
+    elevation: 8,
+  },
+
+  heroGlowOne: {
+    position: "absolute",
+    width: 170,
+    height: 170,
+    borderRadius: 85,
+    right: -52,
+    top: -46,
+    backgroundColor: "rgba(64,196,255,0.16)",
+  },
+
+  heroGlowTwo: {
+    position: "absolute",
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    right: 38,
+    bottom: -72,
+    backgroundColor: "rgba(255,197,72,0.13)",
   },
 
   heroCopy: {
     flex: 1,
-    paddingRight: 10,
+    paddingRight: 6,
+    zIndex: 2,
   },
 
   eyebrow: {
     fontFamily: "BalooBold",
     fontSize: 11,
-    letterSpacing: 1.4,
+    letterSpacing: 1.45,
     color: "#35A8E6",
     marginBottom: 2,
   },
 
   title: {
     fontFamily: "BalooBold",
-    fontSize: 26,
+    fontSize: 28,
     color: "#153D66",
-    marginBottom: 4,
+    marginBottom: 3,
   },
 
   subtitle: {
+    maxWidth: 185,
     fontFamily: "BalooRegular",
     fontSize: 12,
     lineHeight: 16,
     color: "#63809F",
   },
 
+  heroBadgeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 13,
+  },
+
   heroBadge: {
-    alignSelf: "flex-start",
-    marginTop: 12,
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 7,
-    backgroundColor: "rgba(225,246,255,0.92)",
+    backgroundColor: "rgba(225,246,255,0.94)",
     borderWidth: 1,
-    borderColor: "rgba(111,202,245,0.35)",
+    borderColor: "rgba(111,202,245,0.42)",
+  },
+
+  heroBadgeGold: {
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    backgroundColor: "rgba(255,247,225,0.94)",
+    borderWidth: 1,
+    borderColor: "rgba(245,184,67,0.42)",
   },
 
   heroBadgeLabel: {
@@ -350,10 +421,31 @@ const styles = StyleSheet.create({
     color: "#153D66",
   },
 
+  heroBadgeLabelGold: {
+    fontFamily: "BalooRegular",
+    fontSize: 10,
+    color: "#9B7A31",
+    marginBottom: -3,
+  },
+
+  heroBadgeValueGold: {
+    fontFamily: "BalooBold",
+    fontSize: 11,
+    color: "#6E4E10",
+  },
+
+  heroImageWrap: {
+    width: 142,
+    height: 154,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: -20,
+    zIndex: 1,
+  },
+
   heroImage: {
-    width: 128,
-    height: 104,
-    marginRight: -18,
+    width: 176,
+    height: 176,
   },
 
   summaryGrid: {
@@ -365,25 +457,45 @@ const styles = StyleSheet.create({
 
   metricCard: {
     width: "48.5%",
-    minHeight: 86,
-    borderRadius: 24,
-    paddingVertical: 15,
+    minHeight: 92,
+    borderRadius: 26,
+    paddingVertical: 16,
     paddingHorizontal: 16,
     justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.88)",
+    overflow: "hidden",
+    backgroundColor: "rgba(255,255,255,0.9)",
     borderWidth: 1,
     borderColor: "rgba(188,225,250,0.95)",
+    shadowColor: "#A8D9FA",
+    shadowOpacity: 0.12,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 3,
   },
 
   metricCardHighlight: {
-    backgroundColor: "rgba(230,248,255,0.94)",
-    borderColor: "rgba(53,184,244,0.45)",
+    backgroundColor: "rgba(229,248,255,0.96)",
+    borderColor: "rgba(53,184,244,0.55)",
+  },
+
+  metricShine: {
+    position: "absolute",
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    right: -45,
+    top: -44,
+    backgroundColor: "rgba(53,184,244,0.1)",
   },
 
   metricValue: {
     fontFamily: "BalooBold",
-    fontSize: 16,
+    fontSize: 18,
     color: "#153D66",
+  },
+
+  metricValueHighlight: {
+    color: "#158BD0",
   },
 
   metricLabel: {
@@ -393,14 +505,29 @@ const styles = StyleSheet.create({
     color: "#6E89A5",
   },
 
-  card: {
+  recordCard: {
     width: "100%",
-    borderRadius: 28,
+    borderRadius: 30,
     padding: 18,
     marginBottom: 16,
-    backgroundColor: "rgba(255,255,255,0.9)",
+    backgroundColor: "rgba(255,255,255,0.92)",
     borderWidth: 1,
-    borderColor: "rgba(187,224,249,0.95)",
+    borderColor: "rgba(187,224,249,0.96)",
+    shadowColor: "#A8D9FA",
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 4,
+  },
+
+  card: {
+    width: "100%",
+    borderRadius: 30,
+    padding: 18,
+    marginBottom: 16,
+    backgroundColor: "rgba(255,255,255,0.92)",
+    borderWidth: 1,
+    borderColor: "rgba(187,224,249,0.96)",
     shadowColor: "#A8D9FA",
     shadowOpacity: 0.18,
     shadowRadius: 18,
@@ -417,8 +544,15 @@ const styles = StyleSheet.create({
 
   sectionTitle: {
     fontFamily: "BalooBold",
-    fontSize: 17,
+    fontSize: 18,
     color: "#153D66",
+  },
+
+  sectionSubtitle: {
+    marginTop: -3,
+    fontFamily: "BalooRegular",
+    fontSize: 12,
+    color: "#7A93AD",
   },
 
   sectionBadge: {
@@ -432,27 +566,67 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(219,244,255,0.9)",
   },
 
-  statRow: {
-    minHeight: 44,
-    borderRadius: 18,
-    paddingHorizontal: 14,
-    marginBottom: 8,
+  recordGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 9,
+  },
+
+  recordPill: {
+    width: "48.4%",
+    borderRadius: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 13,
+    backgroundColor: "rgba(242,249,255,0.94)",
+    borderWidth: 1,
+    borderColor: "rgba(207,232,250,0.86)",
+  },
+
+  recordPillAccent: {
+    backgroundColor: "rgba(232,248,255,0.96)",
+    borderColor: "rgba(53,184,244,0.42)",
+  },
+
+  recordValue: {
+    fontFamily: "BalooBold",
+    fontSize: 16,
+    color: "#153D66",
+  },
+
+  recordValueAccent: {
+    color: "#158BD0",
+  },
+
+  recordLabel: {
+    marginTop: -2,
+    fontFamily: "BalooRegular",
+    fontSize: 12,
+    color: "#6E89A5",
+  },
+
+  timeStrip: {
+    marginTop: 10,
+    minHeight: 46,
+    borderRadius: 20,
+    paddingHorizontal: 15,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "rgba(242,249,255,0.92)",
+    backgroundColor: "rgba(255,247,226,0.8)",
+    borderWidth: 1,
+    borderColor: "rgba(244,190,77,0.28)",
   },
 
-  statLabel: {
+  timeStripLabel: {
     fontFamily: "BalooRegular",
-    color: "#6A86A3",
     fontSize: 13,
+    color: "#8B743A",
   },
 
-  statValue: {
+  timeStripValue: {
     fontFamily: "BalooBold",
-    color: "#153D66",
-    fontSize: 14,
+    fontSize: 15,
+    color: "#6E4E10",
   },
 
   modeRow: {
@@ -468,19 +642,33 @@ const styles = StyleSheet.create({
   },
 
   modeIconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 18,
+    width: 54,
+    height: 54,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
-    backgroundColor: "rgba(243,250,255,0.95)",
+    overflow: "hidden",
+    backgroundColor: "rgba(243,250,255,0.96)",
     borderWidth: 1,
+    shadowOpacity: 0.16,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 2,
+  },
+
+  modeAccentGlow: {
+    position: "absolute",
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    right: -24,
+    top: -24,
   },
 
   modeIcon: {
-    width: 34,
-    height: 34,
+    width: 44,
+    height: 44,
   },
 
   modeCopy: {
@@ -522,6 +710,5 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontFamily: "BalooBold",
     fontSize: 11,
-    color: "#35A8E6",
   },
 });

@@ -31,11 +31,13 @@ export default function ArenaHub() {
         <View style={styles.heroText}>
           <Text style={styles.eyebrow}>COMPETITIVE HUB</Text>
           <Text style={styles.title}>Arena</Text>
-          <Text style={styles.subtitle}>
-            Ranked Sudoku competition is being prepared for a future upgrade.
-          </Text>
+         <Text style={styles.subtitle}>Compete. Climb. Conquer.</Text>
         </View>
-        <Image source={sweirkiTheme.assets.iconArena} style={styles.heroIcon} resizeMode="contain" />
+       <Image
+  source={require("../../assets/branding/heroes/arena-hero.png")}
+  style={styles.heroIcon}
+  resizeMode="contain"
+/>
       </View>
 
       <View style={styles.statusCard}>
@@ -103,10 +105,12 @@ const styles = StyleSheet.create({
     color: sweirkiTheme.colors.textSoft,
     marginTop: 8,
   },
-  heroIcon: {
-    width: 100,
-    height: 100,
-  },
+ heroIcon: {
+  width: 170,
+  height: 170,
+  marginRight: -14,
+  transform: [{ scale: 1.08 }],
+},
   statusCard: {
     borderRadius: sweirkiTheme.radius.card,
     padding: 18,

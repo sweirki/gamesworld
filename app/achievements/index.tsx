@@ -105,7 +105,11 @@ export default function AchievementsHub() {
           </View>
 
           <View style={styles.heroIconWrap}>
-            <Image source={assets.iconAchievements} style={styles.heroIcon} resizeMode="contain" />
+          <Image
+  source={require("../../assets/branding/heroes/achievement-hero.png")}
+  style={styles.heroIcon}
+  resizeMode="contain"
+/>
           </View>
         </View>
 
@@ -268,10 +272,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  heroIcon: {
-    width: 58,
-    height: 58,
-  },
+ heroIcon: {
+  width: 170,
+  height: 170,
+  transform: [{ scale: 1.08 }],
+},
   progressCard: {
     marginTop: spacing.lg,
     borderRadius: radius.card,

@@ -18,7 +18,7 @@ import { onAuthStateChanged } from "firebase/auth";
 
 import { auth } from "../firebase";
 import { useRevenueCat } from "../src/hooks/useRevenueCat";
-import { sweirkiAssets, sweirkiColors, sweirkiFonts, sweirkiLayout, sweirkiRadius, sweirkiShadows, sweirkiSpacing } from "./theme";
+import { sweirkiAssets, sweirkiColors, sweirkiFonts, sweirkiLayout, sweirkiRadius, sweirkiShadows } from "./theme";
 
 type ModeKey = "classic" | "killer" | "hyper" | "x" | "ladder";
 
@@ -31,6 +31,9 @@ type Mode = {
   premium: boolean;
   icon: any;
   accent: string;
+  softAccent: string;
+  cardGradient: readonly [string, string];
+  iconGradient: readonly [string, string];
 };
 
 const MODES: Mode[] = [
@@ -38,51 +41,66 @@ const MODES: Mode[] = [
     key: "classic",
     title: "Classic",
     eyebrow: "Learn & Play",
-    description: "Clean boards, pure focus, daily progress.",
+    description: "Daily Sudoku",
     route: "/sudoku",
     premium: false,
     icon: require("../assets/branding/modes/classic-mode.png"),
-    accent: sweirkiColors.cyan,
+    accent: sweirkiColors.cyanDeep,
+    softAccent: "rgba(53,200,244,0.22)",
+    cardGradient: ["rgba(255,255,255,0.99)", "rgba(232,249,255,0.96)"],
+    iconGradient: ["rgba(255,255,255,0.98)", "rgba(215,246,255,0.9)"],
   },
   {
     key: "killer",
     title: "Killer",
     eyebrow: "Strategic",
-    description: "Cages, sums, and sharper decisions.",
+    description: "Strategic cage puzzles",
     route: "/killerSudoku",
     premium: true,
     icon: require("../assets/branding/modes/killer-mode.png"),
     accent: sweirkiColors.gold,
+    softAccent: "rgba(245,185,67,0.28)",
+    cardGradient: ["rgba(255,255,255,0.99)", "rgba(255,247,225,0.94)"],
+    iconGradient: ["rgba(255,255,255,0.98)", "rgba(255,237,181,0.88)"],
   },
   {
     key: "hyper",
     title: "Hyper",
     eyebrow: "Advanced",
-    description: "Extra regions for deeper mastery.",
+    description: "Extra-region challenge",
     route: "/hyperSudoku",
     premium: true,
     icon: require("../assets/branding/modes/hyper-mode.png"),
     accent: sweirkiColors.purple,
+    softAccent: "rgba(143,112,255,0.24)",
+    cardGradient: ["rgba(255,255,255,0.99)", "rgba(243,239,255,0.95)"],
+    iconGradient: ["rgba(255,255,255,0.98)", "rgba(231,224,255,0.9)"],
   },
   {
     key: "x",
     title: "X Sudoku",
     eyebrow: "Diagonal",
-    description: "Two diagonals. One elegant challenge.",
+    description: "Diagonal mastery",
     route: "/xSudoku",
     premium: true,
     icon: require("../assets/branding/modes/x-mode.png"),
     accent: sweirkiColors.aqua,
+    softAccent: "rgba(56,218,195,0.24)",
+    cardGradient: ["rgba(255,255,255,0.99)", "rgba(226,251,248,0.95)"],
+    iconGradient: ["rgba(255,255,255,0.98)", "rgba(205,248,242,0.9)"],
   },
   {
     key: "ladder",
     title: "Ladder Mode",
     eyebrow: "Progression",
-    description: "Climb through levels and prove consistency.",
+    description: "Climb levels. Prove consistency.",
     route: "/leaderboard",
     premium: false,
     icon: require("../assets/branding/modes/ladder-mode.png"),
     accent: sweirkiColors.cyanDeep,
+    softAccent: "rgba(53,200,244,0.24)",
+    cardGradient: ["rgba(255,255,255,0.99)", "rgba(229,248,255,0.96)"],
+    iconGradient: ["rgba(255,255,255,0.98)", "rgba(219,246,255,0.92)"],
   },
 ];
 
@@ -133,7 +151,7 @@ export default function VariantHub() {
         >
           <View style={styles.shell}>
             <View style={styles.header}>
-              <Pressable style={styles.profileButton} onPress={() => router.push("/profile")}> 
+              <Pressable style={styles.profileButton} onPress={() => router.push("/profile")}>
                 <LinearGradient
                   colors={["rgba(255,255,255,0.98)", "rgba(231,250,255,0.92)"]}
                   style={styles.avatar}
@@ -146,16 +164,17 @@ export default function VariantHub() {
                 </View>
               </Pressable>
 
-              <Pressable style={styles.settingsButton} onPress={() => router.push("/settings")}> 
+              <Pressable style={styles.settingsButton} onPress={() => router.push("/settings")}>
                 <Text style={styles.settingsIcon}>⚙</Text>
               </Pressable>
             </View>
 
             <View style={styles.heroCard}>
+              <View style={styles.heroGlow} />
               <View style={styles.heroCopy}>
                 <Text style={styles.kicker}>SWEIRKI MODES</Text>
                 <Text style={styles.title}>Choose Your Challenge</Text>
-                <Text style={styles.subtitle}>5 Sudoku experiences, one mastery journey.</Text>
+                <Text style={styles.subtitle}>5 modes. One mastery path.</Text>
               </View>
               <Image source={sweirkiAssets.iconModes} style={styles.heroIcon} resizeMode="contain" />
             </View>
@@ -216,30 +235,42 @@ function ModeCard({
   };
 
   return (
-    <Animated.View style={[styles.cardMotion, wide && styles.wideMotion, { transform: [{ scale }] }]}>
+    <Animated.View style={[styles.cardMotion, wide && styles.wideMotion, { transform: [{ scale }] }]}> 
       <Pressable onPress={() => onPress(mode)} onPressIn={onPressIn} onPressOut={onPressOut}>
         <LinearGradient
-          colors={wide ? ["rgba(255,255,255,0.98)", "rgba(232,249,255,0.94)"] : sweirkiColors.heroGradient}
+          colors={mode.cardGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={[styles.modeCard, wide && styles.wideCard, isLastPlayed && styles.lastPlayedCard]}
+          style={[
+            styles.modeCard,
+            wide && styles.wideCard,
+            isLastPlayed && styles.lastPlayedCard,
+            { borderColor: isLastPlayed ? sweirkiColors.cyanStrong : mode.softAccent },
+          ]}
         >
-          <View style={[styles.accentDot, { backgroundColor: mode.accent }]} />
+          <View style={[styles.cardWash, { backgroundColor: mode.softAccent }]} />
 
-          <View style={[styles.iconPlate, wide && styles.wideIconPlate]}>
-            <Image source={mode.icon} style={[styles.modeIcon, locked && styles.lockedIcon]} resizeMode="contain" />
-          </View>
+          <LinearGradient colors={mode.iconGradient} style={[styles.iconPlate, wide && styles.wideIconPlate]}>
+            <View style={[styles.iconGlow, { backgroundColor: mode.softAccent }]} />
+            <Image source={mode.icon} style={[styles.modeIcon, wide && styles.wideModeIcon, locked && styles.lockedIcon]} resizeMode="contain" />
+          </LinearGradient>
 
           <View style={[styles.modeTextWrap, wide && styles.wideTextWrap]}>
-            <Text style={styles.modeEyebrow}>{mode.eyebrow}</Text>
-            <Text style={styles.modeTitle}>{mode.title}</Text>
-            <Text style={styles.modeDescription}>{mode.description}</Text>
+            <Text style={[styles.modeEyebrow, { color: mode.accent }]}>{mode.eyebrow}</Text>
+            <Text style={[styles.modeTitle, wide && styles.wideTitle]}>{mode.title}</Text>
+            <Text style={[styles.modeDescription, wide && styles.wideDescription]}>{mode.description}</Text>
+
+            <View style={styles.badgeRow}>
+              {isLastPlayed && <Text style={styles.lastPlayedBadge}>Last played</Text>}
+              {locked && <Text style={styles.lockBadge}>★ Premium</Text>}
+            </View>
           </View>
 
-          <View style={styles.badgeRow}>
-            {isLastPlayed && <Text style={styles.lastPlayedBadge}>Last played</Text>}
-            {locked && <Text style={styles.lockBadge}>Premium</Text>}
-          </View>
+          {wide && (
+            <View style={styles.arrowButton}>
+              <Text style={styles.arrowText}>›</Text>
+            </View>
+          )}
         </LinearGradient>
       </Pressable>
     </Animated.View>
@@ -321,9 +352,11 @@ const styles = StyleSheet.create({
     color: sweirkiColors.inkStrong,
   },
   heroCard: {
-    minHeight: 112,
+    minHeight: 132,
     borderRadius: sweirkiRadius.hero,
-    padding: 12,
+    paddingLeft: 14,
+    paddingRight: 6,
+    paddingVertical: 14,
     marginBottom: 16,
     flexDirection: "row",
     alignItems: "center",
@@ -334,34 +367,46 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     ...sweirkiShadows.hero,
   },
+  heroGlow: {
+    position: "absolute",
+    right: -22,
+    top: -12,
+    width: 164,
+    height: 164,
+    borderRadius: 82,
+    backgroundColor: "rgba(53,200,244,0.1)",
+  },
   heroCopy: {
     flex: 1,
-    paddingRight: 10,
+    paddingRight: 6,
   },
   kicker: {
     fontFamily: sweirkiFonts.bold,
     fontSize: 11,
-    letterSpacing: 1.6,
+    letterSpacing: 2.2,
     color: sweirkiColors.cyanDeep,
-    marginBottom: 4,
+    marginBottom: 7,
   },
   title: {
+    maxWidth: 218,
     fontFamily: sweirkiFonts.bold,
-    fontSize: 25,
-    lineHeight: 29,
+    fontSize: 28,
+    lineHeight: 33,
     color: sweirkiColors.inkStrong,
   },
   subtitle: {
-    marginTop: 5,
+    maxWidth: 190,
+    marginTop: 8,
     fontFamily: sweirkiFonts.regular,
-    fontSize: 13,
-    lineHeight: 17,
+    fontSize: 14,
+    lineHeight: 19,
     color: sweirkiColors.textSoft,
   },
   heroIcon: {
-    width: 124,
-    height: 124,
-    marginRight: -10,
+    width: 146,
+    height: 146,
+    marginRight: -14,
+    marginBottom: -8,
   },
   grid: {
     gap: 10,
@@ -378,90 +423,110 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   modeCard: {
-    minHeight: 160,
+    minHeight: 150,
     borderRadius: sweirkiRadius.card,
-    padding: 10,
+    paddingHorizontal: 10,
+    paddingTop: 13,
+    paddingBottom: 10,
     backgroundColor: sweirkiColors.glassStrong,
     borderWidth: 1,
-    borderColor: sweirkiColors.borderCyan,
     overflow: "hidden",
     ...sweirkiShadows.glassCard,
   },
   wideCard: {
-    minHeight: 118,
+    minHeight: 108,
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
+    paddingVertical: 10,
+    paddingLeft: 12,
+    paddingRight: 12,
   },
   lastPlayedCard: {
-    borderColor: sweirkiColors.cyanStrong,
+    borderWidth: 1.5,
   },
-  accentDot: {
+  cardWash: {
     position: "absolute",
-    top: 12,
-    right: 12,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    opacity: 0.75,
+    right: -30,
+    bottom: -34,
+    width: 108,
+    height: 108,
+    borderRadius: 54,
+    opacity: 0.52,
   },
   iconPlate: {
-    alignSelf: "center",
-    width: 92,
-    height: 78,
+    alignSelf: "flex-start",
+    width: 88,
+    height: 76,
     borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 4,
-    marginBottom: 5,
-    backgroundColor: "rgba(255,255,255,0.58)",
+    marginBottom: 7,
     borderWidth: 1,
-    borderColor: "rgba(91,202,245,0.18)",
+    borderColor: "rgba(255,255,255,0.86)",
+    ...sweirkiShadows.splashBadge,
   },
   wideIconPlate: {
-    width: 98,
-    height: 90,
-    marginTop: 0,
+    width: 104,
+    height: 86,
     marginBottom: 0,
-    marginRight: 12,
+    marginRight: 14,
+  },
+  iconGlow: {
+    position: "absolute",
+    width: 72,
+    height: 42,
+    borderRadius: 22,
+    opacity: 0.75,
   },
   modeIcon: {
-    width: 88,
-    height: 88,
+    width: 104,
+    height: 104,
+  },
+  wideModeIcon: {
+    width: 118,
+    height: 118,
   },
   lockedIcon: {
-    opacity: 0.52,
+    opacity: 0.58,
   },
   modeTextWrap: {
     flex: 1,
   },
   wideTextWrap: {
-    paddingRight: 4,
+    paddingRight: 6,
   },
   modeEyebrow: {
     fontFamily: sweirkiFonts.bold,
-    fontSize: 11,
-    letterSpacing: 0.7,
+    fontSize: 10,
+    letterSpacing: 1.45,
     textTransform: "uppercase",
-    color: sweirkiColors.cyanDeep,
-    marginBottom: 2,
+    marginBottom: 3,
+    opacity: 0.92,
   },
   modeTitle: {
     fontFamily: sweirkiFonts.bold,
-    fontSize: 19,
-    lineHeight: 22,
+    fontSize: 20,
+    lineHeight: 23,
     color: sweirkiColors.inkStrong,
   },
+  wideTitle: {
+    fontSize: 21,
+    lineHeight: 25,
+  },
   modeDescription: {
-    marginTop: 4,
+    marginTop: 5,
     fontFamily: sweirkiFonts.regular,
-    fontSize: 11.5,
-    lineHeight: 14,
+    fontSize: 12,
+    lineHeight: 15,
     color: sweirkiColors.textSoft,
   },
+  wideDescription: {
+    fontSize: 12.5,
+    lineHeight: 16,
+  },
   badgeRow: {
-    minHeight: 21,
-    marginTop: 6,
+    minHeight: 19,
+    marginTop: 7,
     flexDirection: "row",
     alignItems: "center",
     flexWrap: "wrap",
@@ -480,13 +545,31 @@ const styles = StyleSheet.create({
   lockBadge: {
     overflow: "hidden",
     borderRadius: sweirkiRadius.pill,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    backgroundColor: "rgba(245,185,67,0.22)",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    backgroundColor: "rgba(255,244,213,0.9)",
     borderWidth: 1,
-    borderColor: "rgba(245,185,67,0.28)",
+    borderColor: "rgba(245,185,67,0.52)",
     fontFamily: sweirkiFonts.bold,
-    fontSize: 10.5,
+    fontSize: 10,
     color: "#A86F05",
+  },
+  arrowButton: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.9)",
+    borderWidth: 1,
+    borderColor: sweirkiColors.borderCyan,
+    ...sweirkiShadows.splashBadge,
+  },
+  arrowText: {
+    marginTop: -3,
+    fontFamily: sweirkiFonts.bold,
+    fontSize: 36,
+    lineHeight: 40,
+    color: sweirkiColors.cyanDeep,
   },
 });

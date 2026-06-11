@@ -6,6 +6,7 @@ import {
   FlatList,
   ActivityIndicator,
   ImageBackground,
+  Image,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { collection, getDocs, limit, query } from "firebase/firestore";
@@ -36,6 +37,11 @@ const S = T.spacing;
 /* ================= ASSETS ================= */
 
 const bgAsset = T.assets.homeBackground;
+const historyHero = require("../assets/branding/heroes/stats-hero.png");
+const classicMode = require("../assets/branding/modes/classic-mode.png");
+const killerMode = require("../assets/branding/modes/killer-mode.png");
+const hyperMode = require("../assets/branding/modes/hyper-mode.png");
+const xMode = require("../assets/branding/modes/x-mode.png");
 
 /* ================= HELPERS ================= */
 
@@ -109,13 +115,13 @@ function modeSubtitle(mode: string) {
   const clean = normalizeMode(mode);
   switch (clean) {
     case "classic":
-      return "Original Sudoku";
+      return "Daily Sudoku focus";
     case "daily":
       return "Daily challenge";
     case "hyper":
-      return "Fast pressure";
+      return "Extra-region challenge";
     case "killer":
-      return "Cage logic";
+      return "Strategic cage puzzles";
     case "x":
       return "Diagonal mastery";
     default:
@@ -124,7 +130,7 @@ function modeSubtitle(mode: string) {
 }
 
 function modeVisual(mode: string): {
-  icon: keyof typeof Ionicons.glyphMap;
+  asset: any;
   bg: string;
   border: string;
   color: string;
@@ -132,15 +138,15 @@ function modeVisual(mode: string): {
   const clean = normalizeMode(mode);
   switch (clean) {
     case "daily":
-      return { icon: "calendar-clear-outline", bg: "#F2ECFF", border: "#D8C9FF", color: C.purple };
+      return { asset: classicMode, bg: "#F0F8FF", border: "#BDEBFF", color: C.cyanDeep };
     case "hyper":
-      return { icon: "flash-outline", bg: "#F0ECFF", border: "#D7CCFF", color: C.purple };
+      return { asset: hyperMode, bg: "#F2ECFF", border: "#D7CCFF", color: C.purple };
     case "killer":
-      return { icon: "grid-outline", bg: "#FFF6E4", border: "#F8DCA5", color: C.gold };
+      return { asset: killerMode, bg: "#FFF6E4", border: "#F8DCA5", color: C.gold };
     case "x":
-      return { icon: "git-compare-outline", bg: "#EAFBF8", border: "#BDEEE5", color: "#38BFA7" };
+      return { asset: xMode, bg: "#EAFBF8", border: "#BDEEE5", color: "#38BFA7" };
     default:
-      return { icon: "apps-outline", bg: "#EAF8FF", border: "#BDEBFF", color: C.cyanDeep };
+      return { asset: classicMode, bg: "#EAF8FF", border: "#BDEBFF", color: C.cyanDeep };
   }
 }
 
@@ -183,6 +189,15 @@ function totalPlayTime(history: GameEntry[]) {
 
 function winCount(history: GameEntry[]) {
   return history.filter((game) => game.win).length;
+}
+
+function winRate(history: GameEntry[]) {
+  if (!history.length) return "--";
+  return `${Math.round((winCount(history) / history.length) * 100)}%`;
+}
+
+function cleanRuns(history: GameEntry[]) {
+  return history.filter((game) => game.win && Math.max(0, game.errors || 0) === 0).length;
 }
 
 /* ================= SCREEN ================= */
@@ -251,7 +266,7 @@ export default function HistoryScreen() {
 
   const summaryLine = useMemo(() => {
     if (!history.length) return "Your latest completed games will appear here.";
-    return `${history.length} games • ${winCount(history)} wins • Best ${fastestWin(history)}`;
+    return `${history.length} runs • ${winRate(history)} win rate • Best ${fastestWin(history)}`;
   }, [history]);
 
   if (loading) {
@@ -275,45 +290,51 @@ export default function HistoryScreen() {
         ListHeaderComponent={
           <>
             <LinearGradient colors={C.heroGradient as any} style={styles.heroCard}>
+              <View style={styles.heroGlowOne} />
+              <View style={styles.heroGlowTwo} />
+
               <View style={styles.heroCopy}>
-                <Text style={styles.kicker}>RECENT RUNS</Text>
+                <Text style={styles.kicker}>RUN ARCHIVE</Text>
                 <Text style={styles.title}>History</Text>
                 <Text style={styles.subtitle}>{summaryLine}</Text>
               </View>
 
-              <View style={styles.heroBadge}>
-                <Ionicons name="time-outline" size={34} color={C.cyanDeep} />
+              <View style={styles.heroArtWrap}>
+                <Image source={historyHero} style={styles.heroArt} resizeMode="contain" />
               </View>
             </LinearGradient>
 
             {history.length === 0 ? (
               <View style={styles.emptyCard}>
-                <View style={styles.emptyBadge}>
-                  <Ionicons name="sparkles-outline" size={32} color={C.cyanDeep} />
-                </View>
+                <Image source={historyHero} style={styles.emptyHero} resizeMode="contain" />
                 <Text style={styles.emptyTitle}>No games yet</Text>
                 <Text style={styles.emptyText}>Finish a Sudoku run and your recent results will appear here.</Text>
               </View>
             ) : (
               <>
-                <View style={styles.compactStatsCard}>
-                  <CompactStat icon="grid-outline" label="Games" value={history.length} />
-                  <CompactStat icon="trophy-outline" label="Wins" value={winCount(history)} />
-                  <CompactStat icon="flash-outline" label="Best" value={fastestWin(history)} />
-                  <CompactStat icon="stopwatch-outline" label="Time" value={totalPlayTime(history)} />
+                <View style={styles.statGrid}>
+                  <PremiumStat icon="grid-outline" label="Games" value={history.length} accent="cyan" />
+                  <PremiumStat icon="trophy-outline" label="Wins" value={winCount(history)} accent="gold" />
+                  <PremiumStat icon="flash-outline" label="Best" value={fastestWin(history)} accent="purple" />
+                  <PremiumStat icon="checkmark-done-outline" label="Clean" value={cleanRuns(history)} accent="green" />
                 </View>
 
-                <View style={styles.bestStrip}>
-                  <View style={styles.bestItem}>
-                    <Text style={styles.bestLabel}>Fewest errors</Text>
-                    <Text style={styles.bestValue}>{fewestErrors(history)}</Text>
+                <LinearGradient colors={["#FFFFFF", "#F2FBFF"]} style={styles.masteryStrip}>
+                  <View style={styles.masteryItem}>
+                    <Text style={styles.masteryLabel}>Fewest errors</Text>
+                    <Text style={styles.masteryValue}>{fewestErrors(history)}</Text>
                   </View>
-                  <View style={styles.bestDivider} />
-                  <View style={styles.bestItem}>
-                    <Text style={styles.bestLabel}>Showing</Text>
-                    <Text style={styles.bestValue}>Last 50</Text>
+                  <View style={styles.masteryDivider} />
+                  <View style={styles.masteryItem}>
+                    <Text style={styles.masteryLabel}>Total time</Text>
+                    <Text style={styles.masteryValue}>{totalPlayTime(history)}</Text>
                   </View>
-                </View>
+                  <View style={styles.masteryDivider} />
+                  <View style={styles.masteryItem}>
+                    <Text style={styles.masteryLabel}>Showing</Text>
+                    <Text style={styles.masteryValue}>Last 50</Text>
+                  </View>
+                </LinearGradient>
 
                 <View style={styles.sectionHeader}>
                   <Text style={styles.sectionTitle}>Recent Games</Text>
@@ -331,25 +352,32 @@ export default function HistoryScreen() {
 
 /* ================= SMALL COMPONENTS ================= */
 
-function CompactStat({
+function PremiumStat({
   icon,
   label,
   value,
+  accent,
 }: {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   value: string | number;
+  accent: "cyan" | "gold" | "purple" | "green";
 }) {
+  const palette = {
+    cyan: { bg: "#EAF8FF", border: "#BDEBFF", color: C.cyanDeep },
+    gold: { bg: "#FFF6E4", border: "#F8DCA5", color: C.gold },
+    purple: { bg: "#F1ECFF", border: "#D7CCFF", color: C.purple },
+    green: { bg: "#EAFBF8", border: "#BDEEE5", color: "#24A889" },
+  }[accent];
+
   return (
-    <View style={styles.compactStat}>
-      <View style={styles.compactIcon}>
-        <Ionicons name={icon} size={17} color={C.cyanDeep} />
+    <LinearGradient colors={["#FFFFFF", palette.bg]} style={[styles.statCard, { borderColor: palette.border }]}>
+      <View style={[styles.statIcon, { backgroundColor: palette.bg, borderColor: palette.border }]}>
+        <Ionicons name={icon} size={18} color={palette.color} />
       </View>
-      <View>
-        <Text style={styles.compactValue}>{value}</Text>
-        <Text style={styles.compactLabel}>{label}</Text>
-      </View>
-    </View>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </LinearGradient>
   );
 }
 
@@ -362,7 +390,7 @@ function HistoryRow({ item }: { item: GameEntry }) {
   return (
     <View style={styles.row}>
       <View style={[styles.modeIconBox, { backgroundColor: visual.bg, borderColor: visual.border }]}>
-        <Ionicons name={visual.icon} size={24} color={visual.color} />
+        <Image source={visual.asset} style={styles.modeAsset} resizeMode="contain" />
       </View>
 
       <View style={styles.rowMiddle}>
@@ -415,12 +443,13 @@ const styles = StyleSheet.create({
   },
 
   heroCard: {
-    minHeight: 140,
+    minHeight: 176,
     borderRadius: R.hero,
     borderWidth: 1.2,
     borderColor: C.borderCyanStrong,
-    paddingVertical: 20,
-    paddingHorizontal: 22,
+    paddingVertical: 22,
+    paddingLeft: 22,
+    paddingRight: 8,
     marginBottom: 14,
     flexDirection: "row",
     alignItems: "center",
@@ -428,9 +457,30 @@ const styles = StyleSheet.create({
     ...T.shadows.glassCard,
   },
 
+  heroGlowOne: {
+    position: "absolute",
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    right: -42,
+    top: -42,
+    backgroundColor: "rgba(91,202,245,0.20)",
+  },
+
+  heroGlowTwo: {
+    position: "absolute",
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    right: 58,
+    bottom: -62,
+    backgroundColor: "rgba(246,193,84,0.17)",
+  },
+
   heroCopy: {
     flex: 1,
-    paddingRight: 12,
+    paddingRight: 4,
+    zIndex: 2,
   },
 
   kicker: {
@@ -443,10 +493,10 @@ const styles = StyleSheet.create({
 
   title: {
     fontFamily: F.bold,
-    fontSize: 26,
+    fontSize: 30,
     lineHeight: 38,
     color: C.inkDeep,
-    marginBottom: 5,
+    marginBottom: 6,
   },
 
   subtitle: {
@@ -454,97 +504,105 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 20,
     color: C.text,
+    maxWidth: 178,
   },
 
-  heroBadge: {
-    width: 70,
-    height: 70,
-    borderRadius: 24,
-    backgroundColor: "rgba(234,248,255,0.92)",
-    borderWidth: 1,
-    borderColor: C.borderCyanStrong,
+  heroArtWrap: {
+    width: 142,
+    height: 142,
     alignItems: "center",
     justifyContent: "center",
+    zIndex: 1,
   },
 
-  compactStatsCard: {
+  heroArt: {
+    width: 172,
+    height: 172,
+    marginRight: -18,
+    transform: [{ scale: 1.06 }],
+  },
+
+  statGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    backgroundColor: C.glassStrong,
-    borderRadius: R.card,
-    borderWidth: 1,
-    borderColor: C.borderCyan,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    justifyContent: "space-between",
     marginBottom: 10,
   },
 
-  compactStat: {
-    width: "50%",
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 4,
+  statCard: {
+    width: "48.7%",
+    borderRadius: R.card,
+    borderWidth: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 13,
+    marginBottom: 10,
+    minHeight: 106,
+    ...T.shadows.soft,
   },
 
-  compactIcon: {
+  statIcon: {
     width: 34,
     height: 34,
     borderRadius: 14,
-    backgroundColor: "rgba(221,247,255,0.82)",
+    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 9,
+    marginBottom: 9,
   },
 
-  compactValue: {
+  statValue: {
     fontFamily: F.bold,
-    fontSize: 18,
-    lineHeight: 22,
+    fontSize: 22,
+    lineHeight: 27,
     color: C.inkDeep,
   },
 
-  compactLabel: {
-    fontFamily: F.regular,
-    fontSize: 12,
+  statLabel: {
+    fontFamily: F.bold,
+    fontSize: 11,
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
     color: C.textSoft,
-    marginTop: -1,
+    marginTop: 1,
   },
 
-  bestStrip: {
+  masteryStrip: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.88)",
-    borderRadius: R.soft,
+    borderRadius: R.card,
     borderWidth: 1,
-    borderColor: "rgba(91,202,245,0.20)",
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    borderColor: "rgba(91,202,245,0.24)",
+    paddingVertical: 12,
+    paddingHorizontal: 12,
     marginBottom: 18,
+    ...T.shadows.soft,
   },
 
-  bestItem: {
+  masteryItem: {
     flex: 1,
+    minWidth: 0,
   },
 
-  bestLabel: {
-    fontFamily: F.regular,
-    fontSize: 12,
+  masteryLabel: {
+    fontFamily: F.bold,
+    fontSize: 10,
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
     color: C.textSoft,
   },
 
-  bestValue: {
+  masteryValue: {
     fontFamily: F.bold,
-    fontSize: 14,
+    fontSize: 15,
     color: C.inkDeep,
-    marginTop: -1,
+    marginTop: 2,
   },
 
-  bestDivider: {
+  masteryDivider: {
     width: 1,
     alignSelf: "stretch",
     backgroundColor: "rgba(91,202,245,0.22)",
-    marginHorizontal: 12,
+    marginHorizontal: 10,
   },
 
   sectionHeader: {
@@ -575,16 +633,14 @@ const styles = StyleSheet.create({
     borderColor: C.borderCyanStrong,
     padding: 24,
     alignItems: "center",
+    overflow: "hidden",
+    ...T.shadows.glassCard,
   },
 
-  emptyBadge: {
-    width: 58,
-    height: 58,
-    borderRadius: 22,
-    backgroundColor: "rgba(221,247,255,0.86)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
+  emptyHero: {
+    width: 128,
+    height: 128,
+    marginBottom: 8,
   },
 
   emptyTitle: {
@@ -605,23 +661,31 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.94)",
-    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.96)",
+    borderRadius: 22,
     borderWidth: 1,
-    borderColor: "rgba(91,202,245,0.22)",
+    borderColor: "rgba(91,202,245,0.24)",
     paddingVertical: 11,
     paddingHorizontal: 12,
     marginBottom: 9,
+    ...T.shadows.soft,
   },
 
   modeIconBox: {
-    width: 46,
-    height: 46,
-    borderRadius: 17,
+    width: 52,
+    height: 52,
+    borderRadius: 19,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 11,
+    marginRight: 12,
+    overflow: "hidden",
+  },
+
+  modeAsset: {
+    width: 54,
+    height: 54,
+    transform: [{ scale: 1.16 }],
   },
 
   rowMiddle: {
@@ -665,8 +729,8 @@ const styles = StyleSheet.create({
 
   resultBadge: {
     borderRadius: R.pill,
-    paddingHorizontal: 7,
-    paddingVertical: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
   },
 
   winBadge: {
