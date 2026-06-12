@@ -22,6 +22,7 @@ import { safeFirestoreCall } from "../src/utils/firestoreSafe";
 import { resetSeasonXPIfNeeded } from "./lib/ladderBridge";
 
 import RankUpPopup from "./components/RankUpPopup";
+import ForceUpdateGate from "../src/components/ForceUpdateGate";
 
 export default function Layout() {
   const [loading, setLoading] = useState(true);
@@ -219,6 +220,29 @@ if (loading || !fontsReady) {
   /* ================= LOGGED OUT STACK ================= */
   if (!user) {
     return (
+      <ForceUpdateGate>
+        <Stack
+  screenOptions={{
+    headerShown: Platform.OS === "ios",
+    headerTitle: "",
+    gestureEnabled: true,
+  }}
+>
+
+          <Stack.Screen name="login" />
+          <Stack.Screen name="signup" />
+        </Stack>
+      </ForceUpdateGate>
+    );
+  }
+
+  /* ================= LOGGED IN STACK ================= */
+  return (
+    <ForceUpdateGate>
+      <View style={{ flex: 1 }}>
+        <RankUpPopup />
+
+
       <Stack
   screenOptions={{
     headerShown: Platform.OS === "ios",
@@ -227,27 +251,7 @@ if (loading || !fontsReady) {
   }}
 >
 
-        <Stack.Screen name="login" />
-        <Stack.Screen name="signup" />
-      </Stack>
-    );
-  }
-
-  /* ================= LOGGED IN STACK ================= */
-  return (
-    <View style={{ flex: 1 }}>
-      <RankUpPopup />
-
-
-    <Stack
-  screenOptions={{
-    headerShown: Platform.OS === "ios",
-    headerTitle: "",
-    gestureEnabled: true,
-  }}
->
-
-        <Stack.Screen name="splash" />
+          <Stack.Screen name="splash" />
         <Stack.Screen name="sudokuIntro" />
         <Stack.Screen name="sudoku" />
         <Stack.Screen name="chooseDifficulty" />
@@ -260,7 +264,8 @@ if (loading || !fontsReady) {
         <Stack.Screen name="stats" />
         <Stack.Screen name="testConfetti" />
       </Stack>
-    </View>
+      </View>
+    </ForceUpdateGate>
   );
 }
 

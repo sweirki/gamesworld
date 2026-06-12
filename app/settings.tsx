@@ -12,6 +12,7 @@ import {
   Image,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import Constants from "expo-constants";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
@@ -29,6 +30,7 @@ const aboutIcon = require("../assets/branding/settings/about-info.png");
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const appVersion = Constants.nativeAppVersion || Constants.expoConfig?.version || "4.2.7";
   const [confirmVisible, setConfirmVisible] = useState(false);
 
   const [soundTap, setSoundTap] = useState(true);
@@ -153,7 +155,7 @@ export default function SettingsScreen() {
             <Image source={aboutIcon} style={styles.infoIcon} resizeMode="contain" />
             <View style={styles.infoTextBlock}>
               <Text style={styles.infoTitle}>Sudoku</Text>
-              <Text style={styles.infoText}>Version 1.0.6</Text>
+              <Text style={styles.infoText}>Version {appVersion}</Text>
               <Text style={styles.infoText}>Built For Sam @ Zaina</Text>
             </View>
           </View>
