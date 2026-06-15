@@ -1,0 +1,767 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+export type EconomyCurrency = "coins" | "tickets" | "arenaPoints" | "seasonXp" | "ticketFragments";
+export type EconomySource =
+  | "classic_win"
+  | "daily_win"
+  | "weekly_win"
+  | "variant_win"
+  | "arena_result"
+  | "arena_entry"
+  | "rewarded_ad"
+  | "purchase"
+  | "premium_bonus"
+  | "goal"
+  | "season_pass"
+  | "arena_shop"
+  | "ad_center"
+  | "admin";
+
+export type EconomyWallet = {
+  coins: number;
+  tickets: number;
+  ticketFragments: number;
+  lifetimeCoinsEarned: number;
+  lifetimeTicketsEarned: number;
+  lifetimeTicketFragmentsEarned: number;
+  lastDailyBonusKey: string;
+  lastRewardedAdKey: string;
+  rewardedAdsToday: number;
+  lastAdCenterKey: string;
+  adCenterClaimsToday: Record<string, number>;
+  updatedAt: number;
+};
+
+export type EconomyLedgerEntry = {
+  id: string;
+  source: EconomySource;
+  label: string;
+  deltaCoins?: number;
+  deltaTickets?: number;
+  deltaTicketFragments?: number;
+  balanceCoins: number;
+  balanceTickets: number;
+  balanceTicketFragments: number;
+  createdAt: number;
+};
+
+export type EconomyProductKind = "entitlement" | "consumable" | "season_pass";
+export type EconomyProduct = {
+  id: string;
+  revenueCatIdentifier: string;
+  title: string;
+  subtitle: string;
+  kind: EconomyProductKind;
+  tag: string;
+  storePlacement: "featured" | "tickets" | "premium" | "season";
+  grants: {
+    premium?: boolean;
+    seasonPass?: boolean;
+    coins?: number;
+    tickets?: number;
+    ticketFragments?: number;
+    cosmeticIds?: string[];
+  };
+};
+
+export type EconomyBalance = {
+  wallet: EconomyWallet;
+  ledger: EconomyLedgerEntry[];
+};
+
+export type InventoryCosmeticType = "frame" | "badge" | "title" | "banner" | "board_skin";
+export type InventoryCosmetic = {
+  id: string;
+  type: InventoryCosmeticType;
+  name: string;
+  rarity: "Common" | "Rare" | "Epic" | "Legendary";
+  source: "premium" | "season" | "arena_shop" | "bundle";
+  priceArenaPoints?: number;
+  assetPath: string;
+  description: string;
+};
+
+export type EconomyInventory = {
+  ownedCosmeticIds: string[];
+  equippedFrameId: string;
+  equippedBadgeId: string;
+  equippedTitleId: string;
+  equippedBannerId: string;
+  equippedBoardSkinId: string;
+  updatedAt: number;
+};
+
+export type RewardedAdRewardId = "coins_small" | "coins_big" | "ticket_fragment" | "power_recharge";
+export type RewardedAdOffer = {
+  id: RewardedAdRewardId;
+  title: string;
+  subtitle: string;
+  rewardLabel: string;
+  dailyLimit: number;
+  grants: { coins?: number; ticketFragments?: number };
+};
+
+export type SeasonPassReward = {
+  level: number;
+  free?: { coins?: number; tickets?: number; cosmeticIds?: string[]; label: string };
+  premium?: { coins?: number; tickets?: number; cosmeticIds?: string[]; label: string };
+};
+
+export type SeasonPassState = {
+  seasonId: string;
+  xp: number;
+  premium: boolean;
+  claimedFreeLevels: number[];
+  claimedPremiumLevels: number[];
+  updatedAt: number;
+};
+
+export const ECONOMY_KEYS = {
+  wallet: "sweirki:economy:wallet:v2",
+  legacyWallet: "sweirki:economy:wallet:v1",
+  ledger: "sweirki:economy:ledger:v2",
+  legacyLedger: "sweirki:economy:ledger:v1",
+  inventory: "sweirki:economy:inventory:v1",
+  seasonPass: "sweirki:economy:seasonPass:logic-wars-s1:v2",
+  legacySeasonPass: "sweirki:economy:seasonPass:logic-wars-s1:v1",
+  purchaseGrants: "sweirki:economy:purchaseGrants:v1",
+};
+
+export const ECONOMY_PRODUCTS = {
+  premiumLifetime: "premium_lifetime",
+  arenaTickets10: "arena_tickets_10",
+  championBundle: "champion_bundle",
+  logicWarsPass: "logic_wars_season_pass",
+} as const;
+
+export const ECONOMY_PRODUCT_LIST: EconomyProduct[] = [
+  {
+    id: "premium-lifetime",
+    revenueCatIdentifier: ECONOMY_PRODUCTS.premiumLifetime,
+    title: "Sweirki Plus Lifetime",
+    subtitle: "No ads, premium boards, premium reward track benefits, daily ticket boost, and exclusive cosmetics.",
+    kind: "entitlement",
+    tag: "Best account upgrade",
+    storePlacement: "premium",
+    grants: { premium: true, coins: 1500, tickets: 5, cosmeticIds: ["plus_shield", "cyan_royal_frame", "plus_title"] },
+  },
+  {
+    id: "arena-ticket-pack-10",
+    revenueCatIdentifier: ECONOMY_PRODUCTS.arenaTickets10,
+    title: "10 Arena Tickets",
+    subtitle: "Entry currency for Pro Cups and limited Arena events. No rating advantage.",
+    kind: "consumable",
+    tag: "Tournament fuel",
+    storePlacement: "tickets",
+    grants: { tickets: 10 },
+  },
+  {
+    id: "champion-bundle",
+    revenueCatIdentifier: ECONOMY_PRODUCTS.championBundle,
+    title: "Champion Bundle",
+    subtitle: "Coins, Arena Tickets, Champion frame, Champion title, and Champion banner for serious Arena players.",
+    kind: "consumable",
+    tag: "High value",
+    storePlacement: "featured",
+    grants: { coins: 2500, tickets: 15, cosmeticIds: ["champion_frame", "champion_title", "champion_banner"] },
+  },
+  {
+    id: "logic-wars-pass",
+    revenueCatIdentifier: ECONOMY_PRODUCTS.logicWarsPass,
+    title: "Logic Wars Season Pass",
+    subtitle: "Premium reward track for Season 1: cosmetics, tickets, coins, and profile prestige.",
+    kind: "season_pass",
+    tag: "Season 1",
+    storePlacement: "season",
+    grants: { seasonPass: true, coins: 1200, tickets: 8, cosmeticIds: ["logic_wars_banner", "master_grid_frame"] },
+  },
+];
+
+export const ECONOMY_COSMETICS: InventoryCosmetic[] = [
+  {
+    id: "default_frame",
+    type: "frame",
+    name: "Clean Grid Frame",
+    rarity: "Common",
+    source: "arena_shop",
+    priceArenaPoints: 0,
+    assetPath: "assets/economy/frames/bronze_frame.png",
+    description: "Default profile frame.",
+  },
+  {
+    id: "cyan_royal_frame",
+    type: "frame",
+    name: "Cyan Royal Frame",
+    rarity: "Epic",
+    source: "premium",
+    assetPath: "assets/economy/frames/elite_frame.png",
+    description: "Sweirki Plus profile frame.",
+  },
+  {
+    id: "champion_frame",
+    type: "frame",
+    name: "Champion Frame",
+    rarity: "Legendary",
+    source: "bundle",
+    assetPath: "assets/economy/frames/champion_frame.png",
+    description: "Bundle-exclusive trophy frame.",
+  },
+  {
+    id: "master_grid_frame",
+    type: "frame",
+    name: "Master Grid Frame",
+    rarity: "Legendary",
+    source: "season",
+    assetPath: "assets/economy/frames/logic_wars_frame.png",
+    description: "Logic Wars premium track frame.",
+  },
+  {
+    id: "plus_shield",
+    type: "badge",
+    name: "Plus Shield",
+    rarity: "Epic",
+    source: "premium",
+    assetPath: "assets/economy/badges/master_badge.png",
+    description: "Premium account badge.",
+  },
+  {
+    id: "logic_wars_banner",
+    type: "banner",
+    name: "Logic Wars Banner",
+    rarity: "Epic",
+    source: "season",
+    assetPath: "assets/economy/season/season_pass_hero.png",
+    description: "Season 1 banner.",
+  },
+  {
+    id: "champion_banner",
+    type: "banner",
+    name: "Champion Banner",
+    rarity: "Legendary",
+    source: "bundle",
+    assetPath: "assets/economy/shop/shop_featured_banner.png",
+    description: "Champion Bundle profile banner.",
+  },
+  {
+    id: "plus_title",
+    type: "title",
+    name: "Plus Strategist",
+    rarity: "Epic",
+    source: "premium",
+    assetPath: "assets/economy/titles/title_sweirki_legend.png",
+    description: "Premium title.",
+  },
+  {
+    id: "champion_title",
+    type: "title",
+    name: "Cup Champion",
+    rarity: "Legendary",
+    source: "bundle",
+    assetPath: "assets/economy/titles/title_arena_champion.png",
+    description: "Champion title.",
+  },
+  {
+    id: "frost_board_skin",
+    type: "board_skin",
+    name: "Frost Grid",
+    rarity: "Rare",
+    source: "arena_shop",
+    priceArenaPoints: 850,
+    assetPath: "assets/economy/shop/shop_starter_bundle.png",
+    description: "Arena Points board skin.",
+  },
+  {
+    id: "obsidian_board_skin",
+    type: "board_skin",
+    name: "Obsidian Grid",
+    rarity: "Epic",
+    source: "arena_shop",
+    priceArenaPoints: 1800,
+    assetPath: "assets/economy/shop/shop_premium_bundle.png",
+    description: "Premium dark board skin.",
+  },
+];
+
+export const REWARDED_AD_OFFERS: RewardedAdOffer[] = [
+  { id: "coins_small", title: "Coin Boost", subtitle: "Best for casual Classic and Survival entries.", rewardLabel: "+120 Coins", dailyLimit: 5, grants: { coins: 120 } },
+  { id: "coins_big", title: "Big Coin Boost", subtitle: "Limited high-value bonus for patient players.", rewardLabel: "+300 Coins", dailyLimit: 1, grants: { coins: 300 } },
+  { id: "ticket_fragment", title: "Ticket Fragment", subtitle: "10 fragments automatically convert into 1 Arena Ticket.", rewardLabel: "+1 Fragment", dailyLimit: 3, grants: { ticketFragments: 1 } },
+  { id: "power_recharge", title: "Power Recharge Bank", subtitle: "Adds coins for Reveal, Shield, or Freeze recharges outside gameplay.", rewardLabel: "+220 Coins", dailyLimit: 2, grants: { coins: 220 } },
+];
+
+export const SEASON_ID = "logic-wars-s1";
+export const SEASON_LEVEL_XP = 500;
+export const SEASON_PASS_REWARDS: SeasonPassReward[] = [
+  { level: 1, free: { coins: 150, label: "+150 Coins" }, premium: { coins: 300, tickets: 1, label: "+300 Coins • +1 Ticket" } },
+  { level: 2, free: { coins: 200, label: "+200 Coins" }, premium: { coins: 350, cosmeticIds: ["logic_wars_banner"], label: "Logic Wars Banner" } },
+  { level: 3, free: { tickets: 1, label: "+1 Ticket" }, premium: { coins: 400, tickets: 2, label: "+400 Coins • +2 Tickets" } },
+  { level: 4, free: { coins: 250, label: "+250 Coins" }, premium: { cosmeticIds: ["master_grid_frame"], label: "Master Grid Frame" } },
+  { level: 5, free: { coins: 500, label: "+500 Coins" }, premium: { coins: 1000, tickets: 3, cosmeticIds: ["frost_board_skin"], label: "Final Cache • Frost Grid" } },
+];
+
+const DEFAULT_WALLET: EconomyWallet = {
+  coins: 750,
+  tickets: 3,
+  ticketFragments: 0,
+  lifetimeCoinsEarned: 750,
+  lifetimeTicketsEarned: 3,
+  lifetimeTicketFragmentsEarned: 0,
+  lastDailyBonusKey: "",
+  lastRewardedAdKey: "",
+  rewardedAdsToday: 0,
+  lastAdCenterKey: "",
+  adCenterClaimsToday: {},
+  updatedAt: 0,
+};
+
+const DEFAULT_INVENTORY: EconomyInventory = {
+  ownedCosmeticIds: ["default_frame"],
+  equippedFrameId: "default_frame",
+  equippedBadgeId: "",
+  equippedTitleId: "",
+  equippedBannerId: "",
+  equippedBoardSkinId: "",
+  updatedAt: 0,
+};
+
+const MAX_LEDGER = 80;
+const LEGACY_REWARDED_AD_DAILY_LIMIT = 5;
+const FRAGMENTS_PER_TICKET = 10;
+
+function nowId(prefix: string) {
+  return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 9999)}`;
+}
+
+export function dayKey(timestamp = Date.now()) {
+  return new Date(timestamp).toISOString().slice(0, 10);
+}
+
+function safeNumber(value: unknown, fallback = 0) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+async function readJson<T>(key: string, fallback: T): Promise<T> {
+  try {
+    const raw = await AsyncStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+async function writeJson(key: string, value: unknown) {
+  await AsyncStorage.setItem(key, JSON.stringify(value));
+}
+
+type PurchaseGrantRecord = {
+  key: string;
+  productIdentifier: string;
+  createdAt: number;
+};
+
+async function getPurchaseGrantRecords(): Promise<PurchaseGrantRecord[]> {
+  const raw = await readJson<PurchaseGrantRecord[]>(ECONOMY_KEYS.purchaseGrants, []);
+  return Array.isArray(raw) ? raw.filter((item) => item?.key && item?.productIdentifier).slice(0, 200) : [];
+}
+
+async function markPurchaseGrantProcessed(key: string, productIdentifier: string) {
+  const records = await getPurchaseGrantRecords();
+  const next = [{ key, productIdentifier, createdAt: Date.now() }, ...records.filter((item) => item.key !== key)].slice(0, 200);
+  await writeJson(ECONOMY_KEYS.purchaseGrants, next);
+}
+
+export async function hasProcessedPurchaseGrant(key: string) {
+  if (!key) return false;
+  const records = await getPurchaseGrantRecords();
+  return records.some((item) => item.key === key);
+}
+
+function normalizeClaimMap(raw: unknown, today: string, rawKey?: string) {
+  if (rawKey !== today) return {};
+  if (!raw || typeof raw !== "object") return {};
+  const out: Record<string, number> = {};
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) out[k] = Math.max(0, safeNumber(v, 0));
+  return out;
+}
+
+function normalizeWallet(raw: Partial<EconomyWallet> | null | undefined): EconomyWallet {
+  const today = dayKey();
+  const lastRewardedAdKey = raw?.lastRewardedAdKey ?? "";
+  const lastAdCenterKey = raw?.lastAdCenterKey ?? "";
+  return {
+    ...DEFAULT_WALLET,
+    ...raw,
+    coins: Math.max(0, safeNumber(raw?.coins, DEFAULT_WALLET.coins)),
+    tickets: Math.max(0, safeNumber(raw?.tickets, DEFAULT_WALLET.tickets)),
+    ticketFragments: Math.max(0, safeNumber(raw?.ticketFragments, DEFAULT_WALLET.ticketFragments)),
+    lifetimeCoinsEarned: Math.max(0, safeNumber(raw?.lifetimeCoinsEarned, DEFAULT_WALLET.lifetimeCoinsEarned)),
+    lifetimeTicketsEarned: Math.max(0, safeNumber(raw?.lifetimeTicketsEarned, DEFAULT_WALLET.lifetimeTicketsEarned)),
+    lifetimeTicketFragmentsEarned: Math.max(0, safeNumber(raw?.lifetimeTicketFragmentsEarned, 0)),
+    lastDailyBonusKey: raw?.lastDailyBonusKey ?? "",
+    lastRewardedAdKey,
+    rewardedAdsToday: lastRewardedAdKey === today ? Math.max(0, safeNumber(raw?.rewardedAdsToday, 0)) : 0,
+    lastAdCenterKey,
+    adCenterClaimsToday: normalizeClaimMap(raw?.adCenterClaimsToday, today, lastAdCenterKey),
+    updatedAt: safeNumber(raw?.updatedAt, Date.now()),
+  };
+}
+
+function normalizeInventory(raw: Partial<EconomyInventory> | null | undefined): EconomyInventory {
+  const owned = Array.from(new Set(["default_frame", ...(Array.isArray(raw?.ownedCosmeticIds) ? raw!.ownedCosmeticIds! : [])]));
+  return {
+    ...DEFAULT_INVENTORY,
+    ...raw,
+    ownedCosmeticIds: owned,
+    equippedFrameId: owned.includes(raw?.equippedFrameId ?? "") ? raw?.equippedFrameId ?? "default_frame" : "default_frame",
+    equippedBadgeId: owned.includes(raw?.equippedBadgeId ?? "") ? raw?.equippedBadgeId ?? "" : "",
+    equippedTitleId: owned.includes(raw?.equippedTitleId ?? "") ? raw?.equippedTitleId ?? "" : "",
+    equippedBannerId: owned.includes(raw?.equippedBannerId ?? "") ? raw?.equippedBannerId ?? "" : "",
+    equippedBoardSkinId: owned.includes(raw?.equippedBoardSkinId ?? "") ? raw?.equippedBoardSkinId ?? "" : "",
+    updatedAt: safeNumber(raw?.updatedAt, Date.now()),
+  };
+}
+
+async function migrateLegacyWalletIfNeeded(): Promise<Partial<EconomyWallet> | null> {
+  const existing = await AsyncStorage.getItem(ECONOMY_KEYS.wallet);
+  if (existing) return JSON.parse(existing);
+  const legacy = await AsyncStorage.getItem(ECONOMY_KEYS.legacyWallet);
+  if (!legacy) return null;
+  try {
+    const parsed = JSON.parse(legacy);
+    const migrated = normalizeWallet(parsed);
+    await writeJson(ECONOMY_KEYS.wallet, migrated);
+    return migrated;
+  } catch {
+    return null;
+  }
+}
+
+export async function getEconomyWallet(): Promise<EconomyWallet> {
+  const raw = await migrateLegacyWalletIfNeeded();
+  const stored = raw ?? await readJson<Partial<EconomyWallet>>(ECONOMY_KEYS.wallet, DEFAULT_WALLET);
+  const wallet = normalizeWallet(stored);
+  if (JSON.stringify(wallet) !== JSON.stringify(stored)) await writeJson(ECONOMY_KEYS.wallet, wallet);
+  return wallet;
+}
+
+export async function getEconomyLedger(): Promise<EconomyLedgerEntry[]> {
+  const raw = await readJson<EconomyLedgerEntry[]>(ECONOMY_KEYS.ledger, []);
+  if (Array.isArray(raw) && raw.length) return raw.slice(0, MAX_LEDGER);
+  const legacy = await readJson<EconomyLedgerEntry[]>(ECONOMY_KEYS.legacyLedger, []);
+  return Array.isArray(legacy) ? legacy.slice(0, MAX_LEDGER) : [];
+}
+
+async function appendLedger(entry: EconomyLedgerEntry) {
+  const ledger = await getEconomyLedger();
+  await writeJson(ECONOMY_KEYS.ledger, [entry, ...ledger].slice(0, MAX_LEDGER));
+}
+
+export async function getEconomyBalance(): Promise<EconomyBalance> {
+  const [wallet, ledger] = await Promise.all([getEconomyWallet(), getEconomyLedger()]);
+  return { wallet, ledger };
+}
+
+async function addToInventory(cosmeticIds?: string[]) {
+  if (!cosmeticIds?.length) return getEconomyInventory();
+  const current = await getEconomyInventory();
+  const ownedCosmeticIds = Array.from(new Set([...current.ownedCosmeticIds, ...cosmeticIds]));
+  const next = normalizeInventory({ ...current, ownedCosmeticIds, updatedAt: Date.now() });
+  await writeJson(ECONOMY_KEYS.inventory, next);
+  return next;
+}
+
+export async function getEconomyInventory(): Promise<EconomyInventory> {
+  const raw = await readJson<Partial<EconomyInventory>>(ECONOMY_KEYS.inventory, DEFAULT_INVENTORY);
+  const inventory = normalizeInventory(raw);
+  if (JSON.stringify(inventory) !== JSON.stringify(raw)) await writeJson(ECONOMY_KEYS.inventory, inventory);
+  return inventory;
+}
+
+export async function equipCosmetic(cosmeticId: string): Promise<{ ok: boolean; inventory: EconomyInventory; reason?: string }> {
+  const cosmetic = ECONOMY_COSMETICS.find((item) => item.id === cosmeticId);
+  const inventory = await getEconomyInventory();
+  if (!cosmetic) return { ok: false, inventory, reason: "Unknown cosmetic" };
+  if (!inventory.ownedCosmeticIds.includes(cosmeticId)) return { ok: false, inventory, reason: "Cosmetic not owned" };
+  const next: EconomyInventory = { ...inventory, updatedAt: Date.now() };
+  if (cosmetic.type === "frame") next.equippedFrameId = cosmeticId;
+  if (cosmetic.type === "badge") next.equippedBadgeId = cosmeticId;
+  if (cosmetic.type === "title") next.equippedTitleId = cosmeticId;
+  if (cosmetic.type === "banner") next.equippedBannerId = cosmeticId;
+  if (cosmetic.type === "board_skin") next.equippedBoardSkinId = cosmeticId;
+  await writeJson(ECONOMY_KEYS.inventory, next);
+  return { ok: true, inventory: next };
+}
+
+function convertFragments(wallet: EconomyWallet): EconomyWallet {
+  const extraTickets = Math.floor(wallet.ticketFragments / FRAGMENTS_PER_TICKET);
+  if (extraTickets <= 0) return wallet;
+  return {
+    ...wallet,
+    tickets: wallet.tickets + extraTickets,
+    ticketFragments: wallet.ticketFragments % FRAGMENTS_PER_TICKET,
+    lifetimeTicketsEarned: wallet.lifetimeTicketsEarned + extraTickets,
+  };
+}
+
+export async function grantEconomy(input: {
+  source: EconomySource;
+  label: string;
+  coins?: number;
+  tickets?: number;
+  ticketFragments?: number;
+  cosmeticIds?: string[];
+}): Promise<EconomyWallet> {
+  const wallet = await getEconomyWallet();
+  const coins = Math.max(0, safeNumber(input.coins, 0));
+  const tickets = Math.max(0, safeNumber(input.tickets, 0));
+  const ticketFragments = Math.max(0, safeNumber(input.ticketFragments, 0));
+  const next = convertFragments({
+    ...wallet,
+    coins: wallet.coins + coins,
+    tickets: wallet.tickets + tickets,
+    ticketFragments: wallet.ticketFragments + ticketFragments,
+    lifetimeCoinsEarned: wallet.lifetimeCoinsEarned + coins,
+    lifetimeTicketsEarned: wallet.lifetimeTicketsEarned + tickets,
+    lifetimeTicketFragmentsEarned: wallet.lifetimeTicketFragmentsEarned + ticketFragments,
+    updatedAt: Date.now(),
+  });
+  await writeJson(ECONOMY_KEYS.wallet, next);
+  await addToInventory(input.cosmeticIds);
+  await appendLedger({
+    id: nowId("grant"),
+    source: input.source,
+    label: input.label,
+    deltaCoins: coins,
+    deltaTickets: next.tickets - wallet.tickets,
+    deltaTicketFragments: ticketFragments,
+    balanceCoins: next.coins,
+    balanceTickets: next.tickets,
+    balanceTicketFragments: next.ticketFragments,
+    createdAt: Date.now(),
+  });
+  return next;
+}
+
+export async function spendEconomy(input: {
+  source: EconomySource;
+  label: string;
+  coins?: number;
+  tickets?: number;
+}): Promise<{ ok: boolean; wallet: EconomyWallet; missing?: "coins" | "tickets" }> {
+  const wallet = await getEconomyWallet();
+  const coins = Math.max(0, safeNumber(input.coins, 0));
+  const tickets = Math.max(0, safeNumber(input.tickets, 0));
+  if (wallet.coins < coins) return { ok: false, wallet, missing: "coins" };
+  if (wallet.tickets < tickets) return { ok: false, wallet, missing: "tickets" };
+  const next: EconomyWallet = { ...wallet, coins: wallet.coins - coins, tickets: wallet.tickets - tickets, updatedAt: Date.now() };
+  await writeJson(ECONOMY_KEYS.wallet, next);
+  await appendLedger({
+    id: nowId("spend"),
+    source: input.source,
+    label: input.label,
+    deltaCoins: coins ? -coins : 0,
+    deltaTickets: tickets ? -tickets : 0,
+    deltaTicketFragments: 0,
+    balanceCoins: next.coins,
+    balanceTickets: next.tickets,
+    balanceTicketFragments: next.ticketFragments,
+    createdAt: Date.now(),
+  });
+  return { ok: true, wallet: next };
+}
+
+export async function grantDailyPremiumEconomyBonus(isPremium: boolean): Promise<EconomyWallet> {
+  const wallet = await getEconomyWallet();
+  const today = dayKey();
+  if (!isPremium || wallet.lastDailyBonusKey === today) return wallet;
+  const next = await grantEconomy({ source: "premium_bonus", label: "Sweirki Plus daily bonus", coins: 150, tickets: 1 });
+  const marked = { ...next, lastDailyBonusKey: today, updatedAt: Date.now() };
+  await writeJson(ECONOMY_KEYS.wallet, marked);
+  return marked;
+}
+
+export function getClassicReward(mode: string, win: boolean, difficulty?: string) {
+  if (!win) return { coins: 0, tickets: 0, seasonXp: 0, label: "No economy reward on loss" };
+  const difficultyBonus = difficulty === "expert" ? 45 : difficulty === "hard" ? 35 : difficulty === "medium" ? 25 : 18;
+  if (mode === "daily") return { coins: 160, tickets: 0, seasonXp: 70, label: "Daily Challenge clear" };
+  if (mode === "weekly") return { coins: 260, tickets: 1, seasonXp: 130, label: "Weekly Challenge clear" };
+  if (mode === "killer" || mode === "hyper" || mode === "x") return { coins: 120 + difficultyBonus, tickets: 0, seasonXp: 75, label: "Premium variant clear" };
+  return { coins: 75 + difficultyBonus, tickets: 0, seasonXp: 45, label: "Classic clear" };
+}
+
+export async function addSeasonXp(amount: number) {
+  const state = await getSeasonPassState();
+  const next: SeasonPassState = { ...state, xp: Math.max(0, state.xp + Math.max(0, safeNumber(amount, 0))), updatedAt: Date.now() };
+  await writeJson(ECONOMY_KEYS.seasonPass, next);
+  return next;
+}
+
+export async function awardGameEconomy(result: { mode: string; win: boolean; difficulty?: string }) {
+  const reward = getClassicReward(result.mode, result.win, result.difficulty);
+  if (reward.seasonXp > 0) await addSeasonXp(reward.seasonXp);
+  if (reward.coins <= 0 && reward.tickets <= 0) return getEconomyWallet();
+  return grantEconomy({ source: result.mode === "daily" ? "daily_win" : result.mode === "weekly" ? "weekly_win" : result.mode === "classic" ? "classic_win" : "variant_win", label: reward.label, coins: reward.coins, tickets: reward.tickets });
+}
+
+export function getArenaEntryCost(mode: string, profile?: { dailyMatches?: number }, isPremium = false) {
+  if (mode === "ranked") return { coins: 0, tickets: 0, label: "Ranked Duel entry is free" };
+  if (mode === "power") return { coins: 0, tickets: 0, label: "Power Arena entry is free" };
+  if (mode === "survival") {
+    const freeRuns = isPremium ? 2 : 1;
+    const used = Math.max(0, safeNumber(profile?.dailyMatches, 0));
+    if (used < freeRuns) return { coins: 0, tickets: 0, label: "Daily Survival free entry" };
+    return { coins: isPremium ? 150 : 300, tickets: 0, label: "Extra Survival entry" };
+  }
+  if (mode === "tournament") {
+    const used = Math.max(0, safeNumber(profile?.dailyMatches, 0));
+    if (used === 0) return { coins: 0, tickets: 0, label: "Daily Cup free entry" };
+    return { coins: 0, tickets: 1, label: "Tournament Cup ticket entry" };
+  }
+  return { coins: 0, tickets: 0, label: "Free entry" };
+}
+
+export async function canAffordArenaEntry(mode: string, profile?: { dailyMatches?: number }, isPremium = false) {
+  const wallet = await getEconomyWallet();
+  const cost = getArenaEntryCost(mode, profile, isPremium);
+  return { ok: wallet.coins >= cost.coins && wallet.tickets >= cost.tickets, wallet, cost, missing: wallet.coins < cost.coins ? "coins" as const : wallet.tickets < cost.tickets ? "tickets" as const : null };
+}
+
+export async function spendArenaEntry(mode: string, profile?: { dailyMatches?: number }, isPremium = false) {
+  const cost = getArenaEntryCost(mode, profile, isPremium);
+  if (cost.coins <= 0 && cost.tickets <= 0) return { ok: true, cost, wallet: await getEconomyWallet(), missing: null };
+  const spent = await spendEconomy({ source: "arena_entry", label: cost.label, coins: cost.coins, tickets: cost.tickets });
+  return { ...spent, cost, missing: spent.missing ?? null };
+}
+
+export async function grantArenaEconomyReward(input: { win: boolean; mode: string; cupChampion?: boolean; survivalDepth?: number; economyCapped?: boolean }) {
+  const seasonXp = input.win ? input.mode === "tournament" ? 180 : input.mode === "survival" ? 110 : 90 : 35;
+  await addSeasonXp(seasonXp);
+  if (!input.win) return getEconomyWallet();
+  let coins = input.mode === "ranked" ? 95 : input.mode === "power" ? 120 : input.mode === "survival" ? 90 + Math.max(0, input.survivalDepth ?? 0) * 45 : 130;
+  let tickets = 0;
+  if (input.mode === "tournament" && input.cupChampion) { coins += 450; tickets += 1; }
+  if (input.economyCapped) coins = Math.round(coins * 0.5);
+  return grantEconomy({ source: "arena_result", label: input.cupChampion ? "Tournament champion reward" : "Arena match reward", coins, tickets });
+}
+
+export async function grantRewardedAdEconomy() {
+  const wallet = await getEconomyWallet();
+  const today = dayKey();
+  const rewardedAdsToday = wallet.lastRewardedAdKey === today ? wallet.rewardedAdsToday : 0;
+  if (rewardedAdsToday >= LEGACY_REWARDED_AD_DAILY_LIMIT) return { ok: false, wallet, reason: "Daily rewarded ad limit reached" };
+  const next = await grantEconomy({ source: "rewarded_ad", label: "Rewarded ad coin bonus", coins: 120 });
+  const updated = { ...next, lastRewardedAdKey: today, rewardedAdsToday: rewardedAdsToday + 1 };
+  await writeJson(ECONOMY_KEYS.wallet, updated);
+  return { ok: true, wallet: updated, reason: null };
+}
+
+export async function claimRewardedAdOffer(offerId: RewardedAdRewardId) {
+  const wallet = await getEconomyWallet();
+  const today = dayKey();
+  const offer = REWARDED_AD_OFFERS.find((item) => item.id === offerId);
+  if (!offer) return { ok: false, wallet, reason: "Unknown rewarded offer", offer: null };
+  const claims = wallet.lastAdCenterKey === today ? wallet.adCenterClaimsToday : {};
+  const used = Math.max(0, safeNumber(claims[offerId], 0));
+  if (used >= offer.dailyLimit) return { ok: false, wallet, reason: "Daily limit reached", offer };
+  const next = await grantEconomy({ source: "ad_center", label: offer.title, coins: offer.grants.coins, ticketFragments: offer.grants.ticketFragments });
+  const updated = { ...next, lastAdCenterKey: today, adCenterClaimsToday: { ...claims, [offerId]: used + 1 }, updatedAt: Date.now() };
+  await writeJson(ECONOMY_KEYS.wallet, updated);
+  return { ok: true, wallet: updated, reason: null, offer };
+}
+
+export async function grantPurchasedProduct(productIdentifier: string, options?: { purchaseKey?: string }) {
+  const product = ECONOMY_PRODUCT_LIST.find((item) => item.revenueCatIdentifier === productIdentifier || item.id === productIdentifier);
+  if (!product) return { ok: false, wallet: await getEconomyWallet(), product: null, alreadyProcessed: false };
+
+  const purchaseKey = options?.purchaseKey?.trim() || `${product.revenueCatIdentifier}:entitlement`;
+  const alreadyProcessed = await hasProcessedPurchaseGrant(purchaseKey);
+  if (alreadyProcessed) return { ok: true, wallet: await getEconomyWallet(), product, alreadyProcessed: true };
+
+  const wallet = await grantEconomy({
+    source: "purchase",
+    label: product.title,
+    coins: product.grants.coins ?? 0,
+    tickets: product.grants.tickets ?? 0,
+    ticketFragments: product.grants.ticketFragments ?? 0,
+    cosmeticIds: product.grants.cosmeticIds,
+  });
+
+  if (product.grants.seasonPass) {
+    const state = await getSeasonPassState();
+    await writeJson(ECONOMY_KEYS.seasonPass, { ...state, premium: true, updatedAt: Date.now() });
+  }
+
+  await markPurchaseGrantProcessed(purchaseKey, product.revenueCatIdentifier);
+  return { ok: true, wallet, product, alreadyProcessed: false };
+}
+
+export async function syncSeasonPassEntitlement(active: boolean) {
+  const state = await getSeasonPassState();
+  if (!active || state.premium) return state;
+  const next: SeasonPassState = { ...state, premium: true, updatedAt: Date.now() };
+  await writeJson(ECONOMY_KEYS.seasonPass, next);
+  return next;
+}
+
+export async function hasSeasonPass() {
+  const state = await getSeasonPassState();
+  return state.premium || (await AsyncStorage.getItem(ECONOMY_KEYS.legacySeasonPass)) === "active";
+}
+
+export async function getSeasonPassState(): Promise<SeasonPassState> {
+  const legacyActive = (await AsyncStorage.getItem(ECONOMY_KEYS.legacySeasonPass)) === "active";
+  const raw = await readJson<Partial<SeasonPassState>>(ECONOMY_KEYS.seasonPass, {});
+  const state: SeasonPassState = {
+    seasonId: raw.seasonId ?? SEASON_ID,
+    xp: Math.max(0, safeNumber(raw.xp, 0)),
+    premium: Boolean(raw.premium || legacyActive),
+    claimedFreeLevels: Array.isArray(raw.claimedFreeLevels) ? raw.claimedFreeLevels : [],
+    claimedPremiumLevels: Array.isArray(raw.claimedPremiumLevels) ? raw.claimedPremiumLevels : [],
+    updatedAt: safeNumber(raw.updatedAt, Date.now()),
+  };
+  if (JSON.stringify(state) !== JSON.stringify(raw)) await writeJson(ECONOMY_KEYS.seasonPass, state);
+  return state;
+}
+
+export function getSeasonLevelFromXp(xp: number) {
+  return Math.min(SEASON_PASS_REWARDS.length, Math.max(0, Math.floor(Math.max(0, xp) / SEASON_LEVEL_XP) + 1));
+}
+
+export async function claimSeasonReward(level: number, track: "free" | "premium") {
+  const state = await getSeasonPassState();
+  const reward = SEASON_PASS_REWARDS.find((item) => item.level === level);
+  const currentLevel = getSeasonLevelFromXp(state.xp);
+  if (!reward || level > currentLevel) return { ok: false, state, reason: "Reward is locked" };
+  if (track === "premium" && !state.premium) return { ok: false, state, reason: "Season Pass required" };
+  const claimedKey = track === "free" ? "claimedFreeLevels" : "claimedPremiumLevels";
+  if (state[claimedKey].includes(level)) return { ok: false, state, reason: "Already claimed" };
+  const grant = reward[track];
+  if (!grant) return { ok: false, state, reason: "No reward on this track" };
+  await grantEconomy({ source: "season_pass", label: `Season Pass L${level}: ${grant.label}`, coins: grant.coins, tickets: grant.tickets, cosmeticIds: grant.cosmeticIds });
+  const next: SeasonPassState = { ...state, [claimedKey]: [...state[claimedKey], level], updatedAt: Date.now() };
+  await writeJson(ECONOMY_KEYS.seasonPass, next);
+  return { ok: true, state: next, reason: null };
+}
+
+export async function buyArenaShopCosmetic(cosmeticId: string, currentArenaPoints: number) {
+  const cosmetic = ECONOMY_COSMETICS.find((item) => item.id === cosmeticId);
+  const inventory = await getEconomyInventory();
+  if (!cosmetic) return { ok: false, inventory, missingArenaPoints: 0, reason: "Unknown cosmetic" };
+  if (inventory.ownedCosmeticIds.includes(cosmeticId)) return { ok: true, inventory, missingArenaPoints: 0, reason: "Already owned" };
+  const price = cosmetic.priceArenaPoints ?? 0;
+  if (currentArenaPoints < price) return { ok: false, inventory, missingArenaPoints: price - currentArenaPoints, reason: "Not enough Arena Points" };
+  const next = await addToInventory([cosmeticId]);
+  await appendLedger({ id: nowId("arena-shop"), source: "arena_shop", label: `Unlocked ${cosmetic.name}`, deltaCoins: 0, deltaTickets: 0, deltaTicketFragments: 0, balanceCoins: (await getEconomyWallet()).coins, balanceTickets: (await getEconomyWallet()).tickets, balanceTicketFragments: (await getEconomyWallet()).ticketFragments, createdAt: Date.now() });
+  return { ok: true, inventory: next, missingArenaPoints: 0, reason: null };
+}
+
+export function formatCost(cost: { coins?: number; tickets?: number; ticketFragments?: number }) {
+  const parts: string[] = [];
+  if ((cost.tickets ?? 0) > 0) parts.push(`${cost.tickets} Ticket${cost.tickets === 1 ? "" : "s"}`);
+  if ((cost.coins ?? 0) > 0) parts.push(`${cost.coins} Coins`);
+  if ((cost.ticketFragments ?? 0) > 0) parts.push(`${cost.ticketFragments}/10 Ticket Fragment${cost.ticketFragments === 1 ? "" : "s"}`);
+  return parts.length ? parts.join(" + ") : "Free";
+}
+
+

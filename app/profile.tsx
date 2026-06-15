@@ -223,7 +223,11 @@ function ProfileInner() {
           <View style={styles.accountTop}><Image source={shieldAsset} style={styles.shield} /><View style={{ flex: 1 }}><Text style={styles.sectionLabel}>ACCOUNT</Text>{email && <Text style={styles.accountText}>{email}</Text>}<Text style={styles.accountText}>Status: <Text style={styles.accountStrong}>{isPremium ? "Premium" : "Standard"}</Text></Text></View></View>
           {!isPremium && <TouchableOpacity activeOpacity={0.85} style={styles.premiumLink} onPress={() => router.push("/upgrade")}><Ionicons name="diamond" size={16} color="#766AF6" /><Text style={styles.premiumLinkText}>View Premium options</Text><Ionicons name="chevron-forward" size={18} color="#766AF6" /></TouchableOpacity>}
           <TouchableOpacity activeOpacity={0.86} style={styles.manageBtn} onPress={() => router.push("/account")}><Ionicons name="person-circle-outline" size={19} color="#143D66" /><Text style={styles.manageText}>Manage Account</Text><Ionicons name="chevron-forward" size={18} color="#143D66" /></TouchableOpacity>
-          <View style={styles.accountButtons}><TouchableOpacity activeOpacity={0.85} style={styles.restoreBtn} onPress={async () => { try { const result = await Purchases.restorePurchases(); await refresh(); setRestoreMessage(result?.entitlements?.active?.premium ? "Premium restored successfully" : "No previous purchases found for this account"); } catch { setRestoreMessage("Restore unavailable on this app version"); } }}><Ionicons name="refresh" size={18} color="#157FE6" /><Text style={styles.restoreText}>Restore Purchases</Text></TouchableOpacity><TouchableOpacity activeOpacity={0.85} style={styles.logoutBtn} onPress={() => setLogoutVisible(true)}><Ionicons name="log-out-outline" size={18} color="#E55364" /><Text style={styles.logoutText}>Log out</Text></TouchableOpacity></View>
+          <View style={styles.accountButtons}><TouchableOpacity activeOpacity={0.85} style={styles.restoreBtn} onPress={async () => { try { const result = await Purchases.restorePurchases(); await refresh(); setRestoreMessage(result?.entitlements?.active?.premium
+                      ? "Premium restored successfully"
+                      : result?.entitlements?.active?.season_pass || result?.entitlements?.active?.logic_wars_pass
+                        ? "Season Pass restored successfully"
+                        : "No previous purchases found for this account"); } catch { setRestoreMessage("Restore unavailable on this app version"); } }}><Ionicons name="refresh" size={18} color="#157FE6" /><Text style={styles.restoreText}>Restore Purchases</Text></TouchableOpacity><TouchableOpacity activeOpacity={0.85} style={styles.logoutBtn} onPress={() => setLogoutVisible(true)}><Ionicons name="log-out-outline" size={18} color="#E55364" /><Text style={styles.logoutText}>Log out</Text></TouchableOpacity></View>
         </View>
       </ScrollView>
 
@@ -332,3 +336,4 @@ const styles = StyleSheet.create({
   modalCancelText: { fontFamily: "BalooBold", color: "#143D66" },
   modalConfirmText: { fontFamily: "BalooBold", color: "#fff" },
 });
+

@@ -12,6 +12,7 @@ import {
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import { useRevenueCat } from "../src/hooks/useRevenueCat";
 import { getLadderRank, getSeasonOutcome, getSeasonRank } from "../utils/ladder/scoreEngine";
 import { archiveSeason } from "./lib/seasonArchive";
@@ -34,8 +35,7 @@ type Tab = "daily" | "season" | "all";
 const SEASON_LENGTH_DAYS = 28;
 const getTodayId = () => new Date().toISOString().slice(0, 10);
 
-const leaderboardHero = require("../assets/branding/leaderboard/leaderboard-hero.png");
-const podiumArt = require("../assets/branding/leaderboard/podium.png");
+const leaderboardHero = require("../assets/branding/heroes/league-hero.png");
 const goldMedal = require("../assets/branding/leaderboard/rank-gold.png");
 const silverMedal = require("../assets/branding/leaderboard/rank-silver.png");
 const bronzeMedal = require("../assets/branding/leaderboard/rank-bronze.png");
@@ -101,10 +101,10 @@ function getRankArt(rank: number) {
 }
 
 function getRankTone(rank: number) {
-  if (rank === 1) return { bg: "#FFF4C7", border: "#FFD66B", text: "#C58416" };
-  if (rank === 2) return { bg: "#EEF5FB", border: "#C9DCEB", text: "#6B8399" };
-  if (rank === 3) return { bg: "#FFF0E5", border: "#E7B287", text: "#B66D38" };
-  return { bg: "#EFF8FF", border: "#D7EEF9", text: "#5A7A92" };
+  if (rank === 1) return { bg: "#F8F3E8", border: "#E7D7AE", text: "#8A6A2E" };
+  if (rank === 2) return { bg: "#F2F8FC", border: "#D7E6F1", text: "#6E8495" };
+  if (rank === 3) return { bg: "#F7EEE8", border: "#D9BCA6", text: "#8C6247" };
+  return { bg: "#F4FAFE", border: "#DCEFF8", text: "#5A7A92" };
 }
 
 function getTabMeta(tab: Tab) {
@@ -123,6 +123,7 @@ function getRowMetric(tab: Tab, item: any) {
 }
 
 export default function LeaderboardScreen() {
+  const router = useRouter();
   const [dailyStatus, setDailyStatus] = useState<"idle" | "played">("idle");
   const { isPremium } = useRevenueCat();
 
@@ -432,18 +433,20 @@ export default function LeaderboardScreen() {
       </View>
 
       {!isPremium && (
-        <View style={styles.noticeCard}>
-          <View style={styles.noticeIcon}>
-            <Text style={styles.noticeIconText}>★</Text>
-          </View>
-          <View style={styles.noticeCopy}>
-            <Text style={styles.noticeTitle}>Premium season entry</Text>
-            <Text style={styles.noticeText}>Unlock full season participation.</Text>
-          </View>
-          <View style={styles.noticePill}>
-            <Text style={styles.noticePillText}>Go Premium</Text>
-          </View>
-        </View>
+        <TouchableOpacity style={styles.noticeCard} activeOpacity={0.82} onPress={() => router.push("/upgrade")}>
+          <LinearGradient colors={["#FFFCF3", "#F5E8C9"]} style={styles.noticeGlow}>
+            <View style={styles.noticeIcon}>
+              <Text style={styles.noticeIconText}>★</Text>
+            </View>
+            <View style={styles.noticeCopy}>
+              <Text style={styles.noticeTitle}>Premium season entry</Text>
+              <Text style={styles.noticeText}>Unlock the daily race, season rewards, and full ladder participation.</Text>
+            </View>
+            <View style={styles.noticePill}>
+              <Text style={styles.noticePillText}>Go Premium</Text>
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
       )}
 
       {seasonChange && (
@@ -462,7 +465,10 @@ export default function LeaderboardScreen() {
             <TouchableOpacity
               key={t}
               onPress={() => {
-                if (t === "daily" && !isPremium) return;
+                if (t === "daily" && !isPremium) {
+                  router.push("/upgrade");
+                  return;
+                }
                 setTab(t);
               }}
               style={[styles.tab, active && styles.tabActive, t === "daily" && !isPremium && styles.tabLocked]}
@@ -479,14 +485,37 @@ export default function LeaderboardScreen() {
 
       {topThree.length > 0 && (
         <View style={styles.podiumCard}>
-          <Image source={podiumArt} style={styles.podiumArt} resizeMode="contain" />
-          <View style={styles.podiumText}>
-            <Text style={styles.sectionTitle}>Podium</Text>
-            <View style={styles.podiumChips}>
-              {topThree.map((item) => {
-                const tone = getRankTone(item.rank);
-                return (
-                  <View key={item.id} style={[styles.podiumChip, { backgroundColor: tone.bg, borderColor: tone.border }]}>
+          <View style={styles.podiumHeader}>
+            <View>
+              <Text style={styles.sectionKicker}>Top challengers</Text>
+              <Text style={styles.sectionTitle}>Podium</Text>
+            </View>
+            <View style={styles.podiumCrest}>
+              <Text style={styles.podiumCrestText}>★</Text>
+            </View>
+          </View>
+
+          <View style={styles.podiumStage}>
+            {topThree.map((item) => {
+              const tone = getRankTone(item.rank);
+              const rankArt = getRankArt(item.rank);
+              return (
+                <View
+                  key={item.id}
+                  style={[
+                    styles.podiumChip,
+                    item.rank === 1 && styles.podiumChipFirst,
+                    { backgroundColor: tone.bg, borderColor: tone.border },
+                  ]}
+                >
+                  <View style={[styles.podiumMedal, { backgroundColor: tone.border }]}>
+                    {rankArt ? (
+                      <Image source={rankArt} style={styles.podiumMedalArt} resizeMode="contain" />
+                    ) : (
+                      <Text style={[styles.podiumRank, { color: tone.text }]}>#{item.rank}</Text>
+                    )}
+                  </View>
+                  <View style={styles.podiumCopy}>
                     <Text style={[styles.podiumRank, { color: tone.text }]}>#{item.rank}</Text>
                     <Text style={styles.podiumName} numberOfLines={1}>
                       {getDisplayName(item, user, userNames)}
@@ -495,9 +524,9 @@ export default function LeaderboardScreen() {
                       {getRowMetric(tab, item)}
                     </Text>
                   </View>
-                );
-              })}
-            </View>
+                </View>
+              );
+            })}
           </View>
         </View>
       )}
@@ -598,146 +627,161 @@ export default function LeaderboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  bg: { flex: 1, backgroundColor: "#EAF5FF" },
-  container: { paddingHorizontal: 18, paddingTop: 58, paddingBottom: 34 },
+  bg: { flex: 1, backgroundColor: "#EAF7FF" },
+  container: { paddingHorizontal: 18, paddingTop: 62, paddingBottom: 38 },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
 
-  headerWrap: { gap: 12, marginBottom: 10 },
+  headerWrap: { gap: 13, marginBottom: 10 },
   heroCard: {
-    minHeight: 138,
-    borderRadius: 30,
-    padding: 18,
+    minHeight: 176,
+    borderRadius: 34,
+    padding: 20,
     overflow: "hidden",
-    backgroundColor: "rgba(255,255,255,0.92)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.9)",
-    shadowColor: "#6AA7D8",
-    shadowOpacity: 0.18,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 6,
+    backgroundColor: "rgba(255,255,255,0.95)",
+    borderWidth: 1.2,
+    borderColor: "rgba(142,210,242,0.62)",
+    shadowColor: "#58AEE4",
+    shadowOpacity: 0.22,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 8,
   },
-  heroTextBlock: { width: "65%", zIndex: 2 },
+  heroTextBlock: { width: "62%", zIndex: 2 },
   kicker: {
     fontFamily: sweirkiFonts.bold,
     fontSize: 12,
-    color: "#53A8DD",
-    letterSpacing: 0.4,
+    color: "#1E9EDE",
+    letterSpacing: 2.2,
     textTransform: "uppercase",
   },
   title: {
-    marginTop: 2,
+    marginTop: 5,
     fontFamily: sweirkiFonts.bold,
-    fontSize: 31,
+    fontSize: 32,
     lineHeight: 34,
-    color: "#254A68",
+    color: "#183F65",
   },
   subtitle: {
-    marginTop: 4,
+    marginTop: 7,
     fontFamily: sweirkiFonts.regular,
-    fontSize: 13,
-    lineHeight: 17,
-    color: "#5F7F98",
+    fontSize: 13.5,
+    lineHeight: 18,
+    color: "#6E8EA6",
   },
   heroArt: {
     position: "absolute",
-    right: -8,
-    bottom: -16,
-    width: 150,
-    height: 150,
+    right: -22,
+    bottom: -20,
+    width: 190,
+    height: 190,
   },
 
   summaryGrid: { flexDirection: "row", gap: 8 },
   summaryCard: {
     flex: 1,
-    borderRadius: 22,
-    paddingVertical: 12,
+    minHeight: 84,
+    borderRadius: 24,
+    paddingVertical: 13,
     paddingHorizontal: 11,
-    backgroundColor: "rgba(255,255,255,0.9)",
+    backgroundColor: "rgba(255,255,255,0.92)",
+    borderWidth: 1,
+    borderColor: "rgba(142,210,242,0.35)",
     shadowColor: "#75ACD4",
-    shadowOpacity: 0.12,
-    shadowRadius: 14,
+    shadowOpacity: 0.15,
+    shadowRadius: 15,
     shadowOffset: { width: 0, height: 7 },
-    elevation: 3,
+    elevation: 4,
   },
   summaryLabel: {
     fontFamily: sweirkiFonts.bold,
     fontSize: 10,
-    color: "#69A7CF",
+    color: "#43A8DE",
+    letterSpacing: 0.8,
     textTransform: "uppercase",
   },
   summaryValue: {
-    marginTop: 2,
+    marginTop: 4,
     fontFamily: sweirkiFonts.bold,
     fontSize: 18,
     lineHeight: 22,
-    color: "#254A68",
+    color: "#173E63",
   },
   summaryCaption: {
-    marginTop: 1,
+    marginTop: 2,
     fontFamily: sweirkiFonts.regular,
     fontSize: 11,
-    color: "#7892A5",
+    color: "#7898AF",
   },
 
   noticeCard: {
-    minHeight: 42,
-    borderRadius: 18,
-    paddingVertical: 6,
-    paddingHorizontal: 9,
-    backgroundColor: "#FFF5D8",
+    borderRadius: 20,
+    overflow: "hidden",
     borderWidth: 1,
-    borderColor: "#F4D98C",
+    borderColor: "#E7D7AE",
+    shadowColor: "#D5B96F",
+    shadowOpacity: 0.14,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
+  },
+  noticeGlow: {
+    minHeight: 52,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
     flexDirection: "row",
     alignItems: "center",
   },
   noticeIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 10,
-    backgroundColor: "#FFD76D",
+    width: 34,
+    height: 34,
+    borderRadius: 13,
+    backgroundColor: "#E7D7AE",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 8,
+    marginRight: 9,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.78)",
   },
   noticeIconText: {
     fontFamily: sweirkiFonts.bold,
-    fontSize: 13,
+    fontSize: 15,
     color: "#FFFFFF",
   },
   noticeCopy: { flex: 1, minWidth: 0 },
   noticeTitle: {
     fontFamily: sweirkiFonts.bold,
-    fontSize: 11,
-    color: "#B37A1D",
+    fontSize: 12,
+    color: "#8A6A2E",
   },
   noticeText: {
-    marginTop: 0,
+    marginTop: 1,
     fontFamily: sweirkiFonts.regular,
-    fontSize: 9.5,
-    lineHeight: 12,
-    color: "#8E7A4D",
+    fontSize: 10.5,
+    lineHeight: 13,
+    color: "#756648",
   },
   noticePill: {
-    paddingHorizontal: 8,
-    paddingVertical: 5,
+    paddingHorizontal: 9,
+    paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: "#FFEAB0",
+    backgroundColor: "rgba(255,255,255,0.62)",
     borderWidth: 1,
-    borderColor: "#F0CC72",
+    borderColor: "#E7D7AE",
     marginLeft: 7,
   },
   noticePillText: {
     fontFamily: sweirkiFonts.bold,
-    fontSize: 9.5,
-    color: "#B37A1D",
+    fontSize: 9.8,
+    color: "#8A6A2E",
   },
 
   tabs: {
     flexDirection: "row",
     padding: 5,
-    borderRadius: 24,
-    backgroundColor: "rgba(255,255,255,0.74)",
+    borderRadius: 26,
+    backgroundColor: "rgba(255,255,255,0.78)",
+    borderWidth: 1,
+    borderColor: "rgba(142,210,242,0.32)",
     gap: 6,
   },
   tab: {
@@ -745,71 +789,118 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
-    paddingVertical: 8,
-    borderRadius: 18,
+    paddingVertical: 9,
+    borderRadius: 20,
   },
   tabActive: {
-    backgroundColor: "#5CB5E8",
-    shadowColor: "#4BA5DC",
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 5 },
-    elevation: 3,
+    backgroundColor: "#55B7E9",
+    shadowColor: "#43A8DE",
+    shadowOpacity: 0.32,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 4,
   },
-  tabLocked: {
-    opacity: 0.48,
-  },
+  tabLocked: { opacity: 0.56 },
   tabIcon: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#EAF6FD",
+    backgroundColor: "#EAF7FF",
     marginRight: 6,
   },
-  tabIconActive: { backgroundColor: "rgba(255,255,255,0.22)" },
+  tabIconActive: { backgroundColor: "rgba(255,255,255,0.26)" },
   tabIconText: {
     fontFamily: sweirkiFonts.bold,
-    fontSize: 10,
-    color: "#5D7D95",
+    fontSize: 10.5,
+    color: "#62849B",
   },
   tabIconTextActive: { color: "#FFFFFF" },
   tabText: {
     fontFamily: sweirkiFonts.bold,
     fontSize: 12,
-    color: "#5D7D95",
+    color: "#607F98",
   },
   tabTextActive: { color: "#FFFFFF" },
 
   podiumCard: {
+    minHeight: 176,
+    borderRadius: 30,
+    padding: 15,
+    overflow: "hidden",
+    backgroundColor: "rgba(255,255,255,0.95)",
+    borderWidth: 1,
+    borderColor: "rgba(142,210,242,0.34)",
+    shadowColor: "#75ACD4",
+    shadowOpacity: 0.16,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 9 },
+    elevation: 5,
+  },
+  podiumHeader: {
     flexDirection: "row",
     alignItems: "center",
-    minHeight: 146,
-    borderRadius: 28,
-    padding: 13,
-    backgroundColor: "rgba(255,255,255,0.92)",
-    shadowColor: "#75ACD4",
-    shadowOpacity: 0.14,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 4,
+    justifyContent: "space-between",
+    marginBottom: 12,
   },
-  podiumArt: { width: 142, height: 142, marginLeft: -8, marginRight: 6 },
-  podiumText: { flex: 1 },
-  sectionTitle: {
+  sectionKicker: {
     fontFamily: sweirkiFonts.bold,
-    fontSize: 16,
-    lineHeight: 20,
-    color: "#254A68",
+    fontSize: 10.5,
+    color: "#58A7DB",
+    letterSpacing: 1.7,
+    textTransform: "uppercase",
   },
-  podiumChips: { marginTop: 8, gap: 5 },
-  podiumChip: {
-    borderRadius: 14,
+  sectionTitle: {
+    marginTop: 2,
+    fontFamily: sweirkiFonts.bold,
+    fontSize: 17,
+    lineHeight: 21,
+    color: "#183F65",
+  },
+  podiumCrest: {
+    width: 42,
+    height: 42,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F8F3E8",
     borderWidth: 1,
-    paddingVertical: 5,
-    paddingHorizontal: 8,
+    borderColor: "#E7D7AE",
   },
+  podiumCrestText: {
+    fontFamily: sweirkiFonts.bold,
+    fontSize: 18,
+    color: "#8A6A2E",
+  },
+  podiumStage: { gap: 7 },
+  podiumChip: {
+    minHeight: 58,
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 18,
+    borderWidth: 1.2,
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+  },
+  podiumChipFirst: {
+    minHeight: 64,
+    shadowColor: "#D5B96F",
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 3,
+  },
+  podiumMedal: {
+    width: 40,
+    height: 40,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+  },
+  podiumMedalArt: { width: 34, height: 34 },
+  podiumCopy: { flex: 1, minWidth: 0 },
   podiumRank: {
     fontFamily: sweirkiFonts.bold,
     fontSize: 10,
@@ -818,33 +909,35 @@ const styles = StyleSheet.create({
   podiumName: {
     marginTop: 1,
     fontFamily: sweirkiFonts.bold,
-    fontSize: 13,
-    color: "#254A68",
+    fontSize: 13.5,
+    color: "#214B6B",
   },
   podiumScore: {
     marginTop: -1,
     fontFamily: sweirkiFonts.regular,
     fontSize: 10.5,
-    color: "#668298",
+    color: "#66869B",
   },
 
   emptyCard: {
     marginTop: 8,
-    borderRadius: 24,
-    padding: 18,
-    backgroundColor: "rgba(255,255,255,0.86)",
+    borderRadius: 26,
+    padding: 20,
+    backgroundColor: "rgba(255,255,255,0.9)",
+    borderWidth: 1,
+    borderColor: "rgba(142,210,242,0.32)",
     alignItems: "center",
   },
   emptyTitle: {
     fontFamily: sweirkiFonts.bold,
-    fontSize: 17,
-    color: "#254A68",
+    fontSize: 18,
+    color: "#183F65",
   },
   emptyText: {
-    marginTop: 4,
+    marginTop: 5,
     fontFamily: sweirkiFonts.regular,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: 12.5,
+    lineHeight: 17,
     color: "#6D879A",
     textAlign: "center",
   },
@@ -852,35 +945,37 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    minHeight: 60,
-    marginTop: 7,
-    borderRadius: 22,
-    paddingVertical: 9,
-    paddingHorizontal: 11,
-    backgroundColor: "rgba(255,255,255,0.86)",
+    minHeight: 66,
+    marginTop: 8,
+    borderRadius: 24,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: "rgba(255,255,255,0.9)",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.78)",
+    borderColor: "rgba(255,255,255,0.82)",
     shadowColor: "#75ACD4",
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
     elevation: 2,
   },
   rowYou: {
-    backgroundColor: "#E9F7FF",
+    backgroundColor: "#F8F3E8",
     borderWidth: 1.5,
-    borderColor: "#8ED2F2",
+    borderColor: "#E7D7AE",
+    shadowColor: "#D5B96F",
+    shadowOpacity: 0.16,
   },
   rankBubble: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#EFF8FF",
-    marginRight: 10,
+    marginRight: 11,
   },
-  rankArt: { width: 36, height: 36 },
+  rankArt: { width: 39, height: 39 },
   rankText: {
     fontFamily: sweirkiFonts.bold,
     fontSize: 13,
@@ -889,9 +984,9 @@ const styles = StyleSheet.create({
   rowMain: { flex: 1, minWidth: 0 },
   rowName: {
     fontFamily: sweirkiFonts.bold,
-    fontSize: 13,
+    fontSize: 14,
     lineHeight: 19,
-    color: "#294F6D",
+    color: "#214B6B",
   },
   rowNameYou: { color: "#1689C7" },
   rowSub: {
@@ -904,14 +999,16 @@ const styles = StyleSheet.create({
     marginLeft: 7,
     fontFamily: sweirkiFonts.bold,
     fontSize: 13,
-    color: "#3C6D90",
+    color: "#326D99",
   },
 
-  footerWrap: { marginTop: 12, gap: 10 },
+  footerWrap: { marginTop: 13, gap: 11 },
   archiveCard: {
-    borderRadius: 24,
-    padding: 14,
-    backgroundColor: "rgba(255,255,255,0.86)",
+    borderRadius: 26,
+    padding: 15,
+    backgroundColor: "rgba(255,255,255,0.9)",
+    borderWidth: 1,
+    borderColor: "rgba(142,210,242,0.3)",
   },
   archiveRow: {
     marginTop: 8,
@@ -929,36 +1026,38 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   footerCard: {
-    borderRadius: 22,
-    padding: 12,
-    backgroundColor: "rgba(255,255,255,0.9)",
+    borderRadius: 24,
+    padding: 13,
+    backgroundColor: "rgba(255,255,255,0.92)",
+    borderWidth: 1,
+    borderColor: "rgba(142,210,242,0.32)",
     flexDirection: "row",
     alignItems: "center",
     shadowColor: "#75ACD4",
-    shadowOpacity: 0.09,
-    shadowRadius: 12,
+    shadowOpacity: 0.11,
+    shadowRadius: 13,
     shadowOffset: { width: 0, height: 6 },
     elevation: 2,
   },
   rewardIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 18,
-    backgroundColor: "#E7F3FF",
+    width: 52,
+    height: 52,
+    borderRadius: 19,
+    backgroundColor: "#E7F6FF",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
   },
   rewardIconText: {
     fontFamily: sweirkiFonts.bold,
-    fontSize: 24,
-    color: "#5B8BE8",
+    fontSize: 25,
+    color: "#55B7E9",
   },
   rewardMain: { flex: 1, minWidth: 0 },
   rewardTitle: {
     fontFamily: sweirkiFonts.bold,
-    fontSize: 14,
-    color: "#254A68",
+    fontSize: 14.5,
+    color: "#183F65",
   },
   rewardNote: {
     fontFamily: sweirkiFonts.regular,
@@ -975,7 +1074,7 @@ const styles = StyleSheet.create({
   rewardFill: {
     height: "100%",
     borderRadius: 999,
-    backgroundColor: "#5CB5E8",
+    backgroundColor: "#55B7E9",
   },
   rewardXP: {
     marginTop: 4,
@@ -998,7 +1097,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontFamily: sweirkiFonts.bold,
     fontSize: 12,
-    color: "#5B8BE8",
+    color: "#55B7E9",
     textAlign: "right",
   },
 });

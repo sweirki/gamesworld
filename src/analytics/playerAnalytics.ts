@@ -11,7 +11,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 
 const ANALYTICS_VERSION = 2;
 
-export type GameMode = "classic" | "daily" | "hyper" | "killer" | "x";
+export type GameMode = "classic" | "daily" | "weekly" | "hyper" | "killer" | "x";
 
 type ModeStats = {
   gamesPlayed: number;
@@ -87,6 +87,7 @@ const createEmptyAnalytics = (username: string): PlayerAnalytics => ({
   modes: {
     classic: emptyMode(),
     daily: emptyMode(),
+    weekly: emptyMode(),
     hyper: emptyMode(),
     killer: emptyMode(),
     x: emptyMode(),

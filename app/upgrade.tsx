@@ -41,19 +41,19 @@ const FEATURES = [
   {
     icon: "grid-outline" as const,
     title: "Advanced Boards",
-    body: "Killer, Hyper, and X Sudoku unlocked.",
+    body: "Killer, Hyper, X Sudoku, and premium Arena economy bonuses.",
     tone: COLORS.blue,
   },
   {
     icon: "trophy-outline" as const,
     title: "Ranked Seasons",
-    body: "Compete in premium progression ladders.",
+    body: "Plus players receive one daily Arena ticket bonus and stronger season value.",
     tone: COLORS.gold,
   },
   {
     icon: "calendar-outline" as const,
     title: "Daily Challenges",
-    body: "More ways to earn XP and rewards.",
+    body: "Claim premium bonuses while Coins and Tickets power the wider app.",
     tone: COLORS.green,
   },
   {
@@ -206,6 +206,11 @@ export default function UpgradeScreen() {
         <TouchableOpacity style={styles.restoreButton} onPress={restore} activeOpacity={0.86}>
           <Ionicons name="refresh" size={19} color={COLORS.blueDeep} />
           <Text style={styles.restoreText}>Restore Purchase</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.restoreButton} onPress={() => router.push("/shop" as any)} activeOpacity={0.86}>
+          <Ionicons name="wallet" size={19} color={COLORS.blueDeep} />
+          <Text style={styles.restoreText}>Open Shop / Ticket Packs</Text>
         </TouchableOpacity>
 
         <Text style={styles.footerText}>No ads · One-time purchase · Restore anytime</Text>

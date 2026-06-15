@@ -22,6 +22,7 @@ import { safeFirestoreCall } from "../src/utils/firestoreSafe";
 import { resetSeasonXPIfNeeded } from "./lib/ladderBridge";
 
 import RankUpPopup from "./components/RankUpPopup";
+import ForceUpdateGate from "../src/components/ForceUpdateGate";
 
 export default function Layout() {
   const [loading, setLoading] = useState(true);
@@ -219,7 +220,9 @@ if (loading || !fontsReady) {
   /* ================= LOGGED OUT STACK ================= */
   if (!user) {
     return (
-      <Stack
+      <>
+        <ForceUpdateGate />
+        <Stack
   screenOptions={{
     headerShown: Platform.OS === "ios",
     headerTitle: "",
@@ -227,15 +230,18 @@ if (loading || !fontsReady) {
   }}
 >
 
-        <Stack.Screen name="login" />
-        <Stack.Screen name="signup" />
-      </Stack>
+          <Stack.Screen name="forceUpdate" />
+          <Stack.Screen name="login" />
+          <Stack.Screen name="signup" />
+        </Stack>
+      </>
     );
   }
 
   /* ================= LOGGED IN STACK ================= */
   return (
     <View style={{ flex: 1 }}>
+      <ForceUpdateGate />
       <RankUpPopup />
 
 
@@ -247,8 +253,10 @@ if (loading || !fontsReady) {
   }}
 >
 
+        <Stack.Screen name="forceUpdate" />
         <Stack.Screen name="splash" />
         <Stack.Screen name="sudokuIntro" />
+        <Stack.Screen name="arena" />
         <Stack.Screen name="sudoku" />
         <Stack.Screen name="chooseDifficulty" />
         <Stack.Screen name="daily" />
@@ -257,6 +265,11 @@ if (loading || !fontsReady) {
         <Stack.Screen name="account" />
         <Stack.Screen name="leaderboard" />
         <Stack.Screen name="settings" />
+        <Stack.Screen name="shop" />
+        <Stack.Screen name="rewardCenter" />
+        <Stack.Screen name="arenaShop" />
+        <Stack.Screen name="seasonPass" />
+        <Stack.Screen name="upgrade" />
         <Stack.Screen name="stats" />
         <Stack.Screen name="testConfetti" />
       </Stack>

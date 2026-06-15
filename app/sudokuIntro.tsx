@@ -382,7 +382,7 @@ export default function SudokuIntro() {
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Daily Complete</Text>
             <Text style={styles.modalBody}>
-              You already completed today's Daily Challenge.{"\n"}Come back tomorrow for a new board.
+              You already completed today{"\'"}s Daily Challenge.{"\n"}Come back tomorrow for a new board.
             </Text>
             <TouchableOpacity onPress={() => setDailyLockedVisible(false)} activeOpacity={0.85}>
               <LinearGradient

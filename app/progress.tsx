@@ -127,6 +127,7 @@ export default function ProgressScreen() {
           hyper: getModeProgress(analytics, "hyper"),
           killer: getModeProgress(analytics, "killer"),
           x: getModeProgress(analytics, "x"),
+          weekly: getModeProgress(analytics, "weekly"),
         });
       } catch (error) {
         console.log("Progress screen load failed:", error);

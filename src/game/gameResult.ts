@@ -1,5 +1,5 @@
-﻿export type GameResult = {
-  mode: "classic" | "daily" | "hyper" | "x" | "killer";
+export type GameResult = {
+  mode: "classic" | "daily" | "weekly" | "hyper" | "x" | "killer";
   win: boolean;
   time: number;     // seconds
   errors: number;

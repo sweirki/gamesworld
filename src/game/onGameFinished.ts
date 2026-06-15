@@ -1,11 +1,33 @@
-﻿import { GameResult } from "./gameResult";
+import { GameResult } from "./gameResult";
 import { getAnalytics, recordGameResult } from "../analytics/playerAnalytics";
 import { useAchievementsStore } from "../../app/stores/useAchievementsStore";
 import { saveGameHistoryCloud } from "../history/saveGameHistoryCloud";
 import { auth } from "../../firebase";
+import { completePendingArenaRun } from "../arena/arenaEngine";
+import { awardGameEconomy } from "../economy/economyEngine";
 
 export async function onGameFinished(result: GameResult) {
   console.log("ðŸ”¥ onGameFinished called", result);
+
+  // Arena resolution must not depend on cloud auth. Guest Arena sessions still need a result.
+  try {
+    if (result.mode === "classic") {
+      await completePendingArenaRun({
+        win: result.win,
+        time: result.time,
+        errors: result.errors,
+        hintsUsed: result.hintsUsed ?? 0,
+      });
+    }
+  } catch {
+    // Arena persistence must never block the normal win flow.
+  }
+
+  try {
+    await awardGameEconomy({ mode: result.mode, win: result.win, difficulty: result.difficulty });
+  } catch {
+    // Economy rewards must never block game completion.
+  }
 
   const uid = auth.currentUser?.uid;
   if (!uid) return;
@@ -47,5 +69,6 @@ export async function onGameFinished(result: GameResult) {
   } catch {
     // Achievement failure must never block game completion.
   }
+
 }
 

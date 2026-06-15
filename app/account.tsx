@@ -103,8 +103,10 @@ function AccountInner() {
       setMessage({
         title: "Restore Purchases",
         text: result?.entitlements?.active?.premium
-          ? "Premium restored successfully."
-          : "No previous purchases were found for this account.",
+            ? "Premium restored successfully."
+            : result?.entitlements?.active?.season_pass || result?.entitlements?.active?.logic_wars_pass
+              ? "Season Pass restored successfully."
+              : "No previous purchases were found for this account.",
       });
     } catch {
       setMessage({ title: "Restore Failed", text: "Restore is unavailable right now. Please try again later." });
@@ -416,3 +418,4 @@ const styles = StyleSheet.create({
   errorText: { fontFamily: "BalooBold", color: "#E55364", fontSize: 12.5, marginBottom: 8 },
   deletingWrap: { alignItems: "center", paddingTop: 8 },
 });
+
