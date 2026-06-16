@@ -89,15 +89,15 @@ export default function ShopScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         <View style={styles.headerRow}>
           <Pressable style={styles.circleButton} onPress={() => router.back()}><Ionicons name="chevron-back" size={28} color={sweirkiTheme.colors.inkDeep} /></Pressable>
-          <Text style={styles.headerTitle}>Shop</Text>
+          <View style={styles.headerCenter}><Text style={styles.headerKicker}>SWEIRKI ECONOMY</Text><Text style={styles.headerTitle}>Wallet</Text></View>
           <Pressable style={styles.circleButton} onPress={() => router.push("/rewardCenter" as any)}><Ionicons name="play-circle" size={22} color={sweirkiTheme.colors.cyanDeep} /></Pressable>
         </View>
 
         <View style={styles.heroCard}>
           <View style={styles.heroGlow} />
           <Text style={styles.kicker}>PREMIUM SUDOKU ECOSYSTEM</Text>
-          <Text style={styles.heroTitle}>Coins, Tickets, Plus.</Text>
-          <Text style={styles.heroText}>Coins power the full app. Tickets unlock special Arena cups. Arena Points stay competitive and are never sold.</Text>
+          <Text style={styles.heroTitle}>Coins, Tickets, Plus</Text>
+          <Text style={styles.heroText}>Track your coins, tickets, rewards, and Sweirki Plus benefits in one clean wallet.</Text>
           <View style={styles.walletRow}>
             <View style={styles.walletPill}><Ionicons name="logo-bitcoin" size={17} color="#FFFFFF" /><Text style={styles.walletText}>{fmt(wallet?.coins)} Coins</Text></View>
             <View style={[styles.walletPill, styles.ticketPill]}><Ionicons name="ticket" size={17} color="#FFFFFF" /><Text style={styles.walletText}>{fmt(wallet?.tickets)} Tickets</Text></View>
@@ -187,12 +187,365 @@ export default function ShopScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1 }, content: { padding: 18, paddingTop: 58, paddingBottom: 34 }, headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }, circleButton: { width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.88)", borderWidth: 1, borderColor: sweirkiTheme.colors.borderCyanStrong }, headerTitle: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 24, color: sweirkiTheme.colors.inkDeep },
-  heroCard: { borderRadius: 32, padding: 22, marginBottom: 14, backgroundColor: "rgba(12,48,92,0.94)", borderWidth: 1, borderColor: "rgba(255,255,255,0.38)", overflow: "hidden", ...sweirkiTheme.shadows.hero }, heroGlow: { position: "absolute", right: -40, top: -40, width: 150, height: 150, borderRadius: 75, backgroundColor: "rgba(53,200,244,0.28)" }, kicker: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 11, letterSpacing: 2.1, color: "rgba(255,255,255,0.68)", textTransform: "uppercase" }, heroTitle: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 30, lineHeight: 36, color: "#FFFFFF", marginTop: 4 }, heroText: { fontFamily: sweirkiTheme.fonts.regular, fontSize: 13, lineHeight: 19, color: "rgba(255,255,255,0.76)", marginTop: 7 },
-  walletRow: { flexDirection: "row", gap: 10, marginTop: 16, flexWrap: "wrap" }, walletPill: { flexDirection: "row", alignItems: "center", gap: 7, paddingHorizontal: 13, height: 38, borderRadius: 19, backgroundColor: "rgba(245,185,67,0.28)", borderWidth: 1, borderColor: "rgba(245,185,67,0.5)" }, ticketPill: { backgroundColor: "rgba(53,200,244,0.24)", borderColor: "rgba(53,200,244,0.52)" }, fragmentPill: { backgroundColor: "rgba(143,121,255,0.24)", borderColor: "rgba(143,121,255,0.52)" }, walletText: { fontFamily: sweirkiTheme.fonts.bold, color: "#FFFFFF", fontSize: 14 },
-  quickGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 14 }, quickCard: { width: "48%", minHeight: 112, borderRadius: 22, padding: 13, backgroundColor: "rgba(255,255,255,0.94)", borderWidth: 1, borderColor: sweirkiTheme.colors.borderCyanStrong }, quickTitle: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 15, color: sweirkiTheme.colors.inkDeep, marginTop: 7 }, quickText: { fontFamily: sweirkiTheme.fonts.regular, fontSize: 11, lineHeight: 15, color: sweirkiTheme.colors.textSoft, marginTop: 3 },
-  tabRow: { flexDirection: "row", gap: 7, marginBottom: 14 }, tab: { flex: 1, minHeight: 38, borderRadius: 15, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.72)", borderWidth: 1, borderColor: sweirkiTheme.colors.borderCyan }, tabActive: { backgroundColor: sweirkiTheme.colors.inkDeep }, tabText: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 9, color: sweirkiTheme.colors.ink }, tabTextActive: { color: "#FFFFFF" },
-  productsList: { gap: 12, marginBottom: 14 }, productCard: { borderRadius: 26, padding: 15, backgroundColor: "rgba(255,255,255,0.95)", borderWidth: 1, borderColor: sweirkiTheme.colors.borderCyanStrong, ...sweirkiTheme.shadows.glassCard }, productTop: { flexDirection: "row", gap: 12, alignItems: "flex-start" }, productIcon: { width: 48, height: 48, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: sweirkiTheme.colors.inkDeep }, productTitleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }, productTitle: { flex: 1, fontFamily: sweirkiTheme.fonts.bold, fontSize: 17, color: sweirkiTheme.colors.inkDeep }, productTag: { overflow: "hidden", borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4, backgroundColor: "rgba(245,185,67,0.18)", fontFamily: sweirkiTheme.fonts.bold, color: "#8A6420", fontSize: 10 }, productSub: { fontFamily: sweirkiTheme.fonts.regular, fontSize: 12, lineHeight: 17, color: sweirkiTheme.colors.textSoft, marginTop: 4 }, productBottom: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10, marginTop: 13 }, grantText: { flex: 1, fontFamily: sweirkiTheme.fonts.bold, color: sweirkiTheme.colors.ink, fontSize: 12 }, buyButton: { minHeight: 42, borderRadius: 16, paddingHorizontal: 14, alignItems: "center", justifyContent: "center", backgroundColor: sweirkiTheme.colors.cyanDeep }, buyText: { fontFamily: sweirkiTheme.fonts.bold, color: "#FFFFFF", fontSize: 12 },
-  ledgerCard: { borderRadius: 24, padding: 15, backgroundColor: "rgba(255,255,255,0.9)", borderWidth: 1, borderColor: sweirkiTheme.colors.borderCyan }, sectionTitle: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 18, color: sweirkiTheme.colors.inkDeep, marginTop: 2 }, helperText: { fontFamily: sweirkiTheme.fonts.regular, fontSize: 12, lineHeight: 17, color: sweirkiTheme.colors.textSoft, marginTop: 10 }, ledgerRow: { flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "rgba(20,56,95,0.08)" }, ledgerTitle: { fontFamily: sweirkiTheme.fonts.bold, color: sweirkiTheme.colors.inkDeep, fontSize: 13 }, ledgerMeta: { fontFamily: sweirkiTheme.fonts.regular, color: sweirkiTheme.colors.textSoft, fontSize: 11, marginTop: 2 }, ledgerValue: { fontFamily: sweirkiTheme.fonts.bold, color: sweirkiTheme.colors.cyanDeep, fontSize: 13 },
-  modalBackdrop: { flex: 1, backgroundColor: "rgba(7,22,40,0.58)", alignItems: "center", justifyContent: "center", padding: 24 }, modalCard: { width: "100%", maxWidth: 360, borderRadius: 28, padding: 22, alignItems: "center", backgroundColor: "rgba(255,255,255,0.98)", borderWidth: 1, borderColor: sweirkiTheme.colors.borderCyanStrong }, modalIcon: { width: 54, height: 54, borderRadius: 27, alignItems: "center", justifyContent: "center", backgroundColor: sweirkiTheme.colors.cyanDeep, marginBottom: 12 }, modalTitle: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 20, color: sweirkiTheme.colors.inkDeep, textAlign: "center" }, modalText: { fontFamily: sweirkiTheme.fonts.regular, fontSize: 13, lineHeight: 19, color: sweirkiTheme.colors.textSoft, textAlign: "center", marginTop: 8 }, modalButton: { marginTop: 16, minWidth: 150, height: 48, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: sweirkiTheme.colors.inkDeep }, modalButtonText: { fontFamily: sweirkiTheme.fonts.bold, color: "#FFFFFF", fontSize: 14 },
+  screen: {
+    flex: 1,
+  },
+  content: {
+    padding: 18,
+    paddingTop: 58,
+    paddingBottom: 36,
+  },
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 14,
+  },
+  headerCenter: {
+    alignItems: "center",
+    flex: 1,
+  },
+  headerKicker: {
+    fontFamily: sweirkiTheme.fonts.bold,
+    fontSize: 9,
+    letterSpacing: 2.5,
+    color: sweirkiTheme.colors.cyanDeep,
+    textTransform: "uppercase",
+    marginBottom: 2,
+  },
+  circleButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.92)",
+    borderWidth: 1,
+    borderColor: sweirkiTheme.colors.borderCyanStrong,
+    ...sweirkiTheme.shadows.glassCard,
+  },
+  headerTitle: {
+    fontFamily: sweirkiTheme.fonts.bold,
+    fontSize: 24,
+    color: sweirkiTheme.colors.inkDeep,
+  },
+
+  heroCard: {
+    borderRadius: 30,
+    padding: 20,
+    marginBottom: 14,
+    backgroundColor: "rgba(255,255,255,0.95)",
+    borderWidth: 1,
+    borderColor: sweirkiTheme.colors.borderCyanStrong,
+    overflow: "hidden",
+    ...sweirkiTheme.shadows.hero,
+  },
+  heroGlow: {
+    position: "absolute",
+    right: -38,
+    top: -54,
+    width: 178,
+    height: 178,
+    borderRadius: 89,
+    backgroundColor: "rgba(53,200,244,0.20)",
+  },
+  kicker: {
+    fontFamily: sweirkiTheme.fonts.bold,
+    fontSize: 10,
+    letterSpacing: 2.4,
+    color: sweirkiTheme.colors.cyanDeep,
+    textTransform: "uppercase",
+  },
+  heroTitle: {
+    fontFamily: sweirkiTheme.fonts.bold,
+    fontSize: 29,
+    lineHeight: 34,
+    color: sweirkiTheme.colors.inkDeep,
+    marginTop: 6,
+    maxWidth: "82%",
+  },
+  heroText: {
+    fontFamily: sweirkiTheme.fonts.regular,
+    fontSize: 13,
+    lineHeight: 19,
+    color: sweirkiTheme.colors.textSoft,
+    marginTop: 8,
+    maxWidth: "90%",
+  },
+  walletRow: {
+    flexDirection: "row",
+    gap: 9,
+    marginTop: 16,
+    flexWrap: "wrap",
+  },
+  walletPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+    paddingHorizontal: 13,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "rgba(245,185,67,0.20)",
+    borderWidth: 1,
+    borderColor: "rgba(245,185,67,0.55)",
+  },
+  ticketPill: {
+    backgroundColor: "rgba(53,200,244,0.18)",
+    borderColor: "rgba(53,200,244,0.55)",
+  },
+  fragmentPill: {
+    backgroundColor: "rgba(143,121,255,0.18)",
+    borderColor: "rgba(143,121,255,0.55)",
+  },
+  walletText: {
+    fontFamily: sweirkiTheme.fonts.bold,
+    color: sweirkiTheme.colors.inkDeep,
+    fontSize: 14,
+  },
+
+  quickGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 14,
+  },
+  quickCard: {
+    width: "48%",
+    minHeight: 116,
+    borderRadius: 23,
+    padding: 14,
+    backgroundColor: "rgba(255,255,255,0.94)",
+    borderWidth: 1,
+    borderColor: sweirkiTheme.colors.borderCyanStrong,
+    ...sweirkiTheme.shadows.glassCard,
+  },
+  quickTitle: {
+    fontFamily: sweirkiTheme.fonts.bold,
+    fontSize: 15,
+    color: sweirkiTheme.colors.inkDeep,
+    marginTop: 8,
+  },
+  quickText: {
+    fontFamily: sweirkiTheme.fonts.regular,
+    fontSize: 11,
+    lineHeight: 15,
+    color: sweirkiTheme.colors.textSoft,
+    marginTop: 4,
+  },
+
+  tabRow: {
+    flexDirection: "row",
+    gap: 7,
+    marginBottom: 14,
+    padding: 5,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.58)",
+    borderWidth: 1,
+    borderColor: sweirkiTheme.colors.borderCyan,
+  },
+  tab: {
+    flex: 1,
+    minHeight: 36,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.72)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.55)",
+  },
+  tabActive: {
+    backgroundColor: sweirkiTheme.colors.inkDeep,
+    borderColor: sweirkiTheme.colors.inkDeep,
+  },
+  tabText: {
+    fontFamily: sweirkiTheme.fonts.bold,
+    fontSize: 9,
+    color: sweirkiTheme.colors.ink,
+  },
+  tabTextActive: {
+    color: "#FFFFFF",
+  },
+
+  productsList: {
+    gap: 12,
+    marginBottom: 14,
+  },
+  productCard: {
+    borderRadius: 26,
+    padding: 15,
+    backgroundColor: "rgba(255,255,255,0.96)",
+    borderWidth: 1,
+    borderColor: sweirkiTheme.colors.borderCyanStrong,
+    ...sweirkiTheme.shadows.glassCard,
+  },
+  productTop: {
+    flexDirection: "row",
+    gap: 12,
+    alignItems: "flex-start",
+  },
+  productIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: sweirkiTheme.colors.inkDeep,
+  },
+  productTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+  },
+  productTitle: {
+    flex: 1,
+    fontFamily: sweirkiTheme.fonts.bold,
+    fontSize: 17,
+    color: sweirkiTheme.colors.inkDeep,
+  },
+  productTag: {
+    overflow: "hidden",
+    borderRadius: 999,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    backgroundColor: "rgba(245,185,67,0.18)",
+    fontFamily: sweirkiTheme.fonts.bold,
+    color: "#8A6420",
+    fontSize: 10,
+  },
+  productSub: {
+    fontFamily: sweirkiTheme.fonts.regular,
+    fontSize: 12,
+    lineHeight: 17,
+    color: sweirkiTheme.colors.textSoft,
+    marginTop: 5,
+  },
+  productBottom: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+    marginTop: 13,
+  },
+  grantText: {
+    flex: 1,
+    fontFamily: sweirkiTheme.fonts.bold,
+    color: sweirkiTheme.colors.ink,
+    fontSize: 12,
+    lineHeight: 17,
+  },
+  buyButton: {
+    minHeight: 42,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: sweirkiTheme.colors.cyanDeep,
+  },
+  buyText: {
+    fontFamily: sweirkiTheme.fonts.bold,
+    color: "#FFFFFF",
+    fontSize: 12,
+  },
+
+  ledgerCard: {
+    borderRadius: 24,
+    padding: 15,
+    backgroundColor: "rgba(255,255,255,0.92)",
+    borderWidth: 1,
+    borderColor: sweirkiTheme.colors.borderCyanStrong,
+    ...sweirkiTheme.shadows.glassCard,
+  },
+  sectionTitle: {
+    fontFamily: sweirkiTheme.fonts.bold,
+    fontSize: 19,
+    color: sweirkiTheme.colors.inkDeep,
+    marginTop: 2,
+  },
+  helperText: {
+    fontFamily: sweirkiTheme.fonts.regular,
+    fontSize: 12,
+    lineHeight: 17,
+    color: sweirkiTheme.colors.textSoft,
+    marginTop: 10,
+  },
+  ledgerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(20,56,95,0.08)",
+  },
+  ledgerTitle: {
+    fontFamily: sweirkiTheme.fonts.bold,
+    color: sweirkiTheme.colors.inkDeep,
+    fontSize: 13,
+  },
+  ledgerMeta: {
+    fontFamily: sweirkiTheme.fonts.regular,
+    color: sweirkiTheme.colors.textSoft,
+    fontSize: 11,
+    marginTop: 2,
+  },
+  ledgerValue: {
+    fontFamily: sweirkiTheme.fonts.bold,
+    color: sweirkiTheme.colors.cyanDeep,
+    fontSize: 13,
+  },
+
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(7,22,40,0.58)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+  },
+  modalCard: {
+    width: "100%",
+    maxWidth: 360,
+    borderRadius: 28,
+    padding: 22,
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.98)",
+    borderWidth: 1,
+    borderColor: sweirkiTheme.colors.borderCyanStrong,
+  },
+  modalIcon: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: sweirkiTheme.colors.cyanDeep,
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontFamily: sweirkiTheme.fonts.bold,
+    fontSize: 20,
+    color: sweirkiTheme.colors.inkDeep,
+    textAlign: "center",
+  },
+  modalText: {
+    fontFamily: sweirkiTheme.fonts.regular,
+    fontSize: 13,
+    lineHeight: 19,
+    color: sweirkiTheme.colors.textSoft,
+    textAlign: "center",
+    marginTop: 8,
+  },
+  modalButton: {
+    marginTop: 16,
+    minWidth: 150,
+    height: 48,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: sweirkiTheme.colors.inkDeep,
+  },
+  modalButtonText: {
+    fontFamily: sweirkiTheme.fonts.bold,
+    color: "#FFFFFF",
+    fontSize: 14,
+  },
 });
+

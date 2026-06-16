@@ -15,20 +15,13 @@ import { playArenaFeedback } from "../../src/arena/arenaFeedback";
 
 
 const CEREMONY_ART = {
-  champion: require("../../assets/arena/ceremonies/champion_ceremony_bg.png"),
-  badge: require("../../assets/arena/ceremonies/badge_unlock_bg.png"),
-  promotion: require("../../assets/arena/ceremonies/promotion_bg.png"),
-  reward: require("../../assets/arena/ceremonies/reward_claim_bg.png"),
-  relegation: require("../../assets/arena/ceremonies/relegation_warning_bg.png"),
+  champion: require("../../assets/arena/ceremonies/champion_ceremony_v2.png"),
+  badge: require("../../assets/arena/ceremonies/badge_unlock_v2.png"),
+  promotion: require("../../assets/arena/ceremonies/promotion_ceremony_v2.png"),
+  reward: require("../../assets/arena/ceremonies/reward_ceremony_v2.png"),
+  relegation: require("../../assets/arena/ceremonies/relegation_ceremony_v2.png"),
 };
 
-const LEAGUE_ART: Record<string, any> = {
-  Bronze: require("../../assets/arena/leagues/bronze_league.png"),
-  Silver: require("../../assets/arena/leagues/silver_league.png"),
-  Gold: require("../../assets/arena/leagues/gold_league.png"),
-  Elite: require("../../assets/arena/leagues/elite_league.png"),
-  Master: require("../../assets/arena/leagues/master_league.png"),
-};
 
 const REWARD_ART = {
   coins: require("../../assets/economy/rewards/reward_coins.png"),
@@ -106,7 +99,6 @@ export default function ArenaResultScreen() {
   const progressWidth = `${Math.max(6, Math.round(progress.progress * 100))}%`;
   const promoted = result ? result.leagueAfter !== result.leagueBefore : false;
   const badge = getLeagueBadge(result?.leagueAfter ?? "Bronze");
-  const leagueArt = LEAGUE_ART[result?.leagueAfter ?? "Bronze"] ?? LEAGUE_ART.Bronze;
 
   useEffect(() => {
     if (!result) return;
@@ -144,19 +136,27 @@ export default function ArenaResultScreen() {
       ) : (
         <>
           <Animated.View style={[styles.heroCard, result.win ? styles.winHero : styles.lossHero, { opacity: heroFade, transform: [{ scale: heroScale }] }]}>
-            <Image source={resultArt(result)} style={styles.heroBackdrop} resizeMode="cover" />
-            <View style={styles.heroGlow} />
-            <View style={styles.crownBadge}>
-              <Ionicons name={(result.badgeUnlocked ? badge.icon : result.win ? "trophy" : "shield-outline") as any} size={34} color="#FFFFFF" />
+            <View style={styles.heroCircle} />
+            <View style={styles.heroTopRow}>
+              <View style={styles.heroStatusPill}>
+                <Ionicons name={(result.badgeUnlocked ? badge.icon : result.win ? "trophy" : "shield-outline") as any} size={15} color={result.win ? sweirkiTheme.colors.cyanDeep : sweirkiTheme.colors.gold} />
+                <Text style={styles.heroStatusText}>{result.win ? "CEREMONY" : "ARENA RESET"}</Text>
+              </View>
+              <Text style={styles.modeLabel}>{modeTitle(result.mode).toUpperCase()}</Text>
             </View>
-            <Text style={styles.modeLabel}>{modeTitle(result.mode).toUpperCase()}</Text>
-            <Text style={styles.heroTitle}>{resultHeroTitle(result)}</Text>
-            <Text style={styles.heroText}>vs {result.opponentName}</Text>
-            <View style={styles.deltaPill}>
-              <Text style={styles.ratingDelta}>
-                {result.ratingDelta >= 0 ? "+" : ""}
-                {result.ratingDelta} Rating
-              </Text>
+
+            <View style={styles.heroBody}>
+              <View style={styles.heroCopy}>
+                <Text style={styles.heroTitle}>{resultHeroTitle(result)}</Text>
+                <Text style={styles.heroText}>vs {result.opponentName}</Text>
+                <View style={styles.deltaPill}>
+                  <Text style={styles.ratingDelta}>
+                    {result.ratingDelta >= 0 ? "+" : ""}
+                    {result.ratingDelta} Rating
+                  </Text>
+                </View>
+              </View>
+              <Image source={resultArt(result)} style={styles.heroArt} resizeMode="contain" />
             </View>
           </Animated.View>
 
@@ -183,7 +183,6 @@ export default function ArenaResultScreen() {
           </View>
 
           <View style={styles.ratingCard}>
-            <Image source={leagueArt} style={styles.ratingLeagueArt} resizeMode="contain" />
             <View style={styles.ratingRow}>
               <View>
                 <Text style={styles.cardLabel}>Arena rating</Text>
@@ -317,58 +316,80 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   heroCard: {
-    alignItems: "center",
-    borderRadius: 34,
-    padding: 26,
+    borderRadius: 32,
+    padding: 18,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.38)",
+    borderColor: sweirkiTheme.colors.borderCyanStrong,
     overflow: "hidden",
     ...sweirkiTheme.shadows.hero,
   },
-  winHero: { backgroundColor: "rgba(13,76,128,0.96)" },
-  lossHero: { backgroundColor: "rgba(92,64,91,0.96)" },
-  heroBackdrop: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0, width: "115%", height: "115%", opacity: 0.18 },
-  heroGlow: {
+  winHero: { backgroundColor: "rgba(255,255,255,0.96)" },
+  lossHero: { backgroundColor: "rgba(255,249,242,0.96)" },
+  heroCircle: {
     position: "absolute",
-    top: -90,
-    width: 210,
-    height: 210,
-    borderRadius: 105,
-    backgroundColor: "rgba(53,200,244,0.22)",
+    right: -34,
+    top: -34,
+    width: 190,
+    height: 190,
+    borderRadius: 95,
+    backgroundColor: "rgba(53,200,244,0.15)",
   },
-  crownBadge: {
-    width: 78,
-    height: 78,
-    borderRadius: 30,
+  heroTopRow: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.18)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.32)",
+    justifyContent: "space-between",
+    gap: 12,
     marginBottom: 12,
   },
+  heroStatusPill: {
+    height: 32,
+    paddingHorizontal: 11,
+    borderRadius: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "rgba(255,255,255,0.72)",
+    borderWidth: 1,
+    borderColor: sweirkiTheme.colors.borderCyan,
+  },
+  heroStatusText: {
+    fontFamily: sweirkiTheme.fonts.bold,
+    fontSize: 10,
+    letterSpacing: 1.2,
+    color: sweirkiTheme.colors.inkDeep,
+  },
+  heroBody: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+  heroCopy: { flex: 1, minHeight: 128, justifyContent: "center" },
+  heroArt: { width: 126, height: 126 },
   modeLabel: {
     fontFamily: sweirkiTheme.fonts.bold,
-    fontSize: 11,
-    letterSpacing: 2.2,
-    color: "rgba(255,255,255,0.72)",
-    marginBottom: 4,
+    fontSize: 10,
+    letterSpacing: 2,
+    color: sweirkiTheme.colors.cyanDeep,
+    textAlign: "right",
+    flexShrink: 1,
   },
-  heroTitle: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 30, color: "#FFFFFF", textAlign: "center" },
-  heroText: { fontFamily: sweirkiTheme.fonts.regular, fontSize: 14, color: "rgba(255,255,255,0.72)", marginTop: 2 },
+  heroTitle: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 28, color: sweirkiTheme.colors.inkDeep },
+  heroText: { fontFamily: sweirkiTheme.fonts.regular, fontSize: 13, color: sweirkiTheme.colors.textSoft, marginTop: 3 },
   deltaPill: {
+    alignSelf: "flex-start",
     marginTop: 12,
-    paddingHorizontal: 15,
-    height: 38,
-    borderRadius: 19,
+    paddingHorizontal: 14,
+    height: 36,
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.16)",
+    backgroundColor: "rgba(245,185,67,0.18)",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.24)",
+    borderColor: "rgba(245,185,67,0.38)",
   },
-  ratingDelta: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 18, color: sweirkiTheme.colors.gold },
+  ratingDelta: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 17, color: sweirkiTheme.colors.gold },
   ceremonyCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -436,7 +457,6 @@ const styles = StyleSheet.create({
     borderColor: sweirkiTheme.colors.borderCyan,
     ...sweirkiTheme.shadows.glassCard,
   },
-  ratingLeagueArt: { position: "absolute", right: -20, top: -24, width: 120, height: 120, opacity: 0.10 },
   ratingRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
   cardLabel: {
     fontFamily: sweirkiTheme.fonts.bold,

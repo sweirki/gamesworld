@@ -604,30 +604,30 @@ export async function awardGameEconomy(result: { mode: string; win: boolean; dif
   return grantEconomy({ source: result.mode === "daily" ? "daily_win" : result.mode === "weekly" ? "weekly_win" : result.mode === "classic" ? "classic_win" : "variant_win", label: reward.label, coins: reward.coins, tickets: reward.tickets });
 }
 
-export function getArenaEntryCost(mode: string, profile?: { dailyMatches?: number; dailySurvivalRuns?: number; dailyTournamentRuns?: number }, isPremium = false) {
+export function getArenaEntryCost(mode: string, profile?: { dailyMatches?: number }, isPremium = false) {
   if (mode === "ranked") return { coins: 0, tickets: 0, label: "Ranked Duel entry is free" };
   if (mode === "power") return { coins: 0, tickets: 0, label: "Power Arena entry is free" };
   if (mode === "survival") {
     const freeRuns = isPremium ? 2 : 1;
-    const used = Math.max(0, safeNumber(profile?.dailySurvivalRuns, 0));
+    const used = Math.max(0, safeNumber(profile?.dailyMatches, 0));
     if (used < freeRuns) return { coins: 0, tickets: 0, label: "Daily Survival free entry" };
     return { coins: isPremium ? 150 : 300, tickets: 0, label: "Extra Survival entry" };
   }
   if (mode === "tournament") {
-    const used = Math.max(0, safeNumber(profile?.dailyTournamentRuns, 0));
+    const used = Math.max(0, safeNumber(profile?.dailyMatches, 0));
     if (used === 0) return { coins: 0, tickets: 0, label: "Daily Cup free entry" };
     return { coins: 0, tickets: 1, label: "Tournament Cup ticket entry" };
   }
   return { coins: 0, tickets: 0, label: "Free entry" };
 }
 
-export async function canAffordArenaEntry(mode: string, profile?: { dailyMatches?: number; dailySurvivalRuns?: number; dailyTournamentRuns?: number }, isPremium = false) {
+export async function canAffordArenaEntry(mode: string, profile?: { dailyMatches?: number }, isPremium = false) {
   const wallet = await getEconomyWallet();
   const cost = getArenaEntryCost(mode, profile, isPremium);
   return { ok: wallet.coins >= cost.coins && wallet.tickets >= cost.tickets, wallet, cost, missing: wallet.coins < cost.coins ? "coins" as const : wallet.tickets < cost.tickets ? "tickets" as const : null };
 }
 
-export async function spendArenaEntry(mode: string, profile?: { dailyMatches?: number; dailySurvivalRuns?: number; dailyTournamentRuns?: number }, isPremium = false) {
+export async function spendArenaEntry(mode: string, profile?: { dailyMatches?: number }, isPremium = false) {
   const cost = getArenaEntryCost(mode, profile, isPremium);
   if (cost.coins <= 0 && cost.tickets <= 0) return { ok: true, cost, wallet: await getEconomyWallet(), missing: null };
   const spent = await spendEconomy({ source: "arena_entry", label: cost.label, coins: cost.coins, tickets: cost.tickets });

@@ -5,16 +5,16 @@ export default function ArenaSurvival() {
     <ModeScreen
       mode="survival"
       title="Survival Run"
-      eyebrow="Streak Pressure"
+      eyebrow="Pressure Run"
       icon="flame-outline"
       accent="gold"
-      subtitle="A pressure format built for streaks. Stay clean, stay fast, and keep the run alive."
+      subtitle="Climb stage by stage. One mistake ends the run, but every clean board pushes your streak higher."
       startLabel="Start Survival Run"
       rules={[
         "One active Survival run at a time.",
-        "One wrong answer ends the run immediately.",
-        "Leave and return: Continue Run or End Run.",
-        "Clear a stage to advance Easy → Medium → Hard.",
+        "Clear each board to advance the run.",
+        "One wrong answer ends the run.",
+        "Continue an active run or end it cleanly.",
       ]}
     />
   );

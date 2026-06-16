@@ -88,8 +88,6 @@ export type ArenaProfile = {
   lastPlayedAt?: number;
   dailyMatches: number;
   weeklyMatches: number;
-  dailySurvivalRuns: number;
-  dailyTournamentRuns: number;
   lastDailyKey: string;
   lastWeeklyKey: string;
 };
@@ -153,8 +151,6 @@ const DEFAULT_PROFILE: ArenaProfile = {
   currentSeasonId: "logic-wars-s1",
   dailyMatches: 0,
   weeklyMatches: 0,
-  dailySurvivalRuns: 0,
-  dailyTournamentRuns: 0,
   lastDailyKey: "",
   lastWeeklyKey: "",
 };
@@ -225,8 +221,6 @@ function normalizeProfileCadence(profile: ArenaProfile): ArenaProfile {
     ...profile,
     dailyMatches: profile.lastDailyKey === today ? Math.max(0, Number(profile.dailyMatches ?? 0)) : 0,
     weeklyMatches: profile.lastWeeklyKey === thisWeek ? Math.max(0, Number(profile.weeklyMatches ?? 0)) : 0,
-    dailySurvivalRuns: profile.lastDailyKey === today ? Math.max(0, Number((profile as any).dailySurvivalRuns ?? 0)) : 0,
-    dailyTournamentRuns: profile.lastDailyKey === today ? Math.max(0, Number((profile as any).dailyTournamentRuns ?? 0)) : 0,
     lastDailyKey: today,
     lastWeeklyKey: thisWeek,
   };
@@ -244,26 +238,21 @@ function clampReward(value: number, multiplier: number) {
 
 export function getArenaGoals(snapshot: ArenaSnapshot | null): ArenaGoal[] {
   const profile = snapshot?.profile ?? DEFAULT_PROFILE;
-  const history = snapshot?.history ?? [];
-  const today = dateKey();
-
-  const todayResults = history.filter((result) => dateKey(result.completedAt) === today);
-  const rankedWinToday = todayResults.some((result) => result.mode === "ranked" && result.win) ? 1 : 0;
-  const tournamentPlayedToday = todayResults.some((result) => result.mode === "tournament") ? 1 : 0;
-  const powerUseToday = Math.min(2, todayResults
-    .filter((result) => result.mode === "power")
-    .reduce((total, result) => total + Math.max(0, result.powerChargesUsed ?? 0), 0));
+  const last = snapshot?.lastResult;
+  const rankedWinToday = last?.mode === "ranked" && last.win ? 1 : 0;
+  const tournamentPlayedToday = last?.mode === "tournament" ? 1 : 0;
+  const powerUseToday = last?.mode === "power" ? Math.min(2, last.powerChargesUsed ?? 0) : 0;
   const survivalProgress = Math.min(3, profile.survivalBestDepth ?? 0);
   const weeklyWinProgress = Math.min(5, profile.winStreak || profile.bestStreak || 0);
-
   return [
     { id: "daily-ranked-win", period: "daily", title: "Win a Ranked Duel", description: "Beat one rival target today.", progress: rankedWinToday, target: 1, reward: "+35 XP / +15 AP", complete: rankedWinToday >= 1 },
-    { id: "daily-power-tools", period: "daily", title: "Use 2 Powers", description: "Spend Reveal, Shield, or Rewind in Power Arena.", progress: powerUseToday, target: 2, reward: "+25 XP / +10 AP", complete: powerUseToday >= 2 },
+    { id: "daily-power-tools", period: "daily", title: "Use 2 Powers", description: "Spend Reveal, Shield, or Freeze in Power Arena.", progress: powerUseToday, target: 2, reward: "+25 XP / +10 AP", complete: powerUseToday >= 2 },
     { id: "daily-cup-entry", period: "daily", title: "Enter Tournament Cup", description: "Start or finish a cup stage.", progress: tournamentPlayedToday, target: 1, reward: "+30 XP / +10 AP", complete: tournamentPlayedToday >= 1 },
     { id: "weekly-survival-climb", period: "weekly", title: "Reach Survival Stage 3", description: "Clear enough perfect boards to touch Hard survival pressure.", progress: survivalProgress, target: 3, reward: "+120 XP / +45 AP", complete: survivalProgress >= 3 },
     { id: "weekly-streak-five", period: "weekly", title: "Build a 5-Win Streak", description: "Protect momentum across Arena results.", progress: weeklyWinProgress, target: 5, reward: "+150 XP / +60 AP", complete: weeklyWinProgress >= 5 },
   ];
 }
+
 export function getLeague(rating: number): ArenaLeague {
   if (rating >= 1400) return "Master";
   if (rating >= 1050) return "Elite";
@@ -461,8 +450,6 @@ export async function getArenaProfile(): Promise<ArenaProfile> {
     currentSeasonId: raw.currentSeasonId ?? ARENA_SEASON.id,
     dailyMatches: Number(raw.dailyMatches ?? 0),
     weeklyMatches: Number(raw.weeklyMatches ?? 0),
-    dailySurvivalRuns: Number((raw as any).dailySurvivalRuns ?? 0),
-    dailyTournamentRuns: Number((raw as any).dailyTournamentRuns ?? 0),
     lastDailyKey: raw.lastDailyKey ?? "",
     lastWeeklyKey: raw.lastWeeklyKey ?? "",
   };
@@ -486,11 +473,6 @@ export async function getArenaSnapshot(): Promise<ArenaSnapshot> {
 export async function startArenaRun(mode: ArenaMode, opts?: { isPremium?: boolean }): Promise<ArenaRun> {
   const existing = await readHealthyPendingRun();
   if (existing) return existing;
-  if ((mode === "power" || mode === "tournament") && opts?.isPremium !== true) {
-    const err = new Error("Sweirki Plus is required for this Arena mode.") as Error & { code?: string };
-    err.code = "ARENA_PREMIUM_REQUIRED";
-    throw err;
-  }
   const profile = await getArenaProfile();
   const entry = await spendArenaEntry(mode, profile, opts?.isPremium === true);
   if (!entry.ok) {
@@ -541,8 +523,8 @@ function resultReason(mode: ArenaMode, win: boolean, time: number, target: numbe
   if (mode === "survival" && errors > 0) return "Survival allows zero mistakes. One strike ended the run.";
   if (errors > 3) return "The run exceeded the Arena mistake limit.";
   if (!win && time > target) return "The board was solved, but the rival target was faster.";
-  if (win) return "You beat the target while staying inside the Arena rules.";
-  return "The Arena target was not cleared cleanly enough.";
+  if (win) return "You beat the target while staying inside the Arena contract.";
+  return "The match contract was not cleared cleanly enough.";
 }
 
 function nextProgressionRun(pending: ArenaRun, profileAfter: ArenaProfile, arenaWin: boolean): ArenaRun | null {
@@ -581,7 +563,7 @@ export async function forfeitPendingArenaRun(input?: { time?: number; errors?: n
   const multiplier = economyMultiplier(profile);
   const xpEarned = clampReward(pending.mode === "survival" ? 10 : 12, multiplier);
   const arenaPointsEarned = 0;
-  const nextProfile: ArenaProfile = { ...profile, rating: ratingAfter, league: leagueAfter, seasonXp: profile.seasonXp + xpEarned, arenaPoints: profile.arenaPoints + arenaPointsEarned, losses: profile.losses + 1, winStreak: 0, dailyMatches: profile.dailyMatches + 1, weeklyMatches: profile.weeklyMatches + 1, dailySurvivalRuns: profile.dailySurvivalRuns + (pending.mode === "survival" ? 1 : 0), dailyTournamentRuns: profile.dailyTournamentRuns + (pending.mode === "tournament" ? 1 : 0), lastDailyKey: dateKey(), lastWeeklyKey: weekKey(), lastPlayedAt: Date.now() };
+  const nextProfile: ArenaProfile = { ...profile, rating: ratingAfter, league: leagueAfter, seasonXp: profile.seasonXp + xpEarned, arenaPoints: profile.arenaPoints + arenaPointsEarned, losses: profile.losses + 1, winStreak: 0, dailyMatches: profile.dailyMatches + 1, weeklyMatches: profile.weeklyMatches + 1, lastDailyKey: dateKey(), lastWeeklyKey: weekKey(), lastPlayedAt: Date.now() };
   const result: ArenaResult = {
     ...pending,
     completedAt: Date.now(),
@@ -657,8 +639,6 @@ export async function completePendingArenaRun(input: { win: boolean; time: numbe
     badgesUnlocked: unlockedBadges,
     dailyMatches: profile.dailyMatches + 1,
     weeklyMatches: profile.weeklyMatches + 1,
-    dailySurvivalRuns: profile.dailySurvivalRuns + (pending.mode === "survival" ? 1 : 0),
-    dailyTournamentRuns: profile.dailyTournamentRuns + (pending.mode === "tournament" ? 1 : 0),
     lastDailyKey: dateKey(),
     lastWeeklyKey: weekKey(),
     lastPlayedAt: Date.now(),

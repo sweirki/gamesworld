@@ -131,7 +131,7 @@ export const ECONOMY_PRODUCTS = {
   premiumLifetime: "premium_lifetime",
   arenaTickets10: "arena_tickets_10",
   championBundle: "champion_bundle",
-  logicWarsPass: "logic_wars_season_pass",
+  logicWarsPass: "logic_wars_pass",
 } as const;
 
 export const ECONOMY_PRODUCT_LIST: EconomyProduct[] = [
@@ -159,11 +159,11 @@ export const ECONOMY_PRODUCT_LIST: EconomyProduct[] = [
     id: "champion-bundle",
     revenueCatIdentifier: ECONOMY_PRODUCTS.championBundle,
     title: "Champion Bundle",
-    subtitle: "Coins, Arena Tickets, Champion frame, Champion title, and Champion banner for serious Arena players.",
+    subtitle: "Tickets, coins, champion frame, and crown badge for serious Arena players.",
     kind: "consumable",
     tag: "High value",
     storePlacement: "featured",
-    grants: { coins: 2500, tickets: 15, cosmeticIds: ["champion_frame", "champion_title", "champion_banner"] },
+    grants: { coins: 6000, tickets: 25, cosmeticIds: ["champion_frame", "crown_cell_badge", "champion_title"] },
   },
   {
     id: "logic-wars-pass",
@@ -178,108 +178,17 @@ export const ECONOMY_PRODUCT_LIST: EconomyProduct[] = [
 ];
 
 export const ECONOMY_COSMETICS: InventoryCosmetic[] = [
-  {
-    id: "default_frame",
-    type: "frame",
-    name: "Clean Grid Frame",
-    rarity: "Common",
-    source: "arena_shop",
-    priceArenaPoints: 0,
-    assetPath: "assets/economy/frames/bronze_frame.png",
-    description: "Default profile frame.",
-  },
-  {
-    id: "cyan_royal_frame",
-    type: "frame",
-    name: "Cyan Royal Frame",
-    rarity: "Epic",
-    source: "premium",
-    assetPath: "assets/economy/frames/elite_frame.png",
-    description: "Sweirki Plus profile frame.",
-  },
-  {
-    id: "champion_frame",
-    type: "frame",
-    name: "Champion Frame",
-    rarity: "Legendary",
-    source: "bundle",
-    assetPath: "assets/economy/frames/champion_frame.png",
-    description: "Bundle-exclusive trophy frame.",
-  },
-  {
-    id: "master_grid_frame",
-    type: "frame",
-    name: "Master Grid Frame",
-    rarity: "Legendary",
-    source: "season",
-    assetPath: "assets/economy/frames/logic_wars_frame.png",
-    description: "Logic Wars premium track frame.",
-  },
-  {
-    id: "plus_shield",
-    type: "badge",
-    name: "Plus Shield",
-    rarity: "Epic",
-    source: "premium",
-    assetPath: "assets/economy/badges/master_badge.png",
-    description: "Premium account badge.",
-  },
-  {
-    id: "logic_wars_banner",
-    type: "banner",
-    name: "Logic Wars Banner",
-    rarity: "Epic",
-    source: "season",
-    assetPath: "assets/economy/season/season_pass_hero.png",
-    description: "Season 1 banner.",
-  },
-  {
-    id: "champion_banner",
-    type: "banner",
-    name: "Champion Banner",
-    rarity: "Legendary",
-    source: "bundle",
-    assetPath: "assets/economy/shop/shop_featured_banner.png",
-    description: "Champion Bundle profile banner.",
-  },
-  {
-    id: "plus_title",
-    type: "title",
-    name: "Plus Strategist",
-    rarity: "Epic",
-    source: "premium",
-    assetPath: "assets/economy/titles/title_sweirki_legend.png",
-    description: "Premium title.",
-  },
-  {
-    id: "champion_title",
-    type: "title",
-    name: "Cup Champion",
-    rarity: "Legendary",
-    source: "bundle",
-    assetPath: "assets/economy/titles/title_arena_champion.png",
-    description: "Champion title.",
-  },
-  {
-    id: "frost_board_skin",
-    type: "board_skin",
-    name: "Frost Grid",
-    rarity: "Rare",
-    source: "arena_shop",
-    priceArenaPoints: 850,
-    assetPath: "assets/economy/shop/shop_starter_bundle.png",
-    description: "Arena Points board skin.",
-  },
-  {
-    id: "obsidian_board_skin",
-    type: "board_skin",
-    name: "Obsidian Grid",
-    rarity: "Epic",
-    source: "arena_shop",
-    priceArenaPoints: 1800,
-    assetPath: "assets/economy/shop/shop_premium_bundle.png",
-    description: "Premium dark board skin.",
-  },
+  { id: "default_frame", type: "frame", name: "Clean Grid Frame", rarity: "Common", source: "arena_shop", priceArenaPoints: 0, assetPath: "assets/economy/cosmetics/default_frame.png", description: "Default profile frame." },
+  { id: "cyan_royal_frame", type: "frame", name: "Cyan Royal Frame", rarity: "Epic", source: "premium", assetPath: "assets/economy/cosmetics/cyan_royal_frame.png", description: "Sweirki Plus profile frame." },
+  { id: "champion_frame", type: "frame", name: "Champion Frame", rarity: "Legendary", source: "bundle", assetPath: "assets/economy/cosmetics/champion_frame.png", description: "Bundle-exclusive trophy frame." },
+  { id: "master_grid_frame", type: "frame", name: "Master Grid Frame", rarity: "Legendary", source: "season", assetPath: "assets/economy/cosmetics/master_grid_frame.png", description: "Logic Wars premium track frame." },
+  { id: "plus_shield", type: "badge", name: "Plus Shield", rarity: "Epic", source: "premium", assetPath: "assets/economy/cosmetics/plus_shield.png", description: "Premium account badge." },
+  { id: "crown_cell_badge", type: "badge", name: "Crown Cell", rarity: "Legendary", source: "bundle", assetPath: "assets/economy/cosmetics/crown_cell_badge.png", description: "Champion Bundle badge." },
+  { id: "logic_wars_banner", type: "banner", name: "Logic Wars Banner", rarity: "Epic", source: "season", assetPath: "assets/economy/cosmetics/logic_wars_banner.png", description: "Season 1 banner." },
+  { id: "plus_title", type: "title", name: "Plus Strategist", rarity: "Epic", source: "premium", assetPath: "assets/economy/cosmetics/plus_title.png", description: "Premium title." },
+  { id: "champion_title", type: "title", name: "Cup Champion", rarity: "Legendary", source: "bundle", assetPath: "assets/economy/cosmetics/champion_title.png", description: "Champion title." },
+  { id: "frost_board_skin", type: "board_skin", name: "Frost Grid", rarity: "Rare", source: "arena_shop", priceArenaPoints: 850, assetPath: "assets/economy/cosmetics/frost_board_skin.png", description: "Arena Points board skin." },
+  { id: "obsidian_board_skin", type: "board_skin", name: "Obsidian Grid", rarity: "Epic", source: "arena_shop", priceArenaPoints: 1800, assetPath: "assets/economy/cosmetics/obsidian_board_skin.png", description: "Premium dark board skin." },
 ];
 
 export const REWARDED_AD_OFFERS: RewardedAdOffer[] = [
@@ -604,30 +513,30 @@ export async function awardGameEconomy(result: { mode: string; win: boolean; dif
   return grantEconomy({ source: result.mode === "daily" ? "daily_win" : result.mode === "weekly" ? "weekly_win" : result.mode === "classic" ? "classic_win" : "variant_win", label: reward.label, coins: reward.coins, tickets: reward.tickets });
 }
 
-export function getArenaEntryCost(mode: string, profile?: { dailyMatches?: number; dailySurvivalRuns?: number; dailyTournamentRuns?: number }, isPremium = false) {
+export function getArenaEntryCost(mode: string, profile?: { dailyMatches?: number }, isPremium = false) {
   if (mode === "ranked") return { coins: 0, tickets: 0, label: "Ranked Duel entry is free" };
   if (mode === "power") return { coins: 0, tickets: 0, label: "Power Arena entry is free" };
   if (mode === "survival") {
     const freeRuns = isPremium ? 2 : 1;
-    const used = Math.max(0, safeNumber(profile?.dailySurvivalRuns, 0));
+    const used = Math.max(0, safeNumber(profile?.dailyMatches, 0));
     if (used < freeRuns) return { coins: 0, tickets: 0, label: "Daily Survival free entry" };
     return { coins: isPremium ? 150 : 300, tickets: 0, label: "Extra Survival entry" };
   }
   if (mode === "tournament") {
-    const used = Math.max(0, safeNumber(profile?.dailyTournamentRuns, 0));
+    const used = Math.max(0, safeNumber(profile?.dailyMatches, 0));
     if (used === 0) return { coins: 0, tickets: 0, label: "Daily Cup free entry" };
     return { coins: 0, tickets: 1, label: "Tournament Cup ticket entry" };
   }
   return { coins: 0, tickets: 0, label: "Free entry" };
 }
 
-export async function canAffordArenaEntry(mode: string, profile?: { dailyMatches?: number; dailySurvivalRuns?: number; dailyTournamentRuns?: number }, isPremium = false) {
+export async function canAffordArenaEntry(mode: string, profile?: { dailyMatches?: number }, isPremium = false) {
   const wallet = await getEconomyWallet();
   const cost = getArenaEntryCost(mode, profile, isPremium);
   return { ok: wallet.coins >= cost.coins && wallet.tickets >= cost.tickets, wallet, cost, missing: wallet.coins < cost.coins ? "coins" as const : wallet.tickets < cost.tickets ? "tickets" as const : null };
 }
 
-export async function spendArenaEntry(mode: string, profile?: { dailyMatches?: number; dailySurvivalRuns?: number; dailyTournamentRuns?: number }, isPremium = false) {
+export async function spendArenaEntry(mode: string, profile?: { dailyMatches?: number }, isPremium = false) {
   const cost = getArenaEntryCost(mode, profile, isPremium);
   if (cost.coins <= 0 && cost.tickets <= 0) return { ok: true, cost, wallet: await getEconomyWallet(), missing: null };
   const spent = await spendEconomy({ source: "arena_entry", label: cost.label, coins: cost.coins, tickets: cost.tickets });
@@ -763,5 +672,3 @@ export function formatCost(cost: { coins?: number; tickets?: number; ticketFragm
   if ((cost.ticketFragments ?? 0) > 0) parts.push(`${cost.ticketFragments}/10 Ticket Fragment${cost.ticketFragments === 1 ? "" : "s"}`);
   return parts.length ? parts.join(" + ") : "Free";
 }
-
-

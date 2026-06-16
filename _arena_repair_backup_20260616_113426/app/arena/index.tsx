@@ -87,7 +87,7 @@ const MODES: ModeTile[] = [
     mode: "power",
     title: "Power Arena",
     label: "Strategy",
-    desc: "Reveal, Shield, and Rewind under pressure.",
+    desc: "Reveal, Shield, and Freeze under pressure.",
     route: "/arena/power",
     art: ASSETS.power,
     accent: sweirkiTheme.colors.purple,
@@ -363,10 +363,6 @@ function ModeCard({ item, snapshot, isPremium }: { item: ModeTile; snapshot: Are
       style={({ pressed }) => [styles.cardMotion, pressed && styles.pressed]}
       onPress={() => {
         playArenaFeedback("tap");
-        if (locked) {
-          router.push("/shop" as any);
-          return;
-        }
         router.push(item.route as any);
       }}
     >

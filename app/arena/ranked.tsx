@@ -5,16 +5,16 @@ export default function ArenaRanked() {
     <ModeScreen
       mode="ranked"
       title="Ranked Duel"
-      eyebrow="Rating Match"
+      eyebrow="Bronze Division"
       icon="trophy-outline"
       accent="blue"
-      subtitle="A clean one-board Arena duel where speed, accuracy, and composure decide rating."
-      startLabel="Start Ranked Duel"
+      subtitle="One official rated board. Protect your score, beat the rival target, and climb toward the next tier."
+      startLabel="Start Rated Match"
       rules={[
-        "One active Arena match at a time.",
-        "Leave and return: Continue Duel or Forfeit Duel.",
-        "Three mistakes are allowed; the fourth mistake is defeat.",
-        "Win condition: solve cleanly and beat the rival target time.",
+        "One official ranked board decides the match.",
+        "Win by solving cleanly and beating the rival target.",
+        "Your rating moves after the result: win to climb, lose to defend.",
+        "You can continue an active duel, but abandoning it counts as a forfeit.",
       ]}
     />
   );

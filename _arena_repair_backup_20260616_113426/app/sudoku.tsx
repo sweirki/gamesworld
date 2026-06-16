@@ -737,17 +737,6 @@ export default function SudokuScreen({
     setPuzzle(prev);
     setHistory(history.slice(0, -1));
     updateDigitCounts(prev);
-    if (isArena) {
-      persistArenaProgress(prev, {
-        timer: time,
-        hintsLeft,
-        difficulty,
-        errors: errorCount,
-        errorCount,
-        powerCharges: arenaPowerCharges,
-        shieldArmed: arenaShieldArmed,
-      });
-    }
   };
 
   const handleRedo = () => {
@@ -759,17 +748,6 @@ export default function SudokuScreen({
     setPuzzle(next);
     setRedoStack(redoStack.slice(1));
     updateDigitCounts(next);
-    if (isArena) {
-      persistArenaProgress(next, {
-        timer: time,
-        hintsLeft,
-        difficulty,
-        errors: errorCount,
-        errorCount,
-        powerCharges: arenaPowerCharges,
-        shieldArmed: arenaShieldArmed,
-      });
-    }
   };
 
   const handleDelete = () => {
@@ -788,17 +766,6 @@ export default function SudokuScreen({
     setRedoStack([]);
     setPuzzle(newPuzzle);
     updateDigitCounts(newPuzzle);
-    if (isArena) {
-      persistArenaProgress(newPuzzle, {
-        timer: time,
-        hintsLeft,
-        difficulty,
-        errors: errorCount,
-        errorCount,
-        powerCharges: arenaPowerCharges,
-        shieldArmed: arenaShieldArmed,
-      });
-    }
 
     const won = newPuzzle.every((row) =>
       row.every((cell) => cell.value === cell.solution),
@@ -1351,7 +1318,7 @@ export default function SudokuScreen({
                 </TouchableOpacity>
                 <TouchableOpacity style={[s.powerChip, arenaPowerCharges.freeze <= 0 && s.powerChipDisabled]} onPress={() => spendArenaPower("freeze")} activeOpacity={0.82}>
                   <Ionicons name="snow-outline" size={13} color="#FFFFFF" />
-                  <Text style={s.powerText}>Rewind {arenaPowerCharges.freeze}</Text>
+                  <Text style={s.powerText}>Freeze {arenaPowerCharges.freeze}</Text>
                 </TouchableOpacity>
               </View>
             ) : null}

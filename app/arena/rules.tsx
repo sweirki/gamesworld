@@ -8,7 +8,7 @@ const RULES = [
   ["Verified wins", "A win must be fast enough and clean enough to beat the generated target."],
   ["Rating movement", "Arena rating rises after wins and drops after failed competitive runs."],
   ["Season rewards", "Arena XP, Arena Points, badges, cup wins, and profile records are banked after official results."],
-  ["Goal board", "Daily and weekly goals create return reasons without changing the core Sudoku fairness contract."],
+  ["Goal board", "Daily and weekly goals create return reasons without changing the core Sudoku fairness rules."],
   ["Economy guard", "High-volume farming soft-caps rewards so Arena progression stays meaningful."],
   ["League identity", "Bronze, Silver, Gold, Elite, and Master badges are based on rating and season performance."],
   ["No pay-to-win", "Premium modes can change format, but skill decides Arena outcomes."],
@@ -20,7 +20,7 @@ export default function ArenaRules() {
       <View style={styles.heroCard}>
         <View style={styles.heroIcon}><Ionicons name="shield-checkmark" size={34} color={sweirkiTheme.colors.cyanDeep} /></View>
         <Text style={styles.heroTitle}>Fair, clean, competitive Sudoku.</Text>
-        <Text style={styles.heroText}>Arena uses saved sessions, clear contracts, and official results so every run feels competitive.</Text>
+        <Text style={styles.heroText}>Arena uses saved sessions, clear rules, and official results so every run feels competitive.</Text>
       </View>
 
       <View style={styles.rulesCard}>
@@ -51,3 +51,4 @@ const styles = StyleSheet.create({
   ruleHeading: { fontFamily: sweirkiTheme.fonts.bold, color: sweirkiTheme.colors.ink, fontSize: 17 },
   ruleText: { fontFamily: sweirkiTheme.fonts.regular, color: sweirkiTheme.colors.textSoft, fontSize: 12, lineHeight: 17, marginTop: 2 },
 });
+

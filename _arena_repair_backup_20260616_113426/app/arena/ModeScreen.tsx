@@ -34,14 +34,14 @@ const MODE_ART: Record<ArenaMode, any> = {
   ranked: require("../../assets/arena/leagues/gold_league.png"),
   survival: require("../../assets/arena/modes/survival_run_v2.png"),
   power: require("../../assets/arena/modes/power_arena_v2.png"),
-  tournament: require("../../assets/arena/modes/tournament_cup_v2.png"),
+  tournament: require("../../assets/arena/tournaments/champion_cup.png"),
 };
 
 const MODE_BADGE_ART: Record<ArenaMode, any> = {
   ranked: require("../../assets/economy/badges/gold_badge.png"),
   survival: require("../../assets/arena/modes/survival_run_v2.png"),
   power: require("../../assets/arena/modes/power_arena_v2.png"),
-  tournament: require("../../assets/arena/modes/tournament_cup_v2.png"),
+  tournament: require("../../assets/arena/tournaments/cup_trophy.png"),
 };
 
 const RANK_BADGE_ART: Record<string, any> = {
@@ -99,7 +99,7 @@ const MODE_COPY: Record<
 > = {
   ranked: {
     opponentLabel: "Matched Rival",
-    contract: "One official rated board. Beat the target with control to gain rating.",
+    contract: "One official duel. Beat the target with control to gain rating.",
     reward: "+26 to +38 rating",
     risk: "-18 rating or more",
     promise: "Rating, league progress, streak, and result history are updated after the board.",
@@ -116,7 +116,7 @@ const MODE_COPY: Record<
     forfeitLabel: "End Run",
   },
   power: {
-    opponentLabel: "Power Loadout",
+    opponentLabel: "Power Rival",
     contract: "Use limited assists wisely. Controlled decisions beat raw speed.",
     reward: "+26 rating + XP",
     risk: "Limited charges, no careless solves",
@@ -125,7 +125,7 @@ const MODE_COPY: Record<
     forfeitLabel: "Forfeit Power Run",
   },
   tournament: {
-    opponentLabel: "Cup Bracket",
+    opponentLabel: "Cup Opponent",
     contract: "Qualifier starts on Medium. Semifinal and Final move to Hard. Lose once and the Cup ends.",
     reward: "Cup rating + Cup XP",
     risk: "Cup eliminated",
@@ -183,7 +183,6 @@ export default function ModeScreen({
   const colors = accentMap[accent];
   const copy = MODE_COPY[mode];
   const { isPremium } = useRevenueCat();
-  const premiumLocked = (mode === "power" || mode === "tournament") && !isPremium;
 
   const refresh = useCallback(() => {
     let alive = true;
@@ -201,7 +200,7 @@ export default function ModeScreen({
 
   const activeRun = snapshot?.pendingRun?.mode === mode ? snapshot.pendingRun : null;
   const entryCost = getArenaEntryCost(mode, snapshot?.profile, isPremium);
-  const canAffordEntry = !premiumLocked && (wallet?.coins ?? 0) >= entryCost.coins && (wallet?.tickets ?? 0) >= entryCost.tickets;
+  const canAffordEntry = (wallet?.coins ?? 0) >= entryCost.coins && (wallet?.tickets ?? 0) >= entryCost.tickets;
   const otherRun = snapshot?.pendingRun && snapshot.pendingRun.mode !== mode ? snapshot.pendingRun : null;
   const otherRunName = otherRun ? MODE_DISPLAY_NAME[otherRun.mode] : "Arena Session";
   const otherRunLabel = otherRun ? MODE_SESSION_LABEL[otherRun.mode] : "session";
@@ -220,7 +219,7 @@ export default function ModeScreen({
   const matchupTitle = useMemo(() => {
     if (activeRun) return `${copy.opponentLabel}: ${activeRun.opponentName}`;
     if (mode === "ranked") return "Next Rated Match";
-    return mode === "survival" ? "Run stakes" : mode === "power" ? "Power stakes" : mode === "tournament" ? "Cup stakes" : "Arena stakes";
+    return mode === "survival" ? "Run stakes" : "Match contract";
   }, [activeRun, copy.opponentLabel, mode]);
 
   const goToRun = (run: ArenaRun) => {
@@ -236,12 +235,6 @@ export default function ModeScreen({
 
     if (activeRun) {
       goToRun(activeRun);
-      return;
-    }
-
-    if (premiumLocked) {
-      setEntryError("Sweirki Plus is required for this Arena mode.");
-      router.push("/shop" as any);
       return;
     }
 
@@ -262,7 +255,7 @@ export default function ModeScreen({
       setSnapshot(next);
       goToRun(run);
     } catch (e: any) {
-      setEntryError(e?.code === "ARENA_PREMIUM_REQUIRED" ? "Sweirki Plus is required for this Arena mode." : e?.code === "ARENA_ENTRY_FUNDS" ? `Need ${formatCost(entryCost)} to start this mode.` : "Arena could not start. Try again from the hub.");
+      setEntryError(e?.code === "ARENA_ENTRY_FUNDS" ? `Need ${formatCost(entryCost)} to start this mode.` : "Arena could not start. Try again from the hub.");
     } finally {
       setStarting(false);
     }
@@ -274,11 +267,6 @@ export default function ModeScreen({
     try {
       await forfeitPendingArenaRun();
       setEntryError(null);
-      if (premiumLocked) {
-        setEntryError("Sweirki Plus is required for this Arena mode.");
-        router.push("/shop" as any);
-        return;
-      }
       if (!canAffordEntry) {
         setEntryError(`Need ${formatCost(entryCost)} to start. Your wallet has ${wallet?.coins ?? 0} Coins and ${wallet?.tickets ?? 0} Tickets.`);
         return;
@@ -308,7 +296,7 @@ export default function ModeScreen({
             <View style={styles.rankedHeroCopy}>
               <Text style={styles.heroKicker}>{mode === "tournament" ? "CUP PATH" : mode === "power" ? "POWER LOADOUT" : mode === "survival" ? "PRESSURE RUN" : `${league.toUpperCase()} DIVISION`}</Text>
               <Text style={styles.rankedHeroTitle}>{mode === "tournament" ? "Qualifier" : mode === "power" ? "3 Charges" : mode === "survival" ? `${survivalCurrentRun} Boards` : `${ratingText(rating)} Rating`}</Text>
-              <Text style={styles.rankedHeroSubtitle}>{mode === "tournament" ? "Win Qualifier → Semifinal → Final" : mode === "power" ? "Reveal Cell • Shield • Time Rewind" : mode === "survival" ? `Best run ${survivalBestRun} boards • one mistake ends it` : ratingToNext > 0 ? `${ratingToNext} rating to next tier` : "Master ladder active"}</Text>
+              <Text style={styles.rankedHeroSubtitle}>{mode === "tournament" ? "Win Qualifier → Semifinal → Final" : mode === "power" ? "Reveal Cell • Shield • Time Freeze" : mode === "survival" ? `Best run ${survivalBestRun} boards • one mistake ends it` : ratingToNext > 0 ? `${ratingToNext} rating to next tier` : "Master ladder active"}</Text>
             </View>
             <Image source={mode === "tournament" ? MODE_BADGE_ART.tournament : mode === "power" ? MODE_BADGE_ART.power : mode === "survival" ? MODE_BADGE_ART.survival : rankBadgeArt(league)} style={styles.rankedHeroBadge} resizeMode="contain" />
           </View>
@@ -361,7 +349,7 @@ export default function ModeScreen({
       <View style={styles.briefingCard}>
         <View style={styles.briefingHeader}>
           <View>
-            <Text style={styles.sectionLabel}>{mode === "ranked" ? "Next rated match" : mode === "survival" ? "Survival run" : mode === "power" ? "Power loadout" : mode === "tournament" ? "Cup bracket" : "Arena system"}</Text>
+            <Text style={styles.sectionLabel}>{mode === "ranked" ? "Next rated match" : mode === "survival" ? "Survival run" : mode === "power" ? "Power loadout" : mode === "tournament" ? "Cup bracket" : "Arena briefing"}</Text>
             <Text style={styles.sectionTitle}>{mode === "ranked" ? "Match stakes" : mode === "survival" ? "Run stakes" : mode === "power" ? "Power stakes" : mode === "tournament" ? "Cup stakes" : matchupTitle}</Text>
           </View>
           <View style={[styles.contractBadge, { backgroundColor: colors.bg }]}> 
@@ -406,7 +394,7 @@ export default function ModeScreen({
         )}
 
         <View style={styles.contractPanel}>
-          <Text style={styles.contractText}>{mode === "ranked" ? "One official rated board. Beat the rival target to climb, or defend your tier if the board turns against you." : mode === "survival" ? "Clear each board without a mistake. Every clean board extends the run and raises the pressure." : mode === "power" ? "Three tactical charges. Use Reveal Cell, Shield, and Time Rewind carefully. Smart decisions matter more than raw speed." : mode === "tournament" ? "Win Qualifier, Semifinal, and Final to claim the Cup. One loss or forfeit ends the bracket." : activeRun ? copy.promise : copy.contract}</Text>
+          <Text style={styles.contractText}>{mode === "ranked" ? "One official rated board. Beat the rival target to climb, or defend your tier if the board turns against you." : mode === "survival" ? "Clear each board without a mistake. Every clean board extends the run and raises the pressure." : mode === "power" ? "Three tactical charges. Use Reveal Cell, Shield, and Time Freeze carefully. Smart decisions matter more than raw speed." : mode === "tournament" ? "Win Qualifier, Semifinal, and Final to claim the Cup. One loss or forfeit ends the bracket." : activeRun ? copy.promise : copy.contract}</Text>
         </View>
 
         {mode === "ranked" || mode === "survival" || mode === "power" || mode === "tournament" ? (
@@ -508,7 +496,7 @@ export default function ModeScreen({
       ) : null}
 
       <View style={styles.rulesCard}>
-        <Text style={styles.sectionTitle}>{mode === "ranked" ? "Rating System" : mode === "survival" ? "Survival System" : mode === "power" ? "Power System" : mode === "tournament" ? "Cup System" : "Arena System"}</Text>
+        <Text style={styles.sectionTitle}>{mode === "ranked" ? "Rating System" : mode === "survival" ? "Survival System" : mode === "power" ? "Power System" : mode === "tournament" ? "Cup System" : "Rules of engagement"}</Text>
         {rules.map((rule, index) => (
           <View key={rule} style={styles.ruleRow}>
             <View style={[styles.ruleBadge, { backgroundColor: colors.soft }]}> 

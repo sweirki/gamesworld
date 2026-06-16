@@ -38,6 +38,7 @@ export default function SeasonPassScreen() {
 
   const currentLevel = getSeasonLevelFromXp(state?.xp ?? 0);
   const progress = Math.min(1, ((state?.xp ?? 0) % SEASON_LEVEL_XP) / SEASON_LEVEL_XP);
+  const nextLevelXp = SEASON_LEVEL_XP - ((state?.xp ?? 0) % SEASON_LEVEL_XP);
 
   const buyPass = async () => {
     const pkg = getPackageByProductId(ECONOMY_PRODUCTS.logicWarsPass);
@@ -67,15 +68,33 @@ export default function SeasonPassScreen() {
   return (
     <ImageBackground source={backgroundImage} style={styles.screen} resizeMode="cover">
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.headerRow}><Pressable style={styles.circleButton} onPress={() => router.back()}><Ionicons name="chevron-back" size={28} color={sweirkiTheme.colors.inkDeep} /></Pressable><Text style={styles.headerTitle}>Season Pass</Text><View style={styles.circleButtonGhost} /></View>
+        <View style={styles.headerRow}>
+          <Pressable style={styles.circleButton} onPress={() => router.back()}><Ionicons name="chevron-back" size={28} color={sweirkiTheme.colors.inkDeep} /></Pressable>
+          <View style={styles.headerCenter}><Text style={styles.headerKicker}>SWEIRKI SEASON</Text><Text style={styles.headerTitle}>Season Pass</Text></View>
+          <Pressable style={styles.circleButton} onPress={() => router.push("/shop" as any)}><Ionicons name="wallet" size={22} color={sweirkiTheme.colors.cyanDeep} /></Pressable>
+        </View>
+
         <View style={styles.heroCard}>
+          <View style={styles.heroGlow} />
+          <View style={styles.heroTopRow}>
+            <View style={styles.heroIcon}><Ionicons name="ribbon" size={26} color="#FFFFFF" /></View>
+            <View style={styles.statusPill}><Ionicons name={state?.premium ? "checkmark-circle" : "lock-closed"} size={13} color={sweirkiTheme.colors.inkDeep} /><Text style={styles.statusText}>{state?.premium ? "PASS ACTIVE" : "PASS LOCKED"}</Text></View>
+          </View>
           <Text style={styles.kicker}>SEASON 1</Text>
           <Text style={styles.heroTitle}>Logic Wars</Text>
-          <Text style={styles.heroText}>Play Classic, Daily, Weekly, and Arena to earn Season XP. The free track is for everyone; Plus/Pass unlocks premium rewards.</Text>
+          <Text style={styles.heroText}>Play Classic, Daily, Weekly, and Arena to earn Season XP. Free rewards are open to everyone; the pass unlocks the premium track.</Text>
           <View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${Math.round(progress * 100)}%` }]} /></View>
-          <Text style={styles.progressText}>Level {currentLevel} • {state?.xp ?? 0} XP</Text>
-          {!state?.premium ? <TouchableOpacity style={styles.buyPassButton} onPress={buyPass} disabled={busy === "pass"}><Text style={styles.buyPassText}>{busy === "pass" ? "Processing..." : "Unlock Premium Track"}</Text></TouchableOpacity> : <Text style={styles.activeText}>Premium track active</Text>}
+          <View style={styles.progressRow}><Text style={styles.progressText}>Level {currentLevel}</Text><Text style={styles.progressSub}>{state?.xp ?? 0} XP • {nextLevelXp} XP to next</Text></View>
+          {!state?.premium ? <TouchableOpacity style={styles.buyPassButton} onPress={buyPass} disabled={busy === "pass"} activeOpacity={0.88}><Text style={styles.buyPassText}>{busy === "pass" ? "Processing..." : "Unlock Premium Track"}</Text></TouchableOpacity> : <Text style={styles.activeText}>Premium track active</Text>}
         </View>
+
+        <View style={styles.statGrid}>
+          <View style={styles.statCard}><Ionicons name="star" size={19} color={sweirkiTheme.colors.gold} /><Text style={styles.statValue}>{currentLevel}</Text><Text style={styles.statLabel}>Level</Text></View>
+          <View style={styles.statCard}><Ionicons name="flash" size={19} color={sweirkiTheme.colors.cyanDeep} /><Text style={styles.statValue}>{state?.xp ?? 0}</Text><Text style={styles.statLabel}>Season XP</Text></View>
+          <View style={styles.statCard}><Ionicons name="gift" size={19} color={sweirkiTheme.colors.purple} /><Text style={styles.statValue}>{state?.premium ? "ON" : "FREE"}</Text><Text style={styles.statLabel}>Track</Text></View>
+        </View>
+
+        <View style={styles.sectionHeader}><Text style={styles.sectionKicker}>REWARD ROAD</Text><Text style={styles.sectionTitle}>Claim earned rewards</Text></View>
         <View style={styles.rewardsList}>
           {SEASON_PASS_REWARDS.map((reward) => {
             const locked = reward.level > currentLevel;
@@ -83,21 +102,79 @@ export default function SeasonPassScreen() {
             const premiumClaimed = state?.claimedPremiumLevels.includes(reward.level);
             return (
               <View key={reward.level} style={styles.levelCard}>
-                <View style={styles.levelBadge}><Text style={styles.levelNumber}>{reward.level}</Text></View>
-                <View style={{ flex: 1, gap: 8 }}>
-                  <View style={styles.rewardRow}><Text style={styles.rewardTrack}>FREE</Text><Text style={styles.rewardLabel}>{reward.free?.label ?? "—"}</Text><TouchableOpacity style={[styles.claimButton, (locked || freeClaimed) && styles.disabledButton]} disabled={locked || freeClaimed || busy === `free-${reward.level}`} onPress={() => claim(reward.level, "free")}><Text style={styles.claimText}>{freeClaimed ? "Claimed" : locked ? "Locked" : "Claim"}</Text></TouchableOpacity></View>
-                  <View style={styles.rewardRow}><Text style={[styles.rewardTrack, styles.premiumTrack]}>PASS</Text><Text style={styles.rewardLabel}>{reward.premium?.label ?? "—"}</Text><TouchableOpacity style={[styles.claimButton, styles.passButton, (locked || premiumClaimed || !state?.premium) && styles.disabledButton]} disabled={locked || premiumClaimed || !state?.premium || busy === `premium-${reward.level}`} onPress={() => claim(reward.level, "premium")}><Text style={styles.claimText}>{premiumClaimed ? "Claimed" : !state?.premium ? "Pass" : locked ? "Locked" : "Claim"}</Text></TouchableOpacity></View>
+                <View style={styles.levelBadge}><Text style={styles.levelNumber}>{reward.level}</Text><Text style={styles.levelLabel}>LVL</Text></View>
+                <View style={styles.rewardStack}>
+                  <View style={styles.rewardRow}><Text style={styles.rewardTrack}>FREE</Text><Text style={styles.rewardLabel}>{reward.free?.label ?? "—"}</Text><TouchableOpacity style={[styles.claimButton, (locked || freeClaimed) && styles.disabledButton]} disabled={locked || freeClaimed || busy === `free-${reward.level}`} onPress={() => claim(reward.level, "free")} activeOpacity={0.88}><Text style={[styles.claimText, (locked || freeClaimed) && styles.disabledClaimText]}>{freeClaimed ? "Claimed" : locked ? "Locked" : "Claim"}</Text></TouchableOpacity></View>
+                  <View style={styles.rewardRow}><Text style={[styles.rewardTrack, styles.premiumTrack]}>PASS</Text><Text style={styles.rewardLabel}>{reward.premium?.label ?? "—"}</Text><TouchableOpacity style={[styles.claimButton, styles.passButton, (locked || premiumClaimed || !state?.premium) && styles.disabledButton]} disabled={locked || premiumClaimed || !state?.premium || busy === `premium-${reward.level}`} onPress={() => claim(reward.level, "premium")} activeOpacity={0.88}><Text style={[styles.claimText, styles.passClaimText]}>{premiumClaimed ? "Claimed" : !state?.premium ? "Pass" : locked ? "Locked" : "Claim"}</Text></TouchableOpacity></View>
                 </View>
               </View>
             );
           })}
         </View>
       </ScrollView>
-      <Modal visible={!!message} transparent animationType="fade" onRequestClose={() => setMessage(null)}><View style={styles.modalBackdrop}><View style={styles.modalCard}><Text style={styles.modalTitle}>{message?.title}</Text><Text style={styles.modalText}>{message?.body}</Text><TouchableOpacity style={styles.modalButton} onPress={() => setMessage(null)}><Text style={styles.modalButtonText}>OK</Text></TouchableOpacity></View></View></Modal>
+      <Modal visible={!!message} transparent animationType="fade" onRequestClose={() => setMessage(null)}><View style={styles.modalBackdrop}><View style={styles.modalCard}><View style={styles.modalIcon}><Ionicons name="ribbon" size={26} color="#FFFFFF" /></View><Text style={styles.modalTitle}>{message?.title}</Text><Text style={styles.modalText}>{message?.body}</Text><TouchableOpacity style={styles.modalButton} onPress={() => setMessage(null)} activeOpacity={0.88}><Text style={styles.modalButtonText}>OK</Text></TouchableOpacity></View></View></Modal>
     </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1 }, content: { padding: 18, paddingTop: 58, paddingBottom: 34 }, headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }, circleButton: { width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.88)", borderWidth: 1, borderColor: sweirkiTheme.colors.borderCyanStrong }, circleButtonGhost: { width: 46, height: 46 }, headerTitle: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 23, color: sweirkiTheme.colors.inkDeep }, heroCard: { borderRadius: 30, padding: 22, marginBottom: 14, backgroundColor: "rgba(12,48,92,0.94)", borderWidth: 1, borderColor: "rgba(255,255,255,0.38)", ...sweirkiTheme.shadows.hero }, kicker: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 11, letterSpacing: 2, color: "rgba(255,255,255,0.66)" }, heroTitle: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 32, color: "#FFFFFF", marginTop: 4 }, heroText: { fontFamily: sweirkiTheme.fonts.regular, fontSize: 13, lineHeight: 19, color: "rgba(255,255,255,0.76)", marginTop: 6 }, progressTrack: { height: 10, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.15)", overflow: "hidden", marginTop: 16 }, progressFill: { height: "100%", borderRadius: 999, backgroundColor: sweirkiTheme.colors.gold }, progressText: { fontFamily: sweirkiTheme.fonts.bold, color: "#FFFFFF", fontSize: 13, marginTop: 8 }, buyPassButton: { marginTop: 14, height: 48, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: sweirkiTheme.colors.gold }, buyPassText: { fontFamily: sweirkiTheme.fonts.bold, color: sweirkiTheme.colors.inkDeep, fontSize: 14 }, activeText: { marginTop: 14, fontFamily: sweirkiTheme.fonts.bold, color: sweirkiTheme.colors.aqua }, rewardsList: { gap: 12 }, levelCard: { flexDirection: "row", gap: 12, borderRadius: 24, padding: 14, backgroundColor: "rgba(255,255,255,0.96)", borderWidth: 1, borderColor: sweirkiTheme.colors.borderCyanStrong }, levelBadge: { width: 44, height: 44, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: sweirkiTheme.colors.inkDeep }, levelNumber: { fontFamily: sweirkiTheme.fonts.bold, color: "#FFFFFF", fontSize: 18 }, rewardRow: { flexDirection: "row", alignItems: "center", gap: 8 }, rewardTrack: { width: 42, fontFamily: sweirkiTheme.fonts.bold, fontSize: 10, color: sweirkiTheme.colors.cyanDeep }, premiumTrack: { color: sweirkiTheme.colors.gold }, rewardLabel: { flex: 1, fontFamily: sweirkiTheme.fonts.bold, fontSize: 12, color: sweirkiTheme.colors.ink }, claimButton: { minWidth: 72, height: 34, borderRadius: 13, alignItems: "center", justifyContent: "center", backgroundColor: sweirkiTheme.colors.cyanDeep }, passButton: { backgroundColor: sweirkiTheme.colors.gold }, disabledButton: { opacity: 0.45 }, claimText: { fontFamily: sweirkiTheme.fonts.bold, color: "#FFFFFF", fontSize: 11 }, modalBackdrop: { flex: 1, backgroundColor: "rgba(7,22,40,0.58)", alignItems: "center", justifyContent: "center", padding: 24 }, modalCard: { width: "100%", maxWidth: 360, borderRadius: 28, padding: 22, alignItems: "center", backgroundColor: "rgba(255,255,255,0.98)", borderWidth: 1, borderColor: sweirkiTheme.colors.borderCyanStrong }, modalTitle: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 20, color: sweirkiTheme.colors.inkDeep, textAlign: "center" }, modalText: { fontFamily: sweirkiTheme.fonts.regular, fontSize: 13, lineHeight: 19, color: sweirkiTheme.colors.textSoft, textAlign: "center", marginTop: 8 }, modalButton: { marginTop: 16, minWidth: 150, height: 48, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: sweirkiTheme.colors.inkDeep }, modalButtonText: { fontFamily: sweirkiTheme.fonts.bold, color: "#FFFFFF", fontSize: 14 },
+  screen: { flex: 1 },
+  content: { padding: 18, paddingTop: 58, paddingBottom: 36 },
+  headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 },
+  headerCenter: { alignItems: "center", flex: 1 },
+  headerKicker: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 9, letterSpacing: 2.5, color: sweirkiTheme.colors.cyanDeep, textTransform: "uppercase", marginBottom: 2 },
+  headerTitle: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 24, color: sweirkiTheme.colors.inkDeep },
+  circleButton: { width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.92)", borderWidth: 1, borderColor: sweirkiTheme.colors.borderCyanStrong, ...sweirkiTheme.shadows.glassCard },
+
+  heroCard: { borderRadius: 30, padding: 20, marginBottom: 12, backgroundColor: "rgba(255,255,255,0.95)", borderWidth: 1, borderColor: sweirkiTheme.colors.borderCyanStrong, overflow: "hidden", ...sweirkiTheme.shadows.hero },
+  heroGlow: { position: "absolute", right: -38, top: -54, width: 178, height: 178, borderRadius: 89, backgroundColor: "rgba(245,185,67,0.18)" },
+  heroTopRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 },
+  heroIcon: { width: 54, height: 54, borderRadius: 19, alignItems: "center", justifyContent: "center", backgroundColor: sweirkiTheme.colors.gold, borderWidth: 1, borderColor: "rgba(255,255,255,0.65)", ...sweirkiTheme.shadows.glassCard },
+  statusPill: { flexDirection: "row", alignItems: "center", gap: 6, height: 32, paddingHorizontal: 13, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.78)", borderWidth: 1, borderColor: sweirkiTheme.colors.borderCyan },
+  statusText: { fontFamily: sweirkiTheme.fonts.bold, color: sweirkiTheme.colors.inkDeep, fontSize: 9, letterSpacing: 1.3 },
+  kicker: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 10, letterSpacing: 2.4, color: sweirkiTheme.colors.cyanDeep, textTransform: "uppercase" },
+  heroTitle: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 30, lineHeight: 35, color: sweirkiTheme.colors.inkDeep, marginTop: 6, maxWidth: "82%" },
+  heroText: { fontFamily: sweirkiTheme.fonts.regular, fontSize: 13, lineHeight: 19, color: sweirkiTheme.colors.textSoft, marginTop: 8, maxWidth: "92%" },
+  progressTrack: { height: 10, borderRadius: 999, backgroundColor: "rgba(20,56,95,0.10)", overflow: "hidden", marginTop: 16 },
+  progressFill: { height: "100%", borderRadius: 999, backgroundColor: sweirkiTheme.colors.gold },
+  progressRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 10, marginTop: 9 },
+  progressText: { fontFamily: sweirkiTheme.fonts.bold, color: sweirkiTheme.colors.inkDeep, fontSize: 14 },
+  progressSub: { fontFamily: sweirkiTheme.fonts.bold, color: sweirkiTheme.colors.textSoft, fontSize: 11 },
+  buyPassButton: { marginTop: 14, height: 48, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: sweirkiTheme.colors.inkDeep },
+  buyPassText: { fontFamily: sweirkiTheme.fonts.bold, color: "#FFFFFF", fontSize: 14 },
+  activeText: { marginTop: 14, fontFamily: sweirkiTheme.fonts.bold, color: sweirkiTheme.colors.cyanDeep },
+
+  statGrid: { flexDirection: "row", gap: 10, marginBottom: 14 },
+  statCard: { flex: 1, minHeight: 92, borderRadius: 22, padding: 12, backgroundColor: "rgba(255,255,255,0.94)", borderWidth: 1, borderColor: sweirkiTheme.colors.borderCyanStrong, ...sweirkiTheme.shadows.glassCard },
+  statValue: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 19, color: sweirkiTheme.colors.inkDeep, marginTop: 6 },
+  statLabel: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 9, letterSpacing: 1.2, color: sweirkiTheme.colors.textSoft, textTransform: "uppercase", marginTop: 2 },
+
+  sectionHeader: { borderRadius: 24, padding: 15, backgroundColor: "rgba(255,255,255,0.80)", borderWidth: 1, borderColor: sweirkiTheme.colors.borderCyan, marginBottom: 12 },
+  sectionKicker: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 9, letterSpacing: 2.2, color: sweirkiTheme.colors.cyanDeep, textTransform: "uppercase" },
+  sectionTitle: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 19, color: sweirkiTheme.colors.inkDeep, marginTop: 4 },
+  rewardsList: { gap: 12 },
+  levelCard: { flexDirection: "row", gap: 12, borderRadius: 26, padding: 14, backgroundColor: "rgba(255,255,255,0.96)", borderWidth: 1, borderColor: sweirkiTheme.colors.borderCyanStrong, ...sweirkiTheme.shadows.glassCard },
+  levelBadge: { width: 48, height: 54, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(226,247,255,0.96)", borderWidth: 1, borderColor: sweirkiTheme.colors.borderCyanStrong },
+  levelNumber: { fontFamily: sweirkiTheme.fonts.bold, color: sweirkiTheme.colors.cyanDeep, fontSize: 18 },
+  levelLabel: { fontFamily: sweirkiTheme.fonts.bold, color: sweirkiTheme.colors.inkDeep, fontSize: 8, letterSpacing: 1.1, marginTop: 1 },
+  rewardStack: { flex: 1, gap: 9 },
+  rewardRow: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 34 },
+  rewardTrack: { width: 42, fontFamily: sweirkiTheme.fonts.bold, fontSize: 10, color: sweirkiTheme.colors.cyanDeep },
+  premiumTrack: { color: "#8A6420" },
+  rewardLabel: { flex: 1, fontFamily: sweirkiTheme.fonts.bold, fontSize: 12, lineHeight: 16, color: sweirkiTheme.colors.inkDeep },
+  claimButton: { minWidth: 72, height: 34, borderRadius: 13, alignItems: "center", justifyContent: "center", backgroundColor: sweirkiTheme.colors.cyanDeep },
+  passButton: { backgroundColor: sweirkiTheme.colors.gold },
+  disabledButton: { opacity: 1, backgroundColor: "rgba(185,224,247,0.88)" },
+  claimText: { fontFamily: sweirkiTheme.fonts.bold, color: "#FFFFFF", fontSize: 11 },
+  disabledClaimText: { color: sweirkiTheme.colors.inkDeep },
+  passClaimText: { color: sweirkiTheme.colors.inkDeep },
+
+  modalBackdrop: { flex: 1, backgroundColor: "rgba(7,22,40,0.58)", alignItems: "center", justifyContent: "center", padding: 24 },
+  modalCard: { width: "100%", maxWidth: 360, borderRadius: 28, padding: 22, alignItems: "center", backgroundColor: "rgba(255,255,255,0.98)", borderWidth: 1, borderColor: sweirkiTheme.colors.borderCyanStrong, ...sweirkiTheme.shadows.hero },
+  modalIcon: { width: 54, height: 54, borderRadius: 27, alignItems: "center", justifyContent: "center", backgroundColor: sweirkiTheme.colors.gold, marginBottom: 12 },
+  modalTitle: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 20, color: sweirkiTheme.colors.inkDeep, textAlign: "center" },
+  modalText: { fontFamily: sweirkiTheme.fonts.regular, fontSize: 13, lineHeight: 19, color: sweirkiTheme.colors.textSoft, textAlign: "center", marginTop: 8 },
+  modalButton: { marginTop: 16, minWidth: 150, height: 48, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: sweirkiTheme.colors.inkDeep },
+  modalButtonText: { fontFamily: sweirkiTheme.fonts.bold, color: "#FFFFFF", fontSize: 14 },
 });
+
