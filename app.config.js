@@ -71,13 +71,10 @@ export default ({ config }) => ({
     favicon: "./assets/branding/app-icon.png",
   },
 
-  plugins: [
-  "expo-asset",
-  "expo-font",
-  "expo-web-browser",
-
-  "@react-native-firebase/app",
-  "@react-native-firebase/auth",
+   plugins: [
+    "expo-asset",
+    "expo-font",
+    "expo-web-browser",
 
     [
       "react-native-google-mobile-ads",
@@ -88,17 +85,16 @@ export default ({ config }) => ({
       },
     ],
 
-  [
-  "expo-build-properties",
-  {
-    ios: {
-      useFrameworks: "static",
-      forceStaticLinking: ["RNFBApp", "RNFBAuth"],
-      extraPods: [],
-      buildReactNativeFromSource: false,
-    },
-  },
-],
+    [
+      "expo-build-properties",
+      {
+        ios: {
+          useFrameworks: "static",
+          extraPods: [],
+          buildReactNativeFromSource: false,
+        },
+      },
+    ],
 
     "expo-router",
   ],
