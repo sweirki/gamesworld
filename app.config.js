@@ -28,7 +28,7 @@ export default ({ config }) => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.sweirki.sudoku",
-    buildNumber: "29",
+    buildNumber: "30",
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
     },
@@ -36,7 +36,7 @@ export default ({ config }) => ({
 
   android: {
     package: "com.gamesworld.samsudoko",
-    versionCode: 29,
+    versionCode: 30,
     backgroundColor: "#EEF4FA",
 
     // Android native pre-splash uses the smaller centered version
