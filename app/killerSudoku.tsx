@@ -1339,6 +1339,7 @@ const styles = (colors: ReturnType<typeof getColors>) =>
 
 screen: {
   flex: 1,
+  width: "100%",
   backgroundColor: "#F6FBFF",
   justifyContent: "flex-start",
   alignItems: "center",

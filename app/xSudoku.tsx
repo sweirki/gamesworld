@@ -1169,6 +1169,7 @@ const styles = (colors: ReturnType<typeof getColors>) =>
     // ===== Screen & Header =====
     screen: {
   flex: 1,
+  width: "100%",
   backgroundColor: "transparent",
   justifyContent: "flex-start",
   alignItems: "center",

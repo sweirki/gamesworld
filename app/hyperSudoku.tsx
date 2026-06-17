@@ -1177,6 +1177,7 @@ const styles = (colors: ReturnType<typeof getColors>) =>
 
  screen: {
   flex: 1,
+  width: "100%",
   backgroundColor: "transparent",
   justifyContent: "flex-start",
   alignItems: "center",
