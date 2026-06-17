@@ -90,6 +90,8 @@ export default ({ config }) => ({
       {
         ios: {
           useFrameworks: "static",
+          extraPods: [],
+          buildReactNativeFromSource: false,
         },
       },
     ],
