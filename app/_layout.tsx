@@ -257,7 +257,7 @@ if (loading || !fontsReady) {
         <Stack.Screen name="splash" />
         <Stack.Screen name="sudokuIntro" />
         <Stack.Screen name="arena" />
-        <Stack.Screen name="sudoku" />
+       <Stack.Screen name="sudoku" options={{ headerShown: false }} />
         <Stack.Screen name="chooseDifficulty" />
         <Stack.Screen name="daily" />
         <Stack.Screen name="history" />
