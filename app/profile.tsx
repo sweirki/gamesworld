@@ -227,7 +227,7 @@ function ProfileInner() {
                       ? "Premium restored successfully"
                       : result?.entitlements?.active?.season_pass || result?.entitlements?.active?.logic_wars_pass
                         ? "Season Pass restored successfully"
-                        : "No previous purchases found for this account"); } catch { setRestoreMessage("Restore unavailable on this app version"); } }}><Ionicons name="refresh" size={18} color="#157FE6" /><Text style={styles.restoreText}>Restore Purchases</Text></TouchableOpacity><TouchableOpacity activeOpacity={0.85} style={styles.logoutBtn} onPress={() => setLogoutVisible(true)}><Ionicons name="log-out-outline" size={18} color="#E55364" /><Text style={styles.logoutText}>Log out</Text></TouchableOpacity></View>
+                        : "No previous purchases found for this account"); } catch { setRestoreMessage("Restore unavailable on this app version"); } }}><Ionicons name="refresh" size={18} color="#157FE6" /><Text style={styles.restoreText}>Restore</Text></TouchableOpacity><TouchableOpacity activeOpacity={0.85} style={styles.logoutBtn} onPress={() => setLogoutVisible(true)}><Ionicons name="log-out-outline" size={18} color="#E55364" /><Text style={styles.logoutText}>Log out</Text></TouchableOpacity></View>
         </View>
       </ScrollView>
 
@@ -250,7 +250,7 @@ function ConfirmModal({ visible, title, text, onCancel, onConfirm }: { visible: 
   return <Modal transparent visible={visible} animationType="fade" onRequestClose={onCancel}><View style={styles.modalOverlay}><View style={styles.modalCard}><Text style={styles.modalTitle}>{title}</Text><Text style={styles.modalText}>{text}</Text><View style={styles.modalActions}><TouchableOpacity style={styles.modalCancel} onPress={onCancel}><Text style={styles.modalCancelText}>Cancel</Text></TouchableOpacity><TouchableOpacity style={styles.modalConfirm} onPress={onConfirm}><Text style={styles.modalConfirmText}>Log out</Text></TouchableOpacity></View></View></View></Modal>;
 }
 function InfoModal({ visible, text, onClose }: { visible: boolean; text: string; onClose: () => void }) {
-  return <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}><View style={styles.modalOverlay}><View style={styles.modalCard}><Text style={styles.modalTitle}>Restore Purchases</Text><Text style={styles.modalText}>{text}</Text><TouchableOpacity style={styles.modalSingleConfirm} onPress={onClose}><Text style={styles.modalConfirmText}>OK</Text></TouchableOpacity></View></View></Modal>;
+  return <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}><View style={styles.modalOverlay}><View style={styles.modalCard}><Text style={styles.modalTitle}>Restore</Text><Text style={styles.modalText}>{text}</Text><TouchableOpacity style={styles.modalSingleConfirm} onPress={onClose}><Text style={styles.modalConfirmText}>OK</Text></TouchableOpacity></View></View></Modal>;
 }
 
 export default function ProfileScreen() {
@@ -265,18 +265,18 @@ const styles = StyleSheet.create({
   circleButton: { width: 52, height: 52, borderRadius: 22, backgroundColor: "rgba(255,255,255,0.9)", borderWidth: 1, borderColor: "rgba(123,204,245,0.42)", alignItems: "center", justifyContent: "center", shadowColor: "#58BCEB", shadowOpacity: 0.14, shadowRadius: 10, shadowOffset: { width: 0, height: 6 }, elevation: 3 },
   kicker: { fontFamily: "BalooBold", fontSize: 14, letterSpacing: 2, color: "#168FDB" },
   title: { fontFamily: "BalooBold", fontSize: 26, lineHeight: 38, color: "#153D66" },
-  identityCard: { minHeight: 144, borderRadius: 30, padding: 16, backgroundColor: "rgba(255,255,255,0.9)", borderWidth: 1, borderColor: "rgba(139,210,246,0.34)", flexDirection: "row", alignItems: "center", shadowColor: "#7ACCF2", shadowOpacity: 0.16, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 4 },
-  avatarWrap: { width: 96, height: 96, borderRadius: 48, backgroundColor: "#EAF7FF", alignItems: "center", justifyContent: "center", marginRight: 14 },
-  avatar: { width: 88, height: 88, borderRadius: 44 },
+  identityCard: { borderRadius: 28, padding: 16, backgroundColor: "rgba(255,255,255,0.9)", borderWidth: 1, borderColor: "rgba(139,210,246,0.34)", flexDirection: "row", alignItems: "center", shadowColor: "#8ED7F2", shadowOpacity: 0.12, shadowRadius: 15, shadowOffset: { width: 0, height: 7 }, elevation: 4 },
+  avatarWrap: { width: 88, height: 88, borderRadius: 44, backgroundColor: "#EAF7FF", alignItems: "center", justifyContent: "center", marginRight: 12 },
+  avatar: { width: 80, height: 80, borderRadius: 40 },
   editBubble: { position: "absolute", right: -1, bottom: -1, width: 32, height: 32, borderRadius: 16, backgroundColor: "#3D8DFF", alignItems: "center", justifyContent: "center", borderWidth: 3, borderColor: "#fff" },
   identityInfo: { flex: 1, minWidth: 0 },
   username: { fontFamily: "BalooBold", fontSize: 22, color: "#123B64", paddingVertical: 0, marginBottom: -2 },
-  avatarHint: { fontFamily: "BalooRegular", fontSize: 13, color: "#6C89A8", marginBottom: 5 },
+  avatarHint: { fontFamily: "BalooRegular", fontSize: 12, color: "#6C89A8", marginBottom: 4 },
   statusPill: { alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 16, backgroundColor: "#E7F2FF", borderWidth: 1, borderColor: "#C4E0FF" },
-  statusText: { fontFamily: "BalooBold", color: "#2776CE", fontSize: 13 },
+  statusText: { fontFamily: "BalooBold", color: "#2776CE", fontSize: 12 },
   notice: { marginTop: 6, color: "#38A56E", fontFamily: "BalooBold", fontSize: 12 },
-  actionRow: { flexDirection: "row", gap: 7, marginTop: 8 },
-  iconAction: { minWidth: 62, height: 38, paddingHorizontal: 8, borderRadius: 16, backgroundColor: "#EEF7FF", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 4, borderWidth: 1, borderColor: "#D1E8FF" },
+  actionRow: { flexDirection: "row", flexWrap: "wrap", gap: 7, marginTop: 8 },
+  iconAction: { minWidth: 86, height: 38, paddingHorizontal: 10, borderRadius: 16, backgroundColor: "#EEF7FF", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 4, borderWidth: 1, borderColor: "#D1E8FF", flexShrink: 0 },
   dangerAction: { backgroundColor: "#FFF0F3", borderColor: "#FFD0DA" },
   iconActionText: { fontFamily: "BalooBold", fontSize: 10, color: "#157FE6" },
   dangerText: { color: "#E55364" },
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
   bronzeFill: { height: "100%", borderRadius: 8, backgroundColor: "#C97840" },
   seasonFooter: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 7 },
   linkText: { fontFamily: "BalooBold", color: "#143D66", fontSize: 15 },
-  premiumTile: { width: 120, height: 70, borderRadius: 22, backgroundColor: "#FFF6DF", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, borderWidth: 1, borderColor: "#FFE4A0" },
+  premiumTile: { width: 150, height: 70, borderRadius: 22, backgroundColor: "#FFF6DF", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, borderWidth: 1, borderColor: "#FFE4A0" },
   premiumArt: { width: 34, height: 34 },
   premiumTitle: { fontFamily: "BalooBold", fontSize: 15, color: "#6D57D7" },
   premiumSub: { fontFamily: "BalooRegular", fontSize: 11, color: "#796FA7" },
@@ -321,9 +321,9 @@ const styles = StyleSheet.create({
   manageBtn: { marginTop: 12, height: 46, borderRadius: 18, backgroundColor: "#EEF7FF", borderWidth: 1, borderColor: "#CFE8FF", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 7 },
   manageText: { flex: 1, fontFamily: "BalooBold", color: "#143D66", fontSize: 14, textAlign: "center" },
   accountButtons: { flexDirection: "row", gap: 10, marginTop: 11 },
-  restoreBtn: { flex: 1, height: 44, borderRadius: 18, borderWidth: 1.5, borderColor: "#5CAFFF", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, backgroundColor: "rgba(255,255,255,0.75)" },
+  restoreBtn: { flex: 1, minWidth: 0, height: 44, paddingHorizontal: 10, borderRadius: 18, borderWidth: 1.5, borderColor: "#5CAFFF", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, backgroundColor: "rgba(255,255,255,0.75)" },
   restoreText: { fontFamily: "BalooBold", color: "#157FE6", fontSize: 14 },
-  logoutBtn: { flex: 1, height: 44, borderRadius: 18, borderWidth: 1, borderColor: "#FFC9D1", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, backgroundColor: "#FFF3F5" },
+  logoutBtn: { flex: 1, minWidth: 0, height: 44, paddingHorizontal: 10, borderRadius: 18, borderWidth: 1, borderColor: "#FFC9D1", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, backgroundColor: "#FFF3F5" },
   logoutText: { fontFamily: "BalooBold", color: "#E55364", fontSize: 14 },
   modalOverlay: { flex: 1, backgroundColor: "rgba(16,44,80,0.35)", alignItems: "center", justifyContent: "center", padding: 24 },
   modalCard: { width: "100%", borderRadius: 28, padding: 22, backgroundColor: "#fff", borderWidth: 1, borderColor: "#CBE9FB" },
@@ -336,4 +336,9 @@ const styles = StyleSheet.create({
   modalCancelText: { fontFamily: "BalooBold", color: "#143D66" },
   modalConfirmText: { fontFamily: "BalooBold", color: "#fff" },
 });
+
+
+
+
+
 

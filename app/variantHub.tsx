@@ -423,7 +423,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   modeCard: {
-    minHeight: 150,
+    height: 190,
     borderRadius: sweirkiRadius.card,
     paddingHorizontal: 10,
     paddingTop: 13,
@@ -573,3 +573,4 @@ const styles = StyleSheet.create({
     color: sweirkiColors.cyanDeep,
   },
 });
+
