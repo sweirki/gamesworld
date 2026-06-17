@@ -11,6 +11,7 @@ import {
   Animated,
   ImageBackground,
   Modal,
+  ScrollView,
 } from "react-native";
 
 import { Svg, Line, Rect, Path, Text as SvgText } from "react-native-svg";
@@ -914,6 +915,12 @@ if ((isHydrating || !boardReady || !cagesReady) && !resumeVisible) {
 // ðŸ‘‡ THIS is the correct return to keep
 return (
   <View style={{ flex: 1 }}>
+    <ScrollView
+      style={styles(colors).scrollShell}
+      contentContainerStyle={styles(colors).scrollContent}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+    >
     {showOnboarding && (
   <View
     pointerEvents="none"
@@ -1153,6 +1160,7 @@ return (
       
 
 </View>
+    </ScrollView>
 
  {showMenu && (
   <UniversalModal
@@ -1326,6 +1334,8 @@ setDifficulty(restoredDifficulty);
 const styles = (colors: ReturnType<typeof getColors>) =>
   StyleSheet.create({
     bg: { flex: 1, width: "100%", height: "100%" },
+    scrollShell: { flex: 1, width: "100%" },
+    scrollContent: { flexGrow: 1, width: "100%", alignItems: "center", paddingBottom: 120 },
 
 screen: {
   flex: 1,

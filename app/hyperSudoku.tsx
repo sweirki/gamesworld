@@ -9,6 +9,7 @@ import {
   Animated,
   Modal,
   ImageBackground, // Ã…Â½Ã‚Â¨ THEME: added for background image
+  ScrollView,
 } from "react-native";
 import { getColors } from "./theme/index";
 import { writeSeasonalScore } from "../utils/ladder/scoreEngine";
@@ -711,6 +712,12 @@ return (
     style={styles(colors).bg}
     resizeMode="cover"
   >
+  <ScrollView
+    style={styles(colors).scrollShell}
+    contentContainerStyle={styles(colors).scrollContent}
+    showsVerticalScrollIndicator={false}
+    keyboardShouldPersistTaps="handled"
+  >
   {showOnboarding && (
   <View
     pointerEvents="none"
@@ -1157,6 +1164,7 @@ strokeWidth={i % 3 === 0 ? strokeWidthBold : strokeWidthThin}
 
 
       </View>
+    </ScrollView>
     </ImageBackground>
   );
 }
@@ -1164,6 +1172,8 @@ strokeWidth={i % 3 === 0 ? strokeWidthBold : strokeWidthThin}
 const styles = (colors: ReturnType<typeof getColors>) =>
   StyleSheet.create({
     bg: { flex: 1, width: "100%", height: "100%" },
+    scrollShell: { flex: 1, width: "100%" },
+    scrollContent: { flexGrow: 1, width: "100%", alignItems: "center", paddingBottom: 120 },
 
  screen: {
   flex: 1,

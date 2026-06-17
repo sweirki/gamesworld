@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Animated,
   ImageBackground,
+  ScrollView,
 } from "react-native";
 
 import { LinearGradient } from "expo-linear-gradient";
@@ -782,6 +783,12 @@ await onGameFinished({
     style={s.bg}
     resizeMode="cover"
   >
+  <ScrollView
+    style={s.scrollShell}
+    contentContainerStyle={s.scrollContent}
+    showsVerticalScrollIndicator={false}
+    keyboardShouldPersistTaps="handled"
+  >
  <View style={s.screen}>
  
 
@@ -950,6 +957,7 @@ await onGameFinished({
 />
 
 </View>
+  </ScrollView>
 
 </ImageBackground>
 
@@ -1155,6 +1163,8 @@ await onGameFinished({
 const styles = (colors: ReturnType<typeof getColors>) =>
   StyleSheet.create({
     bg: { flex: 1, width: "100%", height: "100%", backgroundColor: "#F6FBFF" },
+    scrollShell: { flex: 1, width: "100%" },
+    scrollContent: { flexGrow: 1, width: "100%", alignItems: "center", paddingBottom: 120 },
 
     // ===== Screen & Header =====
     screen: {
