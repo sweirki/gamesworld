@@ -36,7 +36,7 @@ export default ({ config }) => ({
 
   android: {
     package: "com.gamesworld.samsudoko",
-    versionCode: 42,
+    versionCode: 43,
     backgroundColor: "#EEF4FA",
 
     // Android native pre-splash uses the smaller centered version
