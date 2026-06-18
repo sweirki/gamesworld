@@ -27,6 +27,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useCallback } from "react";
 import NumberPad from "./components/NumberPad";
 import Controls from "./components/Controls";
+import AppBackButton from "./components/AppBackButton";
 import WinModal from "./components/WinModal";
 import KillerCell from "./components/KillerCell";
 import { auth } from "../firebase";
@@ -915,6 +916,7 @@ if ((isHydrating || !boardReady || !cagesReady) && !resumeVisible) {
 // ðŸ‘‡ THIS is the correct return to keep
 return (
   <View style={{ flex: 1 }}>
+    <AppBackButton />
     <ScrollView
       style={styles(colors).scrollShell}
       contentContainerStyle={styles(colors).scrollContent}
@@ -1343,7 +1345,7 @@ screen: {
   backgroundColor: "#F6FBFF",
   justifyContent: "flex-start",
   alignItems: "center",
-  paddingTop: 76,
+  paddingTop: 59,
   paddingBottom: 18,
 },
     gameplayHeader: {

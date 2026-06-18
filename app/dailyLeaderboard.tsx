@@ -83,7 +83,7 @@ function DailyLeaderboardContent() {
 
   return (
     <View style={[themedStyles.container, { backgroundColor: colors.background }]}>
-      <Text style={themedStyles.title}>ðŸ“… Daily Leaderboard</Text>
+      <Text style={themedStyles.title}>Daily Leaderboard</Text>
       <FlatList
         data={scores.sort((a, b) => a.time - b.time)} // âœ… sort by fastest time
         keyExtractor={(_, i) => i.toString()}

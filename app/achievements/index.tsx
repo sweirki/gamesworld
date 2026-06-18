@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { ACHIEVEMENTS, useAchievementsStore } from "../stores/useAchievementsStore";
 import sweirkiTheme from "../theme/sweirkiTheme";
+import AppBackButton from "../components/AppBackButton";
 
 const { colors, fonts, radius, spacing, shadows, assets } = sweirkiTheme;
 
@@ -94,6 +95,7 @@ export default function AchievementsHub() {
 
   return (
     <View style={styles.screen}>
+      <AppBackButton />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         <View style={styles.heroCard}>
           <View style={styles.heroTextWrap}>

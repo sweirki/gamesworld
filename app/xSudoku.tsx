@@ -27,6 +27,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useCallback } from "react";
 import NumberPad from "./components/NumberPad";
 import Controls from "./components/Controls";
+import AppBackButton from "./components/AppBackButton";
 import WinModal from "./components/WinModal";
 import { Ionicons } from "@expo/vector-icons";
 import SudokuCell from "./components/SudokuCell";
@@ -772,7 +773,7 @@ await onGameFinished({
           lineHeight: 20,
         }}
       >
-        Both diagonals must also contain the numbers 1â€“9.
+        Both diagonals must also contain the numbers 1-9.
       </Text>
     </View>
   </View>
@@ -783,6 +784,8 @@ await onGameFinished({
     style={s.bg}
     resizeMode="cover"
   >
+  <AppBackButton />
+
   <ScrollView
     style={s.scrollShell}
     contentContainerStyle={s.scrollContent}
@@ -1173,7 +1176,7 @@ const styles = (colors: ReturnType<typeof getColors>) =>
   backgroundColor: "transparent",
   justifyContent: "flex-start",
   alignItems: "center",
-  paddingTop: 76,
+  paddingTop: 59,
   paddingBottom: 18,
 },
 

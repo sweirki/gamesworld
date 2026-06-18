@@ -224,7 +224,7 @@ if (loading || !fontsReady) {
         <ForceUpdateGate />
         <Stack
   screenOptions={{
-    headerShown: Platform.OS === "ios",
+    headerShown: false,
     headerTitle: "",
     gestureEnabled: true,
   }}
@@ -247,7 +247,7 @@ if (loading || !fontsReady) {
 
     <Stack
   screenOptions={{
-    headerShown: Platform.OS === "ios",
+    headerShown: false,
     headerTitle: "",
     gestureEnabled: true,
   }}
@@ -257,7 +257,7 @@ if (loading || !fontsReady) {
         <Stack.Screen name="splash" />
         <Stack.Screen name="sudokuIntro" />
         <Stack.Screen name="arena" />
-       <Stack.Screen name="sudoku" options={{ headerShown: false }} />
+       <Stack.Screen name="sudoku" />
         <Stack.Screen name="chooseDifficulty" />
         <Stack.Screen name="daily" />
         <Stack.Screen name="history" />

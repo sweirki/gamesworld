@@ -120,7 +120,7 @@ export default function StatsScreen() {
     >
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.container}>
-          <Text style={styles.title}>ðŸ“Š Stats</Text>
+          <Text style={styles.title}>Stats</Text>
 
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Overview</Text>

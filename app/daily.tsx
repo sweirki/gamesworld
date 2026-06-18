@@ -24,6 +24,7 @@ import Sudoku from "./sudoku";
 import * as Haptics from "expo-haptics";
 import { useRevenueCat } from "../src/hooks/useRevenueCat";
 import { onGameFinished } from "../src/game/onGameFinished";
+import AppBackButton from "./components/AppBackButton";
 
 /* =========================
    Helpers
@@ -345,12 +346,13 @@ await onGameFinished({
         blurRadius={4}
         resizeMode="cover"
       >
+        <AppBackButton />
         <View style={styles.lockedWrap}>
           <View style={[styles.lockedCard, { backgroundColor: colors.card }]}>
             <Text style={styles.lockedTitle}>Daily Challenge</Text>
            <Text style={styles.lockedText}>
- Todayâ€™s Daily Challenge is complete.
-{"\n"}Come back tomorrow for a fresh puzzle ðŸŒ…
+ Today's Daily Challenge is complete.
+{"\n"}Come back tomorrow for a fresh puzzle.
 </Text>
 
             <TouchableOpacity
@@ -405,14 +407,14 @@ await onGameFinished({
           <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
             <Text style={styles.modalTitle}>
   {dailyStreak >= 3
-    ? "ðŸ”¥ Streak Maintained!"
-    : "ðŸŽ‰ Daily Challenge Completed!"}
+    ? "Streak Maintained!"
+    : "Daily Challenge Completed!"}
 </Text>
 
            <Text style={[styles.modalSub, { marginBottom: 6 }]}>
   {isPremium
-    ? "âœ¨ Progress saved Â· Daily XP applied"
-    : "âœ¨ Daily completed Â· Practice mode"}
+    ? "Progress saved · Daily XP applied"
+    : "Daily completed · Practice mode"}
 </Text>
 
 
@@ -423,7 +425,7 @@ await onGameFinished({
   </Text>
 )}
 
-        {saving && <Text style={styles.modalSub}>â³ Finalizing todayâ€™s resultsâ€¦</Text>}
+        {saving && <Text style={styles.modalSub}>Finalizing today's results...</Text>}
 
             {saveError && (
               <Text style={[styles.modalSub, { color: "#E74C3C" }]}>

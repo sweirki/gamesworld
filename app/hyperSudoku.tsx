@@ -23,6 +23,7 @@ import { saveWin } from "../src/lib/saveWin";
 import { saveGame, loadGame, clearGame } from "../utils/storageUtils";
 import NumberPad from "./components/NumberPad";
 import Controls from "./components/Controls";
+import AppBackButton from "./components/AppBackButton";
 import WinModal from "./components/WinModal";
 import UniversalModal from "./components/UniversalModal";
 import SudokuCell from "./components/SudokuCell";
@@ -712,6 +713,8 @@ return (
     style={styles(colors).bg}
     resizeMode="cover"
   >
+  <AppBackButton />
+
   <ScrollView
     style={styles(colors).scrollShell}
     contentContainerStyle={styles(colors).scrollContent}
@@ -1181,7 +1184,7 @@ const styles = (colors: ReturnType<typeof getColors>) =>
   backgroundColor: "transparent",
   justifyContent: "flex-start",
   alignItems: "center",
-  paddingTop: 76,
+  paddingTop: 59,
   paddingBottom: 18,
 },
 

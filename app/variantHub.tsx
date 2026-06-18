@@ -19,6 +19,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebase";
 import { useRevenueCat } from "../src/hooks/useRevenueCat";
 import { sweirkiAssets, sweirkiColors, sweirkiFonts, sweirkiLayout, sweirkiRadius, sweirkiShadows } from "./theme";
+import AppBackButton from "./components/AppBackButton";
 
 type ModeKey = "classic" | "killer" | "hyper" | "x" | "ladder";
 
@@ -144,6 +145,7 @@ export default function VariantHub() {
   return (
     <View style={styles.root}>
       <ImageBackground source={sweirkiAssets.homeBackground} style={styles.background} resizeMode="cover">
+        <AppBackButton />
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}

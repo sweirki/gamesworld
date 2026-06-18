@@ -131,7 +131,7 @@ export default function ProfileScreen() {
     <ImageBackground source={require("../../assets/bg.png")} style={styles.bg} blurRadius={3}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.container}>
-          <Text style={styles.title}>ðŸ‘¤ Profile</Text>
+          <Text style={styles.title}>Profile</Text>
 
           {/* Avatar */}
           {avatarUri ? (

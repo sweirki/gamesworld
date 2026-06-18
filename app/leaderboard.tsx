@@ -17,6 +17,7 @@ import { useRevenueCat } from "../src/hooks/useRevenueCat";
 import { getLadderRank, getSeasonOutcome, getSeasonRank } from "../utils/ladder/scoreEngine";
 import { archiveSeason } from "./lib/seasonArchive";
 import { sweirkiColors, sweirkiFonts } from "./theme";
+import AppBackButton from "./components/AppBackButton";
 
 import {
   collection,
@@ -536,6 +537,7 @@ export default function LeaderboardScreen() {
   if (loading) {
     return (
       <ImageBackground source={require("../assets/branding/home-background.png")} style={styles.bg} resizeMode="cover">
+        <AppBackButton />
         <View style={styles.center}>
           <ActivityIndicator color={sweirkiColors.ink} />
         </View>
@@ -545,6 +547,7 @@ export default function LeaderboardScreen() {
 
   return (
     <ImageBackground source={require("../assets/branding/home-background.png")} style={styles.bg} resizeMode="cover">
+      <AppBackButton />
       <FlatList
         contentContainerStyle={styles.container}
         data={listData}
@@ -628,7 +631,7 @@ export default function LeaderboardScreen() {
 
 const styles = StyleSheet.create({
   bg: { flex: 1, backgroundColor: "#EAF7FF" },
-  container: { paddingHorizontal: 18, paddingTop: 62, paddingBottom: 38 },
+  container: { paddingHorizontal: 18, paddingTop: 72, paddingBottom: 38 },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
 
   headerWrap: { gap: 13, marginBottom: 10 },

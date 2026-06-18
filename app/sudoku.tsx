@@ -43,6 +43,7 @@ import WinModal from "./components/WinModal";
 import Controls from "./components/Controls";
 import NumberPad from "./components/NumberPad";
 import UniversalModal from "./components/UniversalModal"; // â­ ADD THIS
+import AppBackButton from "./components/AppBackButton";
 import RankUpPopup from "./components/RankUpPopup"; // this goes at the top with imports
 import { generateSudoku, validateCages } from "../utils/sudokuGen";
 import { getColors } from "./theme/index";
@@ -1206,7 +1207,7 @@ export default function SudokuScreen({
   if (isHydrating || !puzzle) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text style={{ color: "#D6A21F", fontWeight: "700" }}>Loadingâ€¦</Text>
+        <Text style={{ color: "#D6A21F", fontWeight: "700" }}>Loading...</Text>
       </View>
     );
   }
@@ -1248,11 +1249,13 @@ export default function SudokuScreen({
                 lineHeight: 20,
               }}
             >
-              Complete the grid so every row, column, and box contains 1â€“9.
+              Complete the grid so every row, column, and box contains 1-9.
             </Text>
           </View>
         </View>
       )}
+
+      <AppBackButton />
 
       <ScrollView
         style={s.scrollShell}
@@ -1633,7 +1636,7 @@ const styles = (colors: ReturnType<typeof getColors>) =>
       resizeMode: "cover",
       backgroundColor: sweirkiTheme.colors.screen,
       justifyContent: "flex-start",
-      paddingTop: 64,
+      paddingTop: 59,
       paddingBottom: 120,
     },
 
