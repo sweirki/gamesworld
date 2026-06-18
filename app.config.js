@@ -3,7 +3,7 @@ export default ({ config }) => ({
 
   name: "Sweirki Sudoku",
   slug: "sam-sudoku-relinked-v2",
-  version: "4.2.7",
+  version: "4.2.8",
 
   assetBundlePatterns: ["**/*"],
 
@@ -28,7 +28,7 @@ export default ({ config }) => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.sweirki.sudoku",
-    buildNumber: "30",
+    buildNumber: "34",
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
     },
@@ -36,7 +36,7 @@ export default ({ config }) => ({
 
   android: {
     package: "com.gamesworld.samsudoko",
-    versionCode: 30,
+    versionCode: 42,
     backgroundColor: "#EEF4FA",
 
     // Android native pre-splash uses the smaller centered version
