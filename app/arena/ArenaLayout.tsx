@@ -3,6 +3,7 @@ import { ImageBackground, Pressable, ScrollView, StyleSheet, Text, View } from "
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { sweirkiTheme } from "../theme/sweirkiTheme";
+import AppBackButton from "../components/AppBackButton";
 
 export default function ArenaLayout({
   children,
@@ -18,15 +19,10 @@ export default function ArenaLayout({
   return (
     <ImageBackground source={sweirkiTheme.assets.homeBackground} style={styles.bg} resizeMode="cover">
       <View style={styles.wash}>
+        {showBack ? <AppBackButton /> : null}
         <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.topBar}>
-            {showBack ? (
-              <Pressable style={styles.circleBtn} onPress={() => router.back()}>
-                <Ionicons name="chevron-back" size={24} color={sweirkiTheme.colors.ink} />
-              </Pressable>
-            ) : (
-              <View style={styles.circlePlaceholder} />
-            )}
+            <View style={styles.circlePlaceholder} />
             <View style={styles.titleBlock}>
               {!!subtitle && <Text style={styles.eyebrow}>{subtitle}</Text>}
               {!!title && <Text style={styles.title}>{title}</Text>}
@@ -48,7 +44,7 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   content: {
     paddingHorizontal: sweirkiTheme.layout.screenPaddingX,
-    paddingTop: 54,
+    paddingTop: 59,
     paddingBottom: 34,
   },
   topBar: {

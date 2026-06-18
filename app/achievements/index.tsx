@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: spacing.lg,
-    paddingTop: 68,
+    paddingTop: 59,
     paddingBottom: 34,
   },
   heroCard: {

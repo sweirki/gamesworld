@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import { useRouter } from "expo-router";
 import { getColors } from "../theme";
 import { MotiView } from "moti";
 import { LinearGradient } from "expo-linear-gradient";
+import AppBackButton from "./components/AppBackButton";
 
 export default function ChooseDifficulty() {
   const colors = getColors();
@@ -22,7 +23,8 @@ export default function ChooseDifficulty() {
       style={styles(colors).bg}
       blurRadius={3}
     >
-      {/* ðŸ”¹ Top Banner with Smooth Fade */}
+      <AppBackButton />
+
       <View style={styles(colors).bannerWrapper}>
         <Image
           source={require("../assets/topBanner.png")}

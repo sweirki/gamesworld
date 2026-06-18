@@ -631,7 +631,7 @@ export default function LeaderboardScreen() {
 
 const styles = StyleSheet.create({
   bg: { flex: 1, backgroundColor: "#EAF7FF" },
-  container: { paddingHorizontal: 18, paddingTop: 72, paddingBottom: 38 },
+  container: { paddingHorizontal: 18, paddingTop: 59, paddingBottom: 38 },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
 
   headerWrap: { gap: 13, marginBottom: 10 },

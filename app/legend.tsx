@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AppBackButton from "./components/AppBackButton";
 import { theme, getColors } from "../theme";
 import { getCachedLadderData } from "./lib/ladderBridge";
 
@@ -32,10 +33,11 @@ export default function LegendScreen() {
       style={[styles.bg, { paddingBottom: insets.bottom + 12 }]}
       blurRadius={3}
     >
+      <AppBackButton />
       <ScrollView
         contentContainerStyle={[
           styles.scroll,
-          { paddingTop: 80 }, // push screen down
+          { paddingTop: 59 },
         ]}
       >
         <View style={styles.container}>
@@ -97,13 +99,13 @@ export default function LegendScreen() {
           {/* Ranks */}
           <View style={styles.card}>
             <Text style={styles.cardTitle}>?? Ranks</Text>
-            <Text style={styles.cardLine}>?? Bronze — 0+</Text>
-            <Text style={styles.cardLine}>?? Silver — 1,000+</Text>
-            <Text style={styles.cardLine}>?? Gold — 2,500+</Text>
-            <Text style={styles.cardLine}>?? Platinum — 5,000+</Text>
-            <Text style={styles.cardLine}>?? Diamond — 10,000+</Text>
-            <Text style={styles.cardLine}>?? Master — 20,000+</Text>
-            <Text style={styles.cardLine}>?? Grandmaster — 35,000+</Text>
+            <Text style={styles.cardLine}>?? Bronze â€” 0+</Text>
+            <Text style={styles.cardLine}>?? Silver â€” 1,000+</Text>
+            <Text style={styles.cardLine}>?? Gold â€” 2,500+</Text>
+            <Text style={styles.cardLine}>?? Platinum â€” 5,000+</Text>
+            <Text style={styles.cardLine}>?? Diamond â€” 10,000+</Text>
+            <Text style={styles.cardLine}>?? Master â€” 20,000+</Text>
+            <Text style={styles.cardLine}>?? Grandmaster â€” 35,000+</Text>
           </View>
 
           {/* Errors */}

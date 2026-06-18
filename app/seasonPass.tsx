@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import Purchases from "react-native-purchases";
 import { sweirkiTheme } from "./theme/sweirkiTheme";
+import AppBackButton from "./components/AppBackButton";
 import { useRevenueCat } from "../src/hooks/useRevenueCat";
 import { claimSeasonReward, ECONOMY_PRODUCTS, getSeasonLevelFromXp, getSeasonPassState, grantPurchasedProduct, SEASON_LEVEL_XP, SEASON_PASS_REWARDS, SeasonPassState, syncSeasonPassEntitlement } from "../src/economy/economyEngine";
 
@@ -67,9 +68,10 @@ export default function SeasonPassScreen() {
 
   return (
     <ImageBackground source={backgroundImage} style={styles.screen} resizeMode="cover">
+      <AppBackButton />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.headerRow}>
-          <Pressable style={styles.circleButton} onPress={() => router.back()}><Ionicons name="chevron-back" size={28} color={sweirkiTheme.colors.inkDeep} /></Pressable>
+          <View style={styles.circleButtonSpacer} />
           <View style={styles.headerCenter}><Text style={styles.headerKicker}>SWEIRKI SEASON</Text><Text style={styles.headerTitle}>Season Pass</Text></View>
           <Pressable style={styles.circleButton} onPress={() => router.push("/shop" as any)}><Ionicons name="wallet" size={22} color={sweirkiTheme.colors.cyanDeep} /></Pressable>
         </View>
@@ -119,11 +121,12 @@ export default function SeasonPassScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  content: { padding: 18, paddingTop: 58, paddingBottom: 36 },
+  content: { padding: 18, paddingTop: 59, paddingBottom: 36 },
   headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 },
   headerCenter: { alignItems: "center", flex: 1 },
   headerKicker: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 9, letterSpacing: 2.5, color: sweirkiTheme.colors.cyanDeep, textTransform: "uppercase", marginBottom: 2 },
   headerTitle: { fontFamily: sweirkiTheme.fonts.bold, fontSize: 24, color: sweirkiTheme.colors.inkDeep },
+  circleButtonSpacer: { width: 48, height: 48 },
   circleButton: { width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.92)", borderWidth: 1, borderColor: sweirkiTheme.colors.borderCyanStrong, ...sweirkiTheme.shadows.glassCard },
 
   heroCard: { borderRadius: 30, padding: 20, marginBottom: 12, backgroundColor: "rgba(255,255,255,0.95)", borderWidth: 1, borderColor: sweirkiTheme.colors.borderCyanStrong, overflow: "hidden", ...sweirkiTheme.shadows.hero },

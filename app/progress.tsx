@@ -26,6 +26,8 @@ import {
   sweirkiTheme,
 } from "./theme/sweirkiTheme";
 
+import AppBackButton from "./components/AppBackButton";
+
 type SummaryType = {
   totalGames: number;
   winRate: number | string;
@@ -178,11 +180,10 @@ export default function ProgressScreen() {
   return (
     <ImageBackground source={sweirkiTheme.assets.homeBackground} style={styles.background} resizeMode="cover">
       <View style={styles.overlay} />
+      <AppBackButton />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.topBar}>
-          <Pressable style={styles.backButton} onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={24} color={sweirkiColors.inkStrong} />
-          </Pressable>
+          <View style={styles.backSpacer} />
           <Text style={styles.screenEyebrow}>PLAYER JOURNEY</Text>
         </View>
 
@@ -354,7 +355,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 20,
-    paddingTop: 48,
+    paddingTop: 59,
     paddingBottom: 34,
   },
   topBar: {
@@ -363,6 +364,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 12,
   },
+  backSpacer: { width: 44, height: 44 },
   backButton: {
     width: 44,
     height: 44,

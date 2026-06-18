@@ -1,3 +1,4 @@
+
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -16,6 +17,8 @@ import {
   getProgressSummary,
   getModeProgress,
 } from "../src/analytics/playerAnalytics";
+
+import AppBackButton from "./components/AppBackButton";
 
 const backgroundAsset = require("../assets/branding/home-background.png");
 const heroAsset = require("../assets/branding/heroes/stats-hero.png");
@@ -100,6 +103,7 @@ export default function StatsScreen() {
           colors={["rgba(255,255,255,0.78)", "rgba(232,246,255,0.44)", "rgba(255,255,255,0.7)"]}
           style={StyleSheet.absoluteFillObject}
         />
+        <AppBackButton />
         <View style={styles.center}>
           <ActivityIndicator size="large" color="#35B8F4" />
           <Text style={styles.loadingText}>Loading your progress...</Text>
@@ -115,6 +119,7 @@ export default function StatsScreen() {
           colors={["rgba(255,255,255,0.78)", "rgba(232,246,255,0.44)", "rgba(255,255,255,0.7)"]}
           style={StyleSheet.absoluteFillObject}
         />
+        <AppBackButton />
         <View style={styles.center}>
           <Image source={emptyAsset} style={styles.emptyIcon} resizeMode="contain" />
           <Text style={styles.emptyTitle}>No stats yet</Text>
@@ -130,6 +135,7 @@ export default function StatsScreen() {
         colors={["rgba(255,255,255,0.74)", "rgba(232,246,255,0.38)", "rgba(255,255,255,0.68)"]}
         style={StyleSheet.absoluteFillObject}
       />
+      <AppBackButton />
 
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.heroCard}>
@@ -277,7 +283,7 @@ const styles = StyleSheet.create({
 
   container: {
     paddingHorizontal: 18,
-    paddingTop: 54,
+    paddingTop: 59,
     paddingBottom: 34,
   },
 

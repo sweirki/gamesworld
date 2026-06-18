@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     alignItems: "center",
-    paddingTop: 48,
+    paddingTop: 59,
     paddingBottom: 34,
   },
   shell: {

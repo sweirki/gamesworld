@@ -14,6 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { auth, db } from "../firebase";
 import { sweirkiTheme } from "./theme/sweirkiTheme";
+import AppBackButton from "./components/AppBackButton";
 
 /* ================= TYPES ================= */
 
@@ -272,6 +273,7 @@ export default function HistoryScreen() {
   if (loading) {
     return (
       <ImageBackground source={bgAsset} style={styles.bg} resizeMode="cover">
+        <AppBackButton />
         <View style={styles.center}>
           <ActivityIndicator size="large" color={C.cyanStrong} />
           <Text style={styles.loadingText}>Loading history...</Text>
@@ -282,6 +284,7 @@ export default function HistoryScreen() {
 
   return (
     <ImageBackground source={bgAsset} style={styles.bg} resizeMode="cover">
+      <AppBackButton />
       <FlatList
         data={history}
         keyExtractor={(item) => item.id}
@@ -425,7 +428,7 @@ const styles = StyleSheet.create({
 
   container: {
     paddingHorizontal: T.layout.screenPaddingX,
-    paddingTop: 70,
+    paddingTop: 59,
     paddingBottom: T.layout.screenPaddingBottom,
   },
 

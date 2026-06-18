@@ -36,6 +36,7 @@ import {
 import RequireAuth from "./RequireAuth";
 import { auth, db } from "../firebase";
 import { useRevenueCat } from "../src/hooks/useRevenueCat";
+import AppBackButton from "./components/AppBackButton";
 
 const bg = require("../assets/branding/home-background.png");
 const accountIcon = require("../assets/branding/settings/account-shield.png");
@@ -181,11 +182,10 @@ function AccountInner() {
 
   return (
     <ImageBackground source={bg} style={styles.bg} resizeMode="cover">
+      <AppBackButton />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.headerRow}>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Text style={styles.backText}>‹</Text>
-          </TouchableOpacity>
+          <View style={styles.headerSpacer} />
           <View style={styles.headerCenter}>
             <Text style={styles.kicker}>SECURE PROFILE</Text>
             <Text style={styles.screenTitle}>Manage Account</Text>
@@ -369,7 +369,7 @@ export default function AccountScreen() {
 
 const styles = StyleSheet.create({
   bg: { flex: 1, backgroundColor: "#EAF6FF" },
-  scroll: { paddingTop: 54, paddingHorizontal: 20, paddingBottom: 32, gap: 12 },
+  scroll: { paddingTop: 59, paddingHorizontal: 20, paddingBottom: 32, gap: 12 },
   headerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   backButton: { width: 44, height: 44, borderRadius: 22, backgroundColor: "rgba(255,255,255,0.9)", borderWidth: 1, borderColor: "rgba(149,205,237,0.46)", alignItems: "center", justifyContent: "center" },
   backText: { color: "#14385F", fontSize: 30, fontWeight: "900", lineHeight: 36, marginTop: -3 },

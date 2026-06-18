@@ -18,6 +18,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
+import AppBackButton from "./components/AppBackButton";
 
 const bg = require("../assets/branding/home-background.png");
 const settingsHero = require("../assets/branding/settings/settings-hero.png");
@@ -85,14 +86,13 @@ export default function SettingsScreen() {
 
   return (
     <ImageBackground source={bg} style={styles.bg} resizeMode="cover">
+      <AppBackButton />
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.headerRow}>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Text style={styles.backText}>‹</Text>
-          </TouchableOpacity>
+          <View style={styles.headerSpacer} />
           <Text style={styles.screenTitle}>Settings</Text>
           <View style={styles.headerSpacer} />
         </View>
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
   },
   scroll: {
     alignItems: "center",
-    paddingTop: 62,
+    paddingTop: 59,
     paddingBottom: 44,
     paddingHorizontal: 18,
   },

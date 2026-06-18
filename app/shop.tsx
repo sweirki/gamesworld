@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import Purchases from "react-native-purchases";
 import { sweirkiTheme } from "./theme/sweirkiTheme";
+import AppBackButton from "./components/AppBackButton";
 import { useRevenueCat } from "../src/hooks/useRevenueCat";
 import { ECONOMY_PRODUCT_LIST, ECONOMY_PRODUCTS, EconomyBalance, formatCost, getEconomyBalance, grantDailyPremiumEconomyBonus, grantPurchasedProduct } from "../src/economy/economyEngine";
 
@@ -86,9 +87,10 @@ export default function ShopScreen() {
 
   return (
     <ImageBackground source={backgroundImage} style={styles.screen} resizeMode="cover">
+      <AppBackButton />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         <View style={styles.headerRow}>
-          <Pressable style={styles.circleButton} onPress={() => router.back()}><Ionicons name="chevron-back" size={28} color={sweirkiTheme.colors.inkDeep} /></Pressable>
+          <View style={styles.circleButtonSpacer} />
           <View style={styles.headerCenter}><Text style={styles.headerKicker}>SWEIRKI ECONOMY</Text><Text style={styles.headerTitle}>Wallet</Text></View>
           <Pressable style={styles.circleButton} onPress={() => router.push("/rewardCenter" as any)}><Ionicons name="play-circle" size={22} color={sweirkiTheme.colors.cyanDeep} /></Pressable>
         </View>
@@ -192,7 +194,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 18,
-    paddingTop: 58,
+    paddingTop: 59,
     paddingBottom: 36,
   },
   headerRow: {
@@ -213,6 +215,7 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginBottom: 2,
   },
+  circleButtonSpacer: { width: 48, height: 48 },
   circleButton: {
     width: 48,
     height: 48,

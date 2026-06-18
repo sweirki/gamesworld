@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import Purchases from "react-native-purchases";
 import { useRevenueCat } from "../src/hooks/useRevenueCat";
+import AppBackButton from "./components/AppBackButton";
 
 const backgroundImage = require("../assets/branding/home-background.png");
 const premiumArtwork = require("../assets/branding/profile/account-shield.png");
@@ -118,14 +119,13 @@ export default function UpgradeScreen() {
 
   return (
     <ImageBackground source={backgroundImage} style={styles.screen} resizeMode="cover">
+      <AppBackButton />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.headerRow}>
-          <Pressable style={styles.circleButton} onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={30} color={COLORS.ink} />
-          </Pressable>
+          <View style={styles.circleButtonGhost} />
           <Text style={styles.headerTitle}>Premium</Text>
           <View style={styles.circleButtonGhost} />
         </View>
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingTop: 48,
+    paddingTop: 59,
     paddingBottom: 34,
   },
   center: {

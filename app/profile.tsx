@@ -20,6 +20,7 @@ import { collection, doc, getDoc, getDocs, setDoc, writeBatch } from "firebase/f
 import RequireAuth from "./RequireAuth";
 import { auth, db } from "../firebase";
 import { useRevenueCat } from "../src/hooks/useRevenueCat";
+import AppBackButton from "./components/AppBackButton";
 import { ACHIEVEMENTS, useAchievementsStore } from "./stores/useAchievementsStore";
 import { getLadderRank, getSeasonRank } from "../utils/ladder/scoreEngine";
 
@@ -165,9 +166,10 @@ function ProfileInner() {
 
   return (
     <ImageBackground source={require("../assets/branding/home-background.png")} style={styles.bg} resizeMode="cover">
+      <AppBackButton />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Pressable style={styles.circleButton} onPress={() => router.back()}><Ionicons name="chevron-back" size={28} color="#153D66" /></Pressable>
+          <View style={styles.circleButtonSpacer} />
           <View style={styles.headerText}><Text style={styles.kicker}>PLAYER IDENTITY</Text><Text style={styles.title}>Your Profile</Text></View>
           <Pressable style={styles.circleButton} onPress={() => router.push("/settings")}><Ionicons name="settings-outline" size={24} color="#153D66" /></Pressable>
         </View>
@@ -259,9 +261,10 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   bg: { flex: 1, backgroundColor: "#EAF6FF" },
-  scroll: { paddingTop: 48, paddingHorizontal: 20, paddingBottom: 24, gap: 10 },
+  scroll: { paddingTop: 59, paddingHorizontal: 20, paddingBottom: 24, gap: 10 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 2 },
   headerText: { flex: 1, marginHorizontal: 18 },
+  circleButtonSpacer: { width: 52, height: 52 },
   circleButton: { width: 52, height: 52, borderRadius: 22, backgroundColor: "rgba(255,255,255,0.9)", borderWidth: 1, borderColor: "rgba(123,204,245,0.42)", alignItems: "center", justifyContent: "center", shadowColor: "#58BCEB", shadowOpacity: 0.14, shadowRadius: 10, shadowOffset: { width: 0, height: 6 }, elevation: 3 },
   kicker: { fontFamily: "BalooBold", fontSize: 14, letterSpacing: 2, color: "#168FDB" },
   title: { fontFamily: "BalooBold", fontSize: 26, lineHeight: 38, color: "#153D66" },
